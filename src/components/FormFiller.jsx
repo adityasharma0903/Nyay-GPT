@@ -25,7 +25,7 @@ const FormFiller = ({ language }) => {
       </button>
       {pdfUrl && (
         <a href={pdfUrl} download="form.pdf" className="download-link">
-          Download PDF
+          Download pdf
         </a>
       )}
     </div>
