@@ -1,11 +1,11 @@
 import React from "react";
 
 const LANGUAGES = [
-  { code: "hi", label: "हिंदी" },
-  { code: "en", label: "English" },
-  { code: "ta", label: "தமிழ்" },
-  { code: "bn", label: "বাংলা" },
-  { code: "mr", label: "मराठी" },
+  // { code: "hi", label: "हिंदी" },
+  // { code: "en", label: "English" },
+  // { code: "ta", label: "தமிழ்" },
+  // { code: "bn", label: "বাংলা" },
+  // { code: "mr", label: "मराठी" },
 ];
 
 const LanguageToggle = ({ language, setLanguage }) => (

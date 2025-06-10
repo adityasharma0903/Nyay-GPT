@@ -6,7 +6,7 @@ export const getTranscription = (language = "hi") =>
 
     if (!SpeechRecognition) {
       alert("Speech Recognition not supported in your browser.")
-      return resolve("") // fallback
+      return resolve("")
     }
 
     const recognition = new SpeechRecognition()
