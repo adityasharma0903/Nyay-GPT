@@ -15,12 +15,17 @@ const Result = ({ language }) => {
   const [audioUrl, setAudioUrl] = useState("");
   const navigate = useNavigate();
 
+  // Async useEffect for fetching advice
   useEffect(() => {
-    if (transcript) {
-      setAdvice(getLegalAdvice(transcript, language));
-      setTimeline(getTimeline(transcript, language));
-      setAudioUrl(""); // Reset audio
-    }
+    const fetchAdvice = async () => {
+      if (transcript) {
+        const legalAdvice = await getLegalAdvice(transcript, language);
+        setAdvice(legalAdvice);
+        setTimeline(getTimeline(transcript, language));
+        setAudioUrl(""); // Reset audio
+      }
+    };
+    fetchAdvice();
   }, [transcript, language]);
 
   // Automatically speak the advice when it changes and is not empty
