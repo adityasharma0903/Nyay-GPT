@@ -5,6 +5,16 @@ import { getTranscription, textToSpeech } from "../utils/voice"
 import MicButton from "./MicButton"
 import LanguageToggle from "./LanguageToggle"
 
+// Utility to get or create a persistent session ID
+function getOrCreateSessionId() {
+  let id = localStorage.getItem("nyay_session_id")
+  if (!id) {
+    id = "sess-" + Date.now() + "-" + Math.random().toString(36).slice(2)
+    localStorage.setItem("nyay_session_id", id)
+  }
+  return id
+}
+
 const Home = ({ language, setLanguage }) => {
   const [isConversationActive, setIsConversationActive] = useState(false)
   const [isListening, setIsListening] = useState(false)
@@ -14,6 +24,9 @@ const Home = ({ language, setLanguage }) => {
   const [messages, setMessages] = useState([])
   const [currentTranscript, setCurrentTranscript] = useState("")
   const [isProcessingAPI, setIsProcessingAPI] = useState(false)
+
+  // Session ID: only generated once per user session
+  const sessionIdRef = useRef(getOrCreateSessionId())
 
   const messagesEndRef = useRef(null)
 
@@ -25,6 +38,7 @@ const Home = ({ language, setLanguage }) => {
     scrollToBottom()
   }, [messages])
 
+  // Add message to UI conversation (NOT directly for backend history)
   const addMessage = (text, sender) => {
     setMessages((prev) => [
       ...prev,
@@ -37,6 +51,33 @@ const Home = ({ language, setLanguage }) => {
     ])
   }
 
+  // Build history with an optional pending user message
+  const buildHistoryWithPending = (pendingUserText = null) => {
+    let baseHistory = messages
+      .filter(msg => msg.sender === "user" || msg.sender === "ai")
+      .map(msg => ({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.text
+      }))
+    if (pendingUserText) {
+      baseHistory.push({ role: "user", content: pendingUserText })
+    }
+    return baseHistory.slice(-8)
+  }
+
+  // Used to build the OpenAI-style history for API
+  const getOpenAIHistory = () => {
+    // Only send the last 8 exchanges (user/ai) for context
+    return messages
+      .filter(msg => msg.sender === "user" || msg.sender === "ai")
+      .map(msg => ({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.text
+      }))
+      .slice(-8)
+  }
+
+  // Speak text, and block until speaking stops
   const speakText = async (text, lang = selectedLanguage || language) => {
     setIsSpeaking(true)
     try {
@@ -58,9 +99,13 @@ const Home = ({ language, setLanguage }) => {
     }
   }
 
-  const getLegalAdvice = async (question, lang) => {
+  // Get legal advice from backend, sending sessionId and history
+  // Accepts an optional historyOverride for pending user input
+  const getLegalAdvice = async (question, lang, historyOverride = null) => {
     setIsProcessingAPI(true)
-    console.log("🔥 Calling Groq API with:", { question, language: lang })
+    const session_id = sessionIdRef.current
+    const history = historyOverride ?? getOpenAIHistory()
+    console.log("🔥 Calling Groq API with:", { question, language: lang, session_id, history })
 
     try {
       const response = await fetch("http://localhost:8000/legal_advice", {
@@ -72,6 +117,8 @@ const Home = ({ language, setLanguage }) => {
         body: JSON.stringify({
           question: question,
           language: lang,
+          session_id,
+          history,
         }),
       })
 
@@ -83,6 +130,12 @@ const Home = ({ language, setLanguage }) => {
 
       const data = await response.json()
       console.log("✅ API Response data:", data)
+
+      // If the backend returns a new session_id, update localStorage (optional)
+      if (data.session_id && data.session_id !== session_id) {
+        sessionIdRef.current = data.session_id
+        localStorage.setItem("nyay_session_id", data.session_id)
+      }
 
       if (data.advice) {
         return data.advice
@@ -97,6 +150,7 @@ const Home = ({ language, setLanguage }) => {
     }
   }
 
+  // Start conversation (reset all state, send greeting, etc.)
   const startConversation = async () => {
     setIsConversationActive(true)
     setConversationStage("greeting")
@@ -110,8 +164,12 @@ const Home = ({ language, setLanguage }) => {
     setTimeout(() => startListening(), 1000)
   }
 
+  // Start listening (mic) - cancel AI speech if speaking
   const startListening = async () => {
-    if (isListening || isSpeaking) return
+    // Interrupt AI if it's speaking!
+    window.speechSynthesis.cancel()
+    setIsSpeaking(false)
+    if (isListening) return
 
     setIsListening(true)
     try {
@@ -130,6 +188,7 @@ const Home = ({ language, setLanguage }) => {
     }
   }
 
+  // Handle user's input at any stage
   const handleUserInput = async (input) => {
     console.log("🎯 Handling input:", input, "Stage:", conversationStage)
 
@@ -177,9 +236,10 @@ const Home = ({ language, setLanguage }) => {
         addMessage(acknowledgment, "ai")
         await speakText(acknowledgment, detectedLang)
 
-        // Now process the legal question
+        // Now process the legal question, and send context!
         console.log("🚀 Processing legal question:", input)
-        const advice = await getLegalAdvice(input, detectedLang)
+        // add user message above, so buildHistoryWithPending(input) includes it
+        const advice = await getLegalAdvice(input, detectedLang, buildHistoryWithPending(input))
         addMessage(advice, "ai")
         await speakText(advice, detectedLang)
         setTimeout(() => startListening(), 1000)
@@ -199,8 +259,8 @@ const Home = ({ language, setLanguage }) => {
       // Show processing message
       addMessage("आपके सवाल का जवाब ढूंढ रहा हूं...", "ai")
 
-      // Get legal advice from API
-      const advice = await getLegalAdvice(input, selectedLanguage)
+      // Get legal advice from API with context (including pending user input)
+      const advice = await getLegalAdvice(input, selectedLanguage, buildHistoryWithPending(input))
 
       // Remove processing message and add actual advice
       setMessages((prev) => prev.slice(0, -1))
@@ -226,13 +286,17 @@ const Home = ({ language, setLanguage }) => {
     addMessage(endMessage, "ai")
   }
 
+  // Mic Button logic: Always interrupt AI speech and (re)start listening!
   const handleMicClick = () => {
+    // Interrupt AI speech always
+    window.speechSynthesis.cancel()
+    setIsSpeaking(false)
+    setIsListening(false) // stop if already listening
+
     if (!isConversationActive) {
       startConversation()
-    } else if (isListening) {
-      setIsListening(false)
     } else {
-      startListening()
+      startListening()      // always (re)start listening!
     }
   }
 
