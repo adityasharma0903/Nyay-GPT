@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "./AppUI.css";
 
 const languages = {
   hindi:     { code: "hi-IN", greeting: "नमस्ते! मैं न्याय GPT हूँ। आप मुझसे कोई भी कानूनी सवाल पूछ सकते हैं।" },
@@ -14,153 +15,163 @@ const languages = {
   odia:      { code: "or-IN", greeting: "ନମସ୍କାର! ମୁଁ ନ୍ୟାୟ GPT। ଆପଣ ମୋତେ କୌଣସି ଆଇନିକ ପ୍ରଶ୍ନ ପଚାରିପାରିବେ।" },
 };
 
-const App = () => {
+export default function App() {
   const recognitionRef = useRef(null);
-  const speakingRef = useRef(false);
-  const isFirstRun = useRef(true);
+  const audioRef = useRef(null);
 
-  const [selectedLang, setSelectedLang] = useState("hindi");
-  const [isListening, setIsListening] = useState(false);
-  const [conversation, setConversation] = useState([]);
+  const [connected, setConnected] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const timerRef = useRef(null);
 
+  // Timer logic
   useEffect(() => {
+    if (connected) {
+      timerRef.current = setInterval(() => setTimer((t) => t + 1), 1000);
+    } else {
+      setTimer(0);
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [connected]);
+
+  // Speech recognition logic
+  useEffect(() => {
+    if (!connected) return;
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = languages[selectedLang].code;
-    recognition.continuous = false;
+    recognition.lang = languages.hindi.code;
+    recognition.continuous = true;
     recognition.interimResults = false;
-    recognitionRef.current = recognition;
 
     recognition.onresult = async (event) => {
-      const userSpeech = event.results[0][0].transcript;
-      const newHistory = [...conversation, { role: "user", content: userSpeech }];
-      setConversation(newHistory);
+      if (muted) return;
+      setSpeaking(true);
 
-      const res = await fetch("http://localhost:3000/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ history: newHistory, language: selectedLang }),
-      });
+      const userSpeech = event.results[event.results.length - 1][0].transcript;
 
-      const data = await res.json();
-      setConversation([...newHistory, { role: "ai", content: data.reply }]);
+      // Backend API call for AI response
+      try {
+        const res = await fetch("http://localhost:3000/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user: userSpeech, language: "hindi" }),
+        });
+        const data = await res.json();
 
-      // Speak AI reply
-      speakText(data.reply);
-    };
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => {
-      setIsListening(false);
-      if (!speakingRef.current) recognition.start();
-    };
-
-    setTimeout(() => {
-      if (isFirstRun.current) {
-        speakText(languages[selectedLang].greeting);
-        isFirstRun.current = false;
+        // AI reply as TTS
+        await speakText(data.reply);
+      } catch (err) {
+        setSpeaking(false);
       }
-    }, 500);
-  }, [conversation, selectedLang]);
+    };
 
+    recognition.onend = () => {
+      // Auto-restart if still connected and not muted
+      if (connected && !muted) recognition.start();
+    };
+
+    recognitionRef.current = recognition;
+    if (!muted) recognition.start();
+
+    return () => recognition.stop();
+    // eslint-disable-next-line
+  }, [connected, muted]);
+
+  // Mute/unmute logic
+  const handleMute = () => {
+    setMuted((m) => !m);
+    if (!muted) recognitionRef.current?.stop();
+    else recognitionRef.current?.start();
+  };
+
+  // End chat logic
+  const handleEnd = () => {
+    setConnected(false);
+    setMuted(false);
+    recognitionRef.current?.stop();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+  };
+
+  // Greet and TTS logic
   const speakText = async (text) => {
-    speakingRef.current = true;
-
+    setSpeaking(true);
+    recognitionRef.current?.stop();
     try {
       const res = await fetch("http://localhost:3000/speak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, language: selectedLang }),
+        body: JSON.stringify({ text, language: "hindi" }),
       });
-
       const blob = await res.blob();
       const audioUrl = URL.createObjectURL(blob);
       const audio = new Audio(audioUrl);
-
+      audioRef.current = audio;
       audio.onended = () => {
-        speakingRef.current = false;
-        recognitionRef.current?.start();
+        setSpeaking(false);
+        if (connected && !muted) recognitionRef.current?.start();
       };
-
       audio.play();
-    } catch (err) {
-      console.error("TTS playback error:", err);
-      speakingRef.current = false;
+    } catch {
+      setSpeaking(false);
+      if (connected && !muted) recognitionRef.current?.start();
     }
   };
 
-const start = () => {
-  window.speechSynthesis.cancel();
-  recognitionRef.current?.start();
+  // Connect button
+  const handleConnect = () => {
+    setConnected(true);
+    setMuted(false);
+    speakText(languages.hindi.greeting);
+  };
 
-  // 👇 Unlock audio playback by playing a silent audio first
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const source = audioCtx.createBufferSource();
-  source.buffer = audioCtx.createBuffer(1, 1, 22050);
-  source.connect(audioCtx.destination);
-  source.start();
-};
-
-
-const stop = () => {
-  recognitionRef.current?.stop();
-  window.speechSynthesis.cancel();
-
-  // 👇 Stop any playing audio
-  const audios = document.getElementsByTagName("audio");
-  for (let audio of audios) {
-    audio.pause();
-    audio.src = "";
-  }
-
-  speakingRef.current = false;
-};
-
+  // Timer formatting
+  const formatTime = (sec) =>
+    `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`;
 
   return (
-    <div style={styles.container}>
-      <h1>🧠 न्याय GPT</h1>
-
-      <label htmlFor="lang" style={{ fontSize: "18px" }}>🌐 भाषा चुनें:</label>
-      <select
-        id="lang"
-        value={selectedLang}
-        onChange={(e) => setSelectedLang(e.target.value)}
-        style={styles.dropdown}
-      >
-        {Object.keys(languages).map((langKey) => (
-          <option key={langKey} value={langKey}>
-            {languages[langKey].greeting.split("!")[0]}
-          </option>
-        ))}
-      </select>
-
-      <div>
-        <button onClick={start} style={styles.button}>🎤 Start</button>
-        <button onClick={stop} style={{ ...styles.button, backgroundColor: "#ff4d4d" }}>🛑 Stop</button>
+    <div className="ai-agent-ui-container premium-bg">
+      <div className="ai-status-bar">
+        <span>{formatTime(timer)} • Voice</span>
+        <div className="ai-status-icons">
+          <span className="ai-status-icon" />
+          <span className="ai-status-icon" />
+          <span className="ai-status-battery" />
+        </div>
       </div>
+      <div className="ai-avatar-ui-premium">
+        <span>AI</span>
+      </div>
+      <div className="ai-agent-title-premium">Arvya Legal Agent</div>
+      <div className="ai-agent-subtitle-premium">{connected ? "Connected" : "Tap to connect"}</div>
+      {connected && (
+        <div className={`ai-agent-waves${speaking && !muted ? " speaking" : ""}`}>
+          {[...Array(10)].map((_, i) => (
+            <div className="ai-wave-bar" key={i} />
+          ))}
+        </div>
+      )}
+      {!connected ? (
+        <button className="ai-premium-call-btn" onClick={handleConnect}>
+          <span className="ai-call-icon" />
+        </button>
+      ) : (
+        <div className="ai-agent-btn-row-premium">
+          <button className={`ai-mute-btn${muted ? " muted" : ""}`} onClick={handleMute}>
+            <span className={`ai-mic-icon${muted ? " off" : ""}`} />
+            <div>Mute</div>
+          </button>
+          <button className="ai-end-btn" onClick={handleEnd}>
+            <span className="ai-end-icon" />
+            <div>End</div>
+          </button>
+        </div>
+      )}
     </div>
   );
-};
-
-const styles = {
-  container: { textAlign: "center", marginTop: "40px", fontFamily: "Arial" },
-  button: {
-    padding: "12px 24px",
-    margin: "10px",
-    fontSize: "16px",
-    backgroundColor: "#4CAF50",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
-  dropdown: {
-    margin: "10px",
-    padding: "8px",
-    fontSize: "16px",
-    borderRadius: "6px",
-  },
-};
-
-export default App;
+}

@@ -1,7 +1,6 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Button, Container, Badge } from 'react-bootstrap';
+import { useState, useRef, useCallback } from 'react';
 import { FaMicrophone, FaMicrophoneSlash, FaPhone, FaPhoneSlash } from 'react-icons/fa';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import './VoiceAgentUI.css';
 
 function useSpeechRecognition() {
   const recognitionRef = useRef(null);
@@ -100,7 +99,7 @@ export default function VoiceAssistant() {
       setState(prev => ({ ...prev, isSpeaking: true }));
       updateStatus('बोल रहा हूँ...', 'speaking');
 
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new window.SpeechSynthesisUtterance(text);
       utterance.lang = {
         hindi: 'hi-IN',
         tamil: 'ta-IN',
@@ -189,20 +188,50 @@ export default function VoiceAssistant() {
   }, [stopListening, stopTimer, updateStatus]);
 
   if (!isSupported) {
-    return <Container className="p-4"><h4 className="text-danger">⚠ Speech Recognition not supported in your browser</h4></Container>;
+    return (
+      <div className="ai-agent-ui-container">
+        <h4 style={{ color: "#e53e3e", textAlign: "center", marginTop: "120px" }}>
+          ⚠ Speech Recognition not supported in your browser
+        </h4>
+      </div>
+    );
   }
 
   return (
-    <Container className="p-4">
-      <h2>🧑‍⚖️ न्याय GPT</h2>
-      <p>Status: <Badge bg={getStatusVariant()}>{state.status}</Badge></p>
-      <p>Time: {formatTime(state.sessionTimer)}</p>
-      <Button onClick={startSession} variant={state.isConnected ? "danger" : "success"}>
-        {state.isConnected ? <FaPhoneSlash /> : <FaPhone />} {state.isConnected ? "End Session" : "Start Session"}
-      </Button>{' '}
-      <Button onClick={() => setState(p => ({ ...p, isMuted: !p.isMuted }))} variant="secondary">
-        {state.isMuted ? <FaMicrophoneSlash /> : <FaMicrophone />} Mute
-      </Button>
-    </Container>
+    <div className="ai-agent-ui-container">
+      <div className="status-bar-ui">
+        <span>2:04</span>
+        <div className="status-icons">
+          <span className="status-icon" />
+          <span className="status-icon" />
+          <span className="status-battery" />
+        </div>
+      </div>
+      <div className="ai-avatar-ui">
+        <span>AI</span>
+      </div>
+      <div className="ai-agent-title">CS AI Agent</div>
+      <div className="ai-agent-subtitle">Voice-enabled AI Agent</div>
+      <div style={{ marginBottom: 18, color: "#bdbdbd", fontSize: 15 }}>
+        Status: <span className={`ai-agent-badge ai-agent-badge-${getStatusVariant()}`}>{state.status}</span>
+        <span style={{ marginLeft: 10 }}>Time: {formatTime(state.sessionTimer)}</span>
+      </div>
+      <div className="ai-agent-btn-row">
+        <button
+          className="ai-agent-btn mic"
+          onClick={() => setState(p => ({ ...p, isMuted: !p.isMuted }))}
+          title={state.isMuted ? "Unmute" : "Mute"}
+        >
+          {state.isMuted ? <FaMicrophoneSlash /> : <FaMicrophone />}
+        </button>
+        <button
+          className="ai-agent-btn call"
+          onClick={state.isConnected ? endSession : startSession}
+          title={state.isConnected ? "End Session" : "Start Session"}
+        >
+          {state.isConnected ? <FaPhoneSlash /> : <FaPhone />}
+        </button>
+      </div>
+    </div>
   );
 }
