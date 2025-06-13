@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 /BackEnd/.env
-/BackEnd/google-credential.json
+/BackEnd/google-credentials.json
