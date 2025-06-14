@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 
 // Route: Ask NyayGPT
 app.post("/ask", async (req, res) => {
-  const { history } = req.body;
+  const { history, language } = req.body;
 
   if (!history || !Array.isArray(history)) {
     return res.status(400).json({ reply: "Invalid input." });
@@ -40,8 +40,27 @@ app.post("/ask", async (req, res) => {
     // Combine conversation history
     const formatted = history.map((msg) => `${msg.role === "user" ? "Q" : "A"}: ${msg.content}`).join("\n");
 
+    // Choose prompt based on language
+    const systemPrompts = {
+      hindi: "तुम एक भारत का कानूनी सहायक न्याय GPT हो, जवाब हिंदी में दो।",
+      english: "You are Nyay GPT, a legal assistant for India. Reply in English.",
+      punjabi: "ਤੁਸੀਂ ਨਿਆਂ GPT ਹੋ, ਭਾਰਤ ਲਈ ਕਾਨੂੰਨੀ ਸਹਾਇਕ। ਜਵਾਬ ਪੰਜਾਬੀ ਵਿੱਚ ਦਿਓ।",
+      tamil: "நீங்கள் நியாய GPT, இந்தியாவின் சட்ட உதவியாளர். பதில் தமிழில் கொடு.",
+      marathi: "तुम्ही न्याय GPT आहात, भारतासाठी कायदेशीर सहाय्यक. उत्तर मराठीत द्या.",
+      telugu: "మీరు న్యాయ GPT, భారతదేశానికి న్యాయ సహాయకుడు. సమాధానం తెలుగు లో ఇవ్వండి.",
+      bengali: "আপনি ন্যায় GPT, ভারতের জন্য আইনি সহকারী। উত্তর বাংলায় দিন।",
+      kannada: "ನೀವು ನ್ಯಾಯ GPT, ಭಾರತದ ಕಾನೂನು ಸಹಾಯಕ. ಉತ್ತರವನ್ನು ಕನ್ನಡದಲ್ಲಿ ನೀಡಿರಿ.",
+      malayalam: "നിങ്ങൾ ന്യായ GPT ആണ്, ഇന്ത്യയിലെ നിയമ സഹായി. ഉത്തരം മലയാളത്തിൽ നൽകുക.",
+      gujarati: "તમે ન્યાય GPT છો, ભારત માટેનો કાનૂની સહાયક. જવાબ ગુજરાતી માં આપો.",
+      urdu: "آپ نیاۓ GPT ہیں، بھارت کے لیے قانونی معاون۔ جواب اردو میں دیں۔",
+      odia: "ଆପଣ ନ୍ୟାୟ GPT, ଭାରତ ପାଇଁ ଆଇନି ସହାୟକ। ଉତ୍ତର ଓଡ଼ିଆରେ ଦିଅ।",
+    };
+    // Default to Hindi if not provided or invalid
+    const lang = (language || "hindi").toLowerCase();
+    const sysPrompt = systemPrompts[lang] || systemPrompts["hindi"];
+
     const prompt = ChatPromptTemplate.fromTemplate(
-      "तुम एक भारत का कानूनी सहायक न्याय GPT हो, जवाब हिंदी में दो।\n" + formatted + "\nA:"
+      sysPrompt + "\n" + formatted + "\nA:"
     );
 
     const chain = prompt.pipe(model);
@@ -54,7 +73,6 @@ app.post("/ask", async (req, res) => {
   }
 });
 
-// Route: Text to Speech
 // Route: Text to Speech with WaveNet and SSML support
 app.post("/speak", async (req, res) => {
   const { text, language } = req.body;

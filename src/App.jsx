@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import "./AppUI.css";
 
+// 1. Supported Languages & Greetings
 const languages = {
+  english:   { code: "en-IN", greeting: "You have reached legal assistance. Please ask your legal question in English." },
   hindi:     { code: "hi-IN", greeting: "नमस्ते! मैं न्याय GPT हूँ। आप मुझसे कोई भी कानूनी सवाल पूछ सकते हैं।" },
   punjabi:   { code: "pa-IN", greeting: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਨਿਆਂ GPT ਹਾਂ। ਤੁਸੀਂ ਮੈਨੂੰ ਕੋਈ ਵੀ ਕਾਨੂੰਨੀ ਸਵਾਲ ਪੁੱਛ ਸਕਦੇ ਹੋ।" },
   tamil:     { code: "ta-IN", greeting: "வணக்கம்! நான் நியாய GPT. நீங்கள் என்னிடம் எந்தவொரு சட்டக் கேள்வியும் கேட்கலாம்." },
@@ -15,14 +17,37 @@ const languages = {
   odia:      { code: "or-IN", greeting: "ନମସ୍କାର! ମୁଁ ନ୍ୟାୟ GPT। ଆପଣ ମୋତେ କୌଣସି ଆଇନିକ ପ୍ରଶ୍ନ ପଚାରିପାରିବେ।" },
 };
 
+// 2. Keywords for Speech Detection in Multiple Scripts (Add as many variants as you like)
+const languageKeywords = {
+  english:   ["english", "इंग्लिश", "अंग्रेजी"],
+  hindi:     ["hindi", "हिंदी"],
+  punjabi:   ["punjabi", "ਪੰਜਾਬੀ", "पंजाबी"],
+  tamil:     ["tamil", "तमिल"],
+  marathi:   ["marathi", "मराठी"],
+  telugu:    ["telugu", "तेलुगू"],
+  bengali:   ["bengali", "বেঙ্গলি", "बंगाली"],
+  kannada:   ["kannada", "ಕನ್ನಡ", "कन्नड़", "कन्नड"],
+  malayalam: ["malayalam", "മലയാളം", "मलयालम"],
+  gujarati:  ["gujarati", "ગુજરાતી", "गुजराती"],
+  urdu:      ["urdu", "اردو", "उर्दू"],
+  odia:      ["odia", "odiya", "ଓଡ଼ିଆ", "ओड़िया"],
+};
+
 export default function App() {
   const recognitionRef = useRef(null);
   const audioRef = useRef(null);
 
   const [connected, setConnected] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [speaking, setSpeaking] = useState(false);
+  const [speaking, setSpeaking] = useState(false); // AI speaking
+  const [userSpeaking, setUserSpeaking] = useState(false); // User speaking (for waveform)
   const [timer, setTimer] = useState(0);
+  const [currentLang, setCurrentLang] = useState("hindi"); // Default: Hindi
+  const [langSelected, setLangSelected] = useState(false);
+  const [recognitionKey, setRecognitionKey] = useState(0); // for force re-creation
+  const [history, setHistory] = useState([]); // To store conversation history
+  const [lastUserUtteranceId, setLastUserUtteranceId] = useState(0); // For interrupt logic
+
   const timerRef = useRef(null);
 
   // Timer logic
@@ -36,53 +61,109 @@ export default function App() {
     return () => clearInterval(timerRef.current);
   }, [connected]);
 
-  // Speech recognition logic
+  // Speech recognition & logic
   useEffect(() => {
     if (!connected) return;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = languages.hindi.code;
+    recognition.lang = languages[currentLang].code;
     recognition.continuous = true;
     recognition.interimResults = false;
 
+    let stoppedByApp = false;
+
     recognition.onresult = async (event) => {
       if (muted) return;
-      setSpeaking(true);
+      setUserSpeaking(true);
+      setTimeout(() => setUserSpeaking(false), 1200);
 
-      const userSpeech = event.results[event.results.length - 1][0].transcript;
+      // Barge-in: Interrupt AI speaking if user starts talking
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+      setSpeaking(false);
+
+      // Track this user utterance so only latest response is played
+      setLastUserUtteranceId(id => id + 1);
+      const utteranceId = lastUserUtteranceId + 1;
+
+      const userSpeech = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
       console.log("🗣️ Detected speech:", userSpeech);
+
+      // --- Language Selection Phase ---
+      if (!langSelected) {
+        let detectedLang = null;
+        Object.keys(languageKeywords).forEach((lang) => {
+          languageKeywords[lang].forEach(keyword => {
+            if (userSpeech.includes(keyword)) {
+              detectedLang = lang;
+            }
+          });
+        });
+        if (detectedLang) {
+          setCurrentLang(detectedLang);
+          setLangSelected(true);
+          setRecognitionKey((k) => k + 1); // re-mount for new lang
+          setHistory([]); // reset history on new language
+          await speakText(languages[detectedLang].greeting, detectedLang);
+          return;
+        } else {
+          await speakText(
+            "कृपया अपनी पसंदीदा भाषा का नाम बताएं। For example: English, Hindi, Tamil, etc.",
+            "hindi"
+          );
+          return;
+        }
+      }
+
+      // --- Normal Conversation Phase ---
+      setSpeaking(true);
+      // Add user utterance to history
+      const newHistory = [...history, { role: "user", content: userSpeech }];
+      setHistory(newHistory);
 
       try {
         const res = await fetch("http://localhost:3000/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            history: [{ role: "user", content: userSpeech }],
+            history: newHistory,
+            language: currentLang,
           }),
         });
 
-        if (!res.ok) {
-          throw new Error(`Server responded with ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
         const data = await res.json();
         console.log("AI Reply:", data.reply);
-        speakText(data.reply);
+
+        // Only speak if this is the latest user request
+        if (utteranceId === lastUserUtteranceId + 1) {
+          // Add AI reply to history
+          setHistory(h => [...h, { role: "assistant", content: data.reply }]);
+          await speakText(data.reply, currentLang);
+        }
       } catch (err) {
         console.error("Fetch error:", err.message);
+        setSpeaking(false);
       }
     };
 
     recognition.onend = () => {
-      if (connected && !muted) recognition.start();
+      if (connected && !muted && !stoppedByApp) recognition.start();
     };
 
     recognitionRef.current = recognition;
-    if (!muted) recognition.start();
+    if (!muted && !speaking) recognition.start();
 
-    return () => recognition.stop();
-  }, [connected, muted]);
+    return () => {
+      stoppedByApp = true;
+      recognition.stop();
+    };
+    // eslint-disable-next-line
+  }, [connected, muted, currentLang, langSelected, recognitionKey, speaking, history, lastUserUtteranceId]);
 
   // Mute/unmute logic
   const handleMute = () => {
@@ -95,6 +176,9 @@ export default function App() {
   const handleEnd = () => {
     setConnected(false);
     setMuted(false);
+    setLangSelected(false);
+    setCurrentLang("hindi"); // reset to Hindi on end
+    setHistory([]); // clear conversation
     recognitionRef.current?.stop();
     if (audioRef.current) {
       audioRef.current.pause();
@@ -102,15 +186,15 @@ export default function App() {
     }
   };
 
-  // Greet and TTS logic
-  const speakText = async (text) => {
+  // Greet and TTS logic with language param
+  const speakText = async (text, langKey = currentLang) => {
     setSpeaking(true);
     recognitionRef.current?.stop();
     try {
       const res = await fetch("http://localhost:3000/speak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, language: "hindi" }),
+        body: JSON.stringify({ text, language: langKey }),
       });
       const blob = await res.blob();
       const audioUrl = URL.createObjectURL(blob);
@@ -121,20 +205,30 @@ export default function App() {
         if (connected && !muted) recognitionRef.current?.start();
       };
       audio.play();
+      // Resume recognition even while TTS is playing (if browser allows)
+      if (connected && !muted && recognitionRef.current) {
+        try { recognitionRef.current.start(); } catch(e) {}
+      }
     } catch {
       setSpeaking(false);
       if (connected && !muted) recognitionRef.current?.start();
     }
   };
 
-  // Connect button
-  const handleConnect = () => {
+  // Connect button: Play language selection prompt
+  const handleConnect = async () => {
     setConnected(true);
     setMuted(false);
-    speakText(languages.hindi.greeting);
+    setLangSelected(false);
+    setCurrentLang("hindi"); // default for recognition
+    setRecognitionKey((k) => k + 1);
+    setHistory([]); // clear conversation
+    await speakText(
+      "कृपया अपनी पसंदीदा भाषा का नाम बताएं। For example: English, Hindi, Tamil, etc.",
+      "hindi"
+    );
   };
 
-  // Timer formatting
   const formatTime = (sec) =>
     `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`;
 
@@ -154,7 +248,7 @@ export default function App() {
       <div className="ai-agent-title-premium">Navya Legal Agent</div>
       <div className="ai-agent-subtitle-premium">{connected ? "Connected" : "Tap to connect"}</div>
       {connected && (
-        <div className={`ai-agent-waves${speaking && !muted ? " speaking" : ""}`}>
+        <div className={`ai-agent-waves${(speaking || userSpeaking) && !muted ? " speaking" : ""}`}>
           {[...Array(10)].map((_, i) => (
             <div className="ai-wave-bar" key={i} />
           ))}

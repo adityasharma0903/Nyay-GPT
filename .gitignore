@@ -26,3 +26,4 @@ dist-ssr
 #env files and credentiaLS;
 
 /BackEnd/.env
+/BackEnd/google-credentials.json
