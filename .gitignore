@@ -23,4 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
+#env files and credentiaLS;
 
+/BackEnd/.env

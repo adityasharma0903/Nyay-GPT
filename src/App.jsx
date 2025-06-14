@@ -51,25 +51,30 @@ export default function App() {
       setSpeaking(true);
 
       const userSpeech = event.results[event.results.length - 1][0].transcript;
+      console.log("🗣️ Detected speech:", userSpeech);
 
-      // Backend API call for AI response
       try {
         const res = await fetch("http://localhost:3000/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user: userSpeech, language: "hindi" }),
+          body: JSON.stringify({
+            history: [{ role: "user", content: userSpeech }],
+          }),
         });
-        const data = await res.json();
 
-        // AI reply as TTS
-        await speakText(data.reply);
+        if (!res.ok) {
+          throw new Error(`Server responded with ${res.status}`);
+        }
+
+        const data = await res.json();
+        console.log("AI Reply:", data.reply);
+        speakText(data.reply);
       } catch (err) {
-        setSpeaking(false);
+        console.error("Fetch error:", err.message);
       }
     };
 
     recognition.onend = () => {
-      // Auto-restart if still connected and not muted
       if (connected && !muted) recognition.start();
     };
 
@@ -77,7 +82,6 @@ export default function App() {
     if (!muted) recognition.start();
 
     return () => recognition.stop();
-    // eslint-disable-next-line
   }, [connected, muted]);
 
   // Mute/unmute logic
@@ -147,7 +151,7 @@ export default function App() {
       <div className="ai-avatar-ui-premium">
         <span>AI</span>
       </div>
-      <div className="ai-agent-title-premium">Arvya Legal Agent</div>
+      <div className="ai-agent-title-premium">Navya Legal Agent</div>
       <div className="ai-agent-subtitle-premium">{connected ? "Connected" : "Tap to connect"}</div>
       {connected && (
         <div className={`ai-agent-waves${speaking && !muted ? " speaking" : ""}`}>
