@@ -3,7 +3,7 @@ import "./AppUI.css";
 
 // 1. Supported Languages & Greetings
 const languages = {
-  english:   { code: "en-IN", greeting: "You have reached legal assistance. Please ask your legal question in English." },
+  english:   { code: "en-IN", greeting: "Hello! I’m Nyay GPT — your AI legal assistant. Feel free to ask me any legal question." },
   hindi:     { code: "hi-IN", greeting: "नमस्ते! मैं न्याय GPT हूँ। आप मुझसे कोई भी कानूनी सवाल पूछ सकते हैं।" },
   punjabi:   { code: "pa-IN", greeting: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਨਿਆਂ GPT ਹਾਂ। ਤੁਸੀਂ ਮੈਨੂੰ ਕੋਈ ਵੀ ਕਾਨੂੰਨੀ ਸਵਾਲ ਪੁੱਛ ਸਕਦੇ ਹੋ।" },
   tamil:     { code: "ta-IN", greeting: "வணக்கம்! நான் நியாய GPT. நீங்கள் என்னிடம் எந்தவொரு சட்டக் கேள்வியும் கேட்கலாம்." },
