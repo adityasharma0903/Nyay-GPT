@@ -25,6 +25,7 @@
     "express": "^5.1.0",
     "langchain": "^0.3.28",
     "multer": "^2.0.1",
+    "node-fetch": "^3.3.2",
     "react": "^19.1.0",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.0",

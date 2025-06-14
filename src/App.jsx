@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./AppUI.css";
 
-// 1. Supported Languages & Greetings
+// Supported Languages & Greetings
 const languages = {
   english:   { code: "en-IN", greeting: "Hello! I’m Nyay GPT — your AI legal assistant. Feel free to ask me any legal question." },
   hindi:     { code: "hi-IN", greeting: "नमस्ते! मैं न्याय GPT हूँ। आप मुझसे कोई भी कानूनी सवाल पूछ सकते हैं।" },
@@ -17,7 +17,6 @@ const languages = {
   odia:      { code: "or-IN", greeting: "ନମସ୍କାର! ମୁଁ ନ୍ୟାୟ GPT। ଆପଣ ମୋତେ କୌଣସି ଆଇନିକ ପ୍ରଶ୍ନ ପଚାରିପାରିବେ।" },
 };
 
-// 2. Keywords for Speech Detection in Multiple Scripts (Add as many variants as you like)
 const languageKeywords = {
   english:   ["english", "इंग्लिश", "अंग्रेजी"],
   hindi:     ["hindi", "हिंदी"],
@@ -26,11 +25,27 @@ const languageKeywords = {
   marathi:   ["marathi", "मराठी"],
   telugu:    ["telugu", "तेलुगू"],
   bengali:   ["bengali", "বেঙ্গলি", "बंगाली"],
-  kannada:   ["kannada", "ಕನ್ನಡ", "कन्नड़", "कन्नड"],
+  kannada:   ["kannada", "ಕನ್ನಡ", "कन्नड़", "कನ್ನಡ"],
   malayalam: ["malayalam", "മലയാളം", "मलयालम"],
   gujarati:  ["gujarati", "ગુજરાતી", "गुजराती"],
   urdu:      ["urdu", "اردو", "उर्दू"],
   odia:      ["odia", "odiya", "ଓଡ଼ିଆ", "ओड़िया"],
+};
+
+const initialGreeting = "आप कानूनी सहायता तक पहुँच चुके हैं। आपकी बेहतर मदद के लिए कृपया बताएं आपकी पसंदीदा भाषा कौनसी है।";
+const languageGreetings = {
+  hindi: "नमस्ते जी, मैं नव्या आपकी लीगल एजेंट। आपकी बेहतर सहायता के लिए, क्या आप बता सकते हैं आपको किस चीज़ की सहायता चाहिए या क्या आप किसी आपातकालीन स्थिति में हैं?",
+  english: "Hello! I am Navya, your legal agent. For better assistance, can you tell me what help you need or if you are in an emergency?",
+  punjabi: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ਮੈਂ ਨਵਿਆ, ਤੁਹਾਡੀ ਲੀਗਲ ਏਜੰਟ ਹਾਂ। ਤੁਹਾਡੀ ਬਿਹਤਰ ਮਦਦ ਲਈ, ਕੀ ਤੁਸੀਂ ਦੱਸ ਸਕਦੇ ਹੋ ਕਿ ਤੁਹਾਨੂੰ ਕਿਸ ਚੀਜ਼ ਦੀ ਮਦਦ ਚਾਹੀਦੀ ਹੈ ਜਾਂ ਤੁਸੀਂ ਕਿਸੇ ਐਮਰਜੈਂਸੀ ਵਿੱਚ ਹੋ?",
+  tamil: "வணக்கம், நான் நவ்யா, உங்கள் சட்ட உதவியாளர். சிறந்த உதவிக்காக, நீங்கள் என்ன உதவி வேண்டும் அல்லது நீங்கள் அவசரநிலையில் இருக்கிறீர்களா என்பதைக் கூற முடியுமா?",
+  marathi: "नमस्कार, मी नव्या, तुमची लीगल एजंट. तुमच्या उत्तम मदतीसाठी, कृपया सांगा तुम्हाला कशाची मदत हवी आहे किंवा तुम्ही आणीबाणीच्या परिस्थितीत आहात का?",
+  telugu: "నమస్తే, నేను నవ్యా, మీ లీగల్ ఏజెంట్. మీకు మెరుగైన సహాయం అందించేందుకు, మీరు ఏ సహాయం కావాలో లేదా అత్యవసర పరిస్థితిలో ఉన్నారా చెప్పగలరా?",
+  bengali: "নমস্কার, আমি নব্যা, আপনার লিগ্যাল এজেন্ট। আপনার আরও ভাল সহায়তার জন্য, দয়া করে বলুন আপনাকে কী সহায়তা দরকার বা আপনি কি জরুরি পরিস্থিতিতে আছেন?",
+  kannada: "ನಮಸ್ಕಾರ, ನಾನು ನವ್ಯಾ, ನಿಮ್ಮ ಲೀಗಲ್ ಏಜೆಂಟ್. ಉತ್ತಮ ಸಹಾಯಕ್ಕಾಗಿ, ನಿಮಗೆ ಯಾವ ಸಹಾಯ ಬೇಕು ಅಥವಾ ನೀವು ತುರ್ತು ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಇದ್ದೀರಾ ಎಂದು ಹೇಳಿ.",
+  malayalam: "നമസ്കാരം, ഞാൻ നവ്യ, നിങ്ങളുടെ ലീഗൽ ഏജന്റ്. മികച്ച സഹായത്തിനായി, നിങ്ങൾക്ക് എന്ത് സഹായം വേണമെന്ന് അല്ലെങ്കിൽ നിങ്ങൾ അടിയന്തരാവസ്ഥയിലാണോ എന്ന് പറയാമോ?",
+  gujarati: "નમસ્તે, હું નવ્યા, તમારી લીગલ એજન્ટ છું. તમારી વધુ સારી મદદ માટે, કૃપા કરીને કહો તમને કઈ મદદ જોઈએ છે કે તમે કોઈ ઇમરજન્સી સ્થિતિમાં છો?",
+  urdu: "السلام علیکم، میں نویا، آپ کی قانونی ایجنٹ ہوں۔ آپ کی بہتر مدد کے لیے، کیا آپ بتا سکتے ہیں آپ کو کس چیز کی مدد چاہیے یا آپ کسی ایمرجنسی صورتحال میں ہیں؟",
+  odia: "ନମସ୍କାର, ମୁଁ ନବ୍ୟା, ଆପଣଙ୍କର ଲିଗାଲ୍ ଏଜେଣ୍ଟ। ଆପଣଙ୍କୁ ଭଲ ସହଯୋଗ ଦେବା ପାଇଁ, ଦୟାକରି କହନ୍ତୁ ଆପଣଙ୍କୁ କଣ ସହଯୋଗ ଦରକାର କିମ୍ବା ଆପଣ କୌଣସି ଆପାତକାଳୀନ ସ୍ଥିତିରେ ଅଛନ୍ତି କି?",
 };
 
 export default function App() {
@@ -39,18 +54,25 @@ export default function App() {
 
   const [connected, setConnected] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [speaking, setSpeaking] = useState(false); // AI speaking
-  const [userSpeaking, setUserSpeaking] = useState(false); // User speaking (for waveform)
+  const [speaking, setSpeaking] = useState(false);
+  const [userSpeaking, setUserSpeaking] = useState(false);
   const [timer, setTimer] = useState(0);
-  const [currentLang, setCurrentLang] = useState("hindi"); // Default: Hindi
-  const [langSelected, setLangSelected] = useState(false); // LOCKED after first selection
-  const [recognitionKey, setRecognitionKey] = useState(0); // for force re-creation
-  const [history, setHistory] = useState([]); // To store conversation history
+  const [currentLang, setCurrentLang] = useState("");
+  const [langSelected, setLangSelected] = useState(false);
+  const [recognitionKey, setRecognitionKey] = useState(0);
+  const [history, setHistory] = useState([]);
+  const [policeStations, setPoliceStations] = useState([]);
+  const [userPos, setUserPos] = useState(null);
+  const [showStations, setShowStations] = useState(false);
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [phase, setPhase] = useState("init"); // "init", "askLang", "langConfirmed", "normal"
 
   const timerRef = useRef(null);
-  const utteranceIdRef = useRef(0); // For reliable barge-in
+  const utteranceIdRef = useRef(0);
 
-  // Timer logic
+  // API key from vite .env file
+  const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
   useEffect(() => {
     if (connected) {
       timerRef.current = setInterval(() => setTimer((t) => t + 1), 1000);
@@ -61,13 +83,13 @@ export default function App() {
     return () => clearInterval(timerRef.current);
   }, [connected]);
 
-  // Speech recognition & logic
   useEffect(() => {
     if (!connected) return;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const langToUse = currentLang && languages[currentLang] ? languages[currentLang].code : "hi-IN";
     const recognition = new SpeechRecognition();
-    recognition.lang = languages[currentLang].code;
+    recognition.lang = langToUse;
     recognition.continuous = true;
     recognition.interimResults = false;
 
@@ -78,7 +100,6 @@ export default function App() {
       setUserSpeaking(true);
       setTimeout(() => setUserSpeaking(false), 1200);
 
-      // === Barge-in: Interrupt AI speaking if user starts talking ===
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
@@ -89,10 +110,9 @@ export default function App() {
       const thisUtterance = utteranceIdRef.current;
 
       const userSpeech = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-      console.log("🗣️ Detected speech:", userSpeech);
 
-      // --- Language Selection Phase (ONLY AT START) ---
-      if (!langSelected) {
+      // Language selection phase
+      if (phase === "askLang") {
         let detectedLang = null;
         Object.keys(languageKeywords).forEach((lang) => {
           languageKeywords[lang].forEach(keyword => {
@@ -103,50 +123,53 @@ export default function App() {
         });
         if (detectedLang) {
           setCurrentLang(detectedLang);
-          setLangSelected(true); // LOCK language selection now!
-          setRecognitionKey((k) => k + 1); // re-mount for new lang
-          setHistory([]); // reset history on new language
-          await speakText(languages[detectedLang].greeting, detectedLang);
+          setLangSelected(true);
+          setRecognitionKey((k) => k + 1);
+          setHistory([]); // You can clear history if you want to start fresh after language selection
+          setPhase("langConfirmed");
+          await speakText(languageGreetings[detectedLang], detectedLang);
+          setPhase("normal");
           return;
         } else {
           await speakText(
-            "कृपया अपनी पसंदीदा भाषा का नाम बताएं। For example: English, Hindi, Tamil, etc.",
+            "कृपया अपनी पसंदीदा भाषा का नाम दोबारा बताएं। For example: Hindi, English, Tamil, etc.",
             "hindi"
           );
           return;
         }
       }
 
-      // --- Normal Conversation Phase ---
-      setSpeaking(true);
-      // Add user utterance to history
-      const newHistory = [...history, { role: "user", content: userSpeech }];
-      setHistory(newHistory);
+      // Normal phase
+      if (phase === "normal") {
+        setSpeaking(true);
+        setHistory(prevHistory => {
+          const newHistory = [...prevHistory, { role: "user", content: userSpeech }];
+          // handle API call inside setHistory callback to avoid stale closure on history
+          (async () => {
+            try {
+              const res = await fetch("http://localhost:3000/ask-context", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  history: newHistory,
+                  language: currentLang,
+                }),
+              });
 
-      try {
-        // SEND TO CONTEXTUAL ENDPOINT
-        const res = await fetch("http://localhost:3000/ask-context", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            history: newHistory,
-            language: currentLang,
-          }),
+              if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+
+              const data = await res.json();
+
+              if (utteranceIdRef.current === thisUtterance) {
+                setHistory(h => [...h, { role: "assistant", content: data.reply }]);
+                await speakText(data.reply, currentLang);
+              }
+            } catch (err) {
+              setSpeaking(false);
+            }
+          })();
+          return newHistory;
         });
-
-        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-
-        const data = await res.json();
-        console.log("AI Reply:", data.reply);
-
-        // Speak only if this is the latest user request
-        if (utteranceIdRef.current === thisUtterance) {
-          setHistory(h => [...h, { role: "assistant", content: data.reply }]);
-          await speakText(data.reply, currentLang);
-        }
-      } catch (err) {
-        console.error("Fetch error:", err.message);
-        setSpeaking(false);
       }
     };
 
@@ -162,22 +185,25 @@ export default function App() {
       recognition.stop();
     };
     // eslint-disable-next-line
-  }, [connected, muted, currentLang, langSelected, recognitionKey, speaking, history]);
+  }, [connected, muted, currentLang, langSelected, recognitionKey, speaking, phase]);
 
-  // Mute/unmute logic
   const handleMute = () => {
     setMuted((m) => !m);
     if (!muted) recognitionRef.current?.stop();
     else recognitionRef.current?.start();
   };
 
-  // End chat logic
   const handleEnd = () => {
     setConnected(false);
     setMuted(false);
-    setLangSelected(false); // Reset language selection for next session
-    setCurrentLang("hindi"); // reset to Hindi on end
-    setHistory([]); // clear conversation
+    setLangSelected(false);
+    setCurrentLang("");
+    setHistory([]);
+    setPoliceStations([]);
+    setUserPos(null);
+    setShowStations(false);
+    setSelectedStation(null);
+    setPhase("init");
     recognitionRef.current?.stop();
     if (audioRef.current) {
       audioRef.current.pause();
@@ -185,8 +211,7 @@ export default function App() {
     }
   };
 
-  // Greet and TTS logic with language param
-  const speakText = async (text, langKey = currentLang) => {
+  const speakText = async (text, langKey = currentLang || "hindi") => {
     setSpeaking(true);
     recognitionRef.current?.stop();
     try {
@@ -204,7 +229,6 @@ export default function App() {
         if (connected && !muted) recognitionRef.current?.start();
       };
       audio.play();
-      // Resume recognition even while TTS is playing (if browser allows)
       if (connected && !muted && recognitionRef.current) {
         try { recognitionRef.current.start(); } catch(e) {}
       }
@@ -214,18 +238,41 @@ export default function App() {
     }
   };
 
-  // Connect button: Play language selection prompt
   const handleConnect = async () => {
     setConnected(true);
     setMuted(false);
-    setLangSelected(false); // Always reset language selection for new session
-    setCurrentLang("hindi"); // default for recognition
+    setLangSelected(false);
+    setCurrentLang("");
     setRecognitionKey((k) => k + 1);
-    setHistory([]); // clear conversation
-    await speakText(
-      "कृपया अपनी पसंदीदा भाषा का नाम बताएं। For example: English, Hindi, Tamil, etc.",
-      "hindi"
-    );
+    setHistory([]);
+    setPoliceStations([]);
+    setUserPos(null);
+    setSelectedStation(null);
+    setPhase("askLang");
+    await speakText(initialGreeting, "hindi");
+  };
+
+  const handleNearbyPolice = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      setUserPos({ lat: latitude, lng: longitude });
+      try {
+        const res = await fetch(`http://localhost:3000/nearby-police?lat=${latitude}&lng=${longitude}`);
+        const data = await res.json();
+        setPoliceStations(data.stations || []);
+        setShowStations(true);
+        setSelectedStation(null);
+      } catch (e) {
+        alert("Failed to fetch police stations.");
+      }
+    }, (err) => {
+      console.log("Geolocation error:", err);
+      alert("Location permission denied or unavailable");
+    });
   };
 
   const formatTime = (sec) =>
@@ -253,20 +300,90 @@ export default function App() {
           ))}
         </div>
       )}
+
       {!connected ? (
-        <button className="ai-premium-call-btn" onClick={handleConnect}>
-          <span className="ai-call-icon" />
-        </button>
+        <div className="ai-start-btn-row">
+          <button className="ai-premium-call-btn" onClick={handleConnect}>
+            <span className="ai-call-icon" />
+          </button>
+          <button className="ai-nearby-btn" onClick={handleNearbyPolice}>
+            <span className="ai-location-icon" />
+            <div>Nearby Police</div>
+          </button>
+        </div>
       ) : (
         <div className="ai-agent-btn-row-premium">
           <button className={`ai-mute-btn${muted ? " muted" : ""}`} onClick={handleMute}>
             <span className={`ai-mic-icon${muted ? " off" : ""}`} />
             <div>Mute</div>
           </button>
+          <button className="ai-nearby-btn" onClick={handleNearbyPolice}>
+            <span className="ai-location-icon" />
+            <div>Nearby Police</div>
+          </button>
           <button className="ai-end-btn" onClick={handleEnd}>
             <span className="ai-end-icon" />
             <div>End</div>
           </button>
+        </div>
+      )}
+
+      {/* ---- MODAL for police stations ---- */}
+      {showStations && (
+        <div className="stations-modal-bg" onClick={() => { setShowStations(false); setSelectedStation(null); }}>
+          <div className="stations-modal" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => { setShowStations(false); setSelectedStation(null); }} aria-label="Close">&times;</button>
+            <h3>Nearby Police Stations</h3>
+            {policeStations.length ? (
+              <ul>
+                {policeStations.map((s, i) => (
+                  <li
+                    key={i}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setSelectedStation(s)}
+                    title="Show directions on map"
+                  >
+                    <b>{s.name}</b>
+                    <span>{s.vicinity}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div>No nearby police stations found.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ---- DIRECTIONS MAP MODAL ---- */}
+      {selectedStation && userPos && (
+        <div className="directions-modal-bg" onClick={() => setSelectedStation(null)}>
+          <div className="directions-modal" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setSelectedStation(null)} aria-label="Close">&times;</button>
+            <h3>
+              Directions to <span style={{ color: "#29489c" }}>{selectedStation.name}</span>
+            </h3>
+            <iframe
+              width="100%"
+              height="380"
+              frameBorder="0"
+              style={{ border: 0, borderRadius: "12px" }}
+              allowFullScreen
+              loading="lazy"
+              src={
+                MAPS_EMBED_API_KEY
+                  ? `https://www.google.com/maps/embed/v1/directions?key=${MAPS_EMBED_API_KEY}` +
+                    `&origin=${userPos.lat},${userPos.lng}` +
+                    `&destination=${selectedStation.lat},${selectedStation.lng}` +
+                    `&mode=driving`
+                  : undefined
+              }
+              title="Directions Map"
+            />
+            {!MAPS_EMBED_API_KEY && (
+              <div style={{color: "red", marginTop: 16}}>API Key missing. Please set VITE_GOOGLE_MAPS_API_KEY in your .env file.</div>
+            )}
+          </div>
         </div>
       )}
     </div>

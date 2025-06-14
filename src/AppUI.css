@@ -244,3 +244,220 @@
   margin-top: 2px;
   letter-spacing: 0.2px;
 }
+
+
+.ai-nearby-btn {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4bc6ff 0%, #1a2254 100%);
+  color: #fff;
+  border: none;
+  outline: none;
+  font-size: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(76,198,255,0.21);
+  font-weight: 500;
+  transition: background 0.23s, box-shadow 0.23s;
+}
+.ai-nearby-btn:active {
+  background: linear-gradient(135deg, #1890d5 0%, #1a2254 100%);
+}
+.ai-location-icon {
+  width: 29px;
+  height: 29px;
+  display: block;
+  background: url('data:image/svg+xml;utf8,<svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>') center/29px 29px no-repeat;
+}
+.ai-nearby-btn > div {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e7e9f8;
+  opacity: .85;
+  margin-top: 3px;
+  letter-spacing: 0.2px;
+}
+
+/* For side-by-side start screen buttons */
+
+.ai-start-btn-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* yeh important hai! */
+  gap: 36px;           /* buttons ke beech distance */
+  margin-top: 80px;
+}
+
+.ai-premium-call-btn,
+.ai-nearby-btn {
+  position: static; /* Remove any position: absolute/relative if present */
+  margin: 0;        /* Remove any margin that can misalign */
+}
+
+.stations-modal-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stations-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 28px;
+  min-width: 340px;
+  max-width: 95vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+  position: relative;
+}
+.stations-modal h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.3em;
+  text-align: center;
+}
+.stations-modal ul {
+  padding-left: 18px;
+}
+.stations-modal li {
+  margin-bottom: 13px;
+}
+.close-btn {
+  position: absolute;
+  top: 8px; right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.8em;
+  color: #888;
+  cursor: pointer;
+}
+
+/* Modal Overlay */
+.stations-modal-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 32, 45, 0.35); /* backdrop with a bit blue/grey */
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal Box */
+.stations-modal {
+  background: linear-gradient(135deg, #f9fafc 70%, #e8f1ff 100%);
+  border-radius: 22px;
+  box-shadow: 0 8px 40px rgba(44, 69, 125, 0.16), 0 1.5px 6px rgba(44, 69, 125, 0.10);
+  padding: 36px 32px 28px 32px;
+  min-width: 340px;
+  max-width: 480px;
+  width: 100%;
+  color: #25304b;
+  position: relative;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  animation: modalIn 0.25s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(40px) scale(0.97);}
+  to   { opacity: 1; transform: translateY(0) scale(1);}
+}
+
+.stations-modal h3 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 18px;
+  color: #173a7c;
+  letter-spacing: -0.02em;
+}
+
+.stations-modal ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.stations-modal li {
+  background: #f0f3fa;
+  margin-bottom: 18px;
+  border-radius: 13px;
+  padding: 14px 18px 10px 18px;
+  box-shadow: 0 2px 10px rgba(44,69,125,0.07);
+  font-size: 1.04rem;
+  transition: box-shadow 0.2s;
+}
+.stations-modal li:hover {
+  box-shadow: 0 6px 18px rgba(44,69,125,0.11);
+  background: #e2ecfa;
+}
+
+.stations-modal li b {
+  color: #29489c;
+  font-weight: 700;
+  font-size: 1.07rem;
+  letter-spacing: -0.01em;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.stations-modal li span {
+  color: #37425a;
+  font-size: 0.98rem;
+}
+
+.stations-modal .close-btn {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: #8294ba;
+  cursor: pointer;
+  transition: color 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+.stations-modal .close-btn:hover {
+  color: #173a7c;
+}
+
+.stations-modal > div {
+  text-align: center;
+  color: #b12f2f;
+  font-size: 1.07rem;
+  margin-top: 20px;
+}
+
+.directions-modal-bg {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 32, 45, 0.33);
+  z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+}
+.directions-modal {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 36px rgba(44, 69, 125, 0.17);
+  padding: 28px 26px 18px 26px;
+  min-width: 340px;
+  max-width: 550px;
+  width: 94vw;
+  position: relative;
+}
+.directions-modal .close-btn {
+  position: absolute; right: 18px; top: 18px;
+  background: none; border: none; font-size: 1.4rem; color: #8294ba; cursor: pointer;
+}
+.directions-modal h3 { font-size: 1.13rem; margin-bottom: 10px; color: #173a7c; }

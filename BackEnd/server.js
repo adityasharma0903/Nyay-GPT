@@ -1,3 +1,4 @@
+// --- IMPORTS ---
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -9,16 +10,17 @@ import { ChatGroq } from "@langchain/groq";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import OpenAI from "openai";
+import fetch from "node-fetch"; // npm install node-fetch
 
 // --- NEW IMPORTS FOR CONTEXT QnA ---
 import { Pinecone } from "@pinecone-database/pinecone";
 import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/hf_transformers";
 import { askGrok } from "./grok.js";
 
+// --- ENVIRONMENT SETUP ---
 dotenv.config();
 console.log("OpenAI Key Loaded:", process.env.OPENAI_API_KEY ? "✅ YES" : "❌ NO");
 console.log("Groq Key Loaded:", process.env.GROQ_API_KEY ? "✅ YES" : "❌ NO");
-console.log("OpenAI Key Loaded:", process.env.OPENAI_API_KEY ? "✅ YES" : "❌ NO");
 console.log("Node Process Info:", process.pid, process.platform, process.version);
 
 // --- SYSTEM PROMPTS GLOBAL SCOPE ---
@@ -37,6 +39,7 @@ const systemPrompts = {
   odia: "ଆପଣ ନ୍ୟାୟ GPT, ଭାରତ ପାଇଁ ଆଇନି ସହାୟକ। ଉତ୍ତର ଓଡ଼ିଆରେ ଦିଅ।",
 };
 
+// --- EXPRESS APP SETUP ---
 const app = express();
 const PORT = 3000;
 
@@ -51,9 +54,11 @@ const embeddings = new HuggingFaceTransformersEmbeddings({
   modelName: "Xenova/all-MiniLM-L6-v2",
 });
 
+// --- MIDDLEWARE ---
 app.use(cors());
 app.use(bodyParser.json());
 
+// --- ROUTE: /ask ---
 app.post("/ask", async (req, res) => {
   const { history, language } = req.body;
 
@@ -88,8 +93,7 @@ app.post("/ask", async (req, res) => {
   }
 });
 
-
-// --- NEW ROUTE: /ask-context (Legal context via Pinecone + Grok) ---
+// --- ROUTE: /ask-context (Legal context via Pinecone + Grok) ---
 app.post("/ask-context", async (req, res) => {
   const { history, language } = req.body;
   console.log("[ASK-CONTEXT] New request received:", { history, language });
@@ -145,6 +149,7 @@ app.post("/ask-context", async (req, res) => {
   }
 });
 
+// --- ROUTE: /speak for TTS ---
 app.post("/speak", async (req, res) => {
   const { text, language } = req.body;
 
@@ -194,7 +199,48 @@ app.post("/speak", async (req, res) => {
   }
 });
 
-// Optional: Whisper STT (unchanged)
+// --- ROUTE: /nearby-police ---
+app.get("/nearby-police", async (req, res) => {
+    console.log("NEARBY POLICE ROUTE HIT, QUERY:", req.query); // << YEH LINE ADD KARO
+
+  const { lat, lng } = req.query;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+
+  if (!lat || !lng) {
+    return res.status(400).json({ error: "Missing lat or lng parameter" });
+  }
+  if (!apiKey) {
+    return res.status(500).json({ error: "Google Maps API key not set in .env" });
+  }
+
+  try {
+    const apiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=police&key=${apiKey}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    // --- DEBUG: LOG FULL GOOGLE API RESPONSE ---
+    console.log("GOOGLE API RESPONSE:", JSON.stringify(data, null, 2));
+
+    if (!data.results) {
+      console.error("GOOGLE API ERROR:", data);
+      return res.status(500).json({ error: "Google Places API error", details: data });
+    }
+
+    const stations = data.results.map(s => ({
+      name: s.name,
+      vicinity: s.vicinity,
+      lat: s.geometry.location.lat,
+      lng: s.geometry.location.lng
+    }));
+
+    res.json({ stations });
+  } catch (error) {
+    console.error("Nearby police error:", error);
+    res.status(500).json({ error: "Failed to fetch police stations." });
+  }
+});
+
+// --- ROUTE: /stt (Speech to Text) ---
 app.post("/stt", upload.single("audio"), async (req, res) => {
   const audioFile = fs.createReadStream(req.file.path);
 
@@ -210,6 +256,7 @@ app.post("/stt", upload.single("audio"), async (req, res) => {
   }
 });
 
+// --- START SERVER ---
 app.listen(PORT, () => {
   console.log(`✅ NyayGPT backend running on http://localhost:${PORT}`);
 });
