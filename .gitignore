@@ -27,3 +27,4 @@ dist-ssr
 
 /BackEnd/.env
 /BackEnd/google-credentials.json
+.env
