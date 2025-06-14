@@ -32,9 +32,10 @@ const languageKeywords = {
   odia:      ["odia", "odiya", "ଓଡ଼ିଆ", "ओड़िया"],
 };
 
-const initialGreeting = "आप कानूनी सहायता तक पहुँच चुके हैं। आपकी बेहतर मदद के लिए कृपया बताएं आपकी पसंदीदा भाषा कौनसी है।";
+const initialGreeting = "आप कानूनी सहायता तक पहुँच चुके हैं। आपकी बेहतर मदद के लिए कृपया बताएं आपकी पसंदीदा भाषा कौनसी है।         You have accessed legal aid. To help you better, please tell us your preferred language.";
+
 const languageGreetings = {
-  hindi: "नमस्ते जी, मैं नव्या आपकी लीगल एजेंट। आपकी बेहतर सहायता के लिए, क्या आप बता सकते हैं आपको किस चीज़ की सहायता चाहिए या क्या आप किसी आपातकालीन स्थिति में हैं?",
+  hindi: "नमस्ते जी, मैं नव्या swaraj ai se आपकी लीगल एजेंट। आपकी बेहतर सहायता के लिए, क्या आप बता सकते हैं आपको किस चीज़ की सहायता चाहिए या क्या आप किसी आपातकालीन स्थिति में हैं?",
   english: "Hello! I am Navya, your legal agent. For better assistance, can you tell me what help you need or if you are in an emergency?",
   punjabi: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ਮੈਂ ਨਵਿਆ, ਤੁਹਾਡੀ ਲੀਗਲ ਏਜੰਟ ਹਾਂ। ਤੁਹਾਡੀ ਬਿਹਤਰ ਮਦਦ ਲਈ, ਕੀ ਤੁਸੀਂ ਦੱਸ ਸਕਦੇ ਹੋ ਕਿ ਤੁਹਾਨੂੰ ਕਿਸ ਚੀਜ਼ ਦੀ ਮਦਦ ਚਾਹੀਦੀ ਹੈ ਜਾਂ ਤੁਸੀਂ ਕਿਸੇ ਐਮਰਜੈਂਸੀ ਵਿੱਚ ਹੋ?",
   tamil: "வணக்கம், நான் நவ்யா, உங்கள் சட்ட உதவியாளர். சிறந்த உதவிக்காக, நீங்கள் என்ன உதவி வேண்டும் அல்லது நீங்கள் அவசரநிலையில் இருக்கிறீர்களா என்பதைக் கூற முடியுமா?",
@@ -372,7 +373,7 @@ export default function App() {
               loading="lazy"
               src={
                 MAPS_EMBED_API_KEY
-                  ? `https://www.google.com/maps/embed/v1/directions?key=${MAPS_EMBED_API_KEY}` +
+                  ? `https://www.google.com/maps/embed/v1/directions?key=${MAPS_EMBED_API_KEY}` + 
                     `&origin=${userPos.lat},${userPos.lng}` +
                     `&destination=${selectedStation.lat},${selectedStation.lng}` +
                     `&mode=driving`

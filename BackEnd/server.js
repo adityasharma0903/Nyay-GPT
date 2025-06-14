@@ -155,7 +155,7 @@ app.post("/speak", async (req, res) => {
 
   // Voice selection map
   const voiceMap = {
-    hindi:     { code: "hi-IN", name: "hi-IN-Wavenet-A" },
+    hindi:     { code: "hi-IN", name: "hi-IN-Standard-E" },
     punjabi:   { code: "pa-IN", name: "pa-IN-Wavenet-A" },
     tamil:     { code: "ta-IN", name: "ta-IN-Wavenet-A" },
     marathi:   { code: "mr-IN", name: "mr-IN-Wavenet-A" },
