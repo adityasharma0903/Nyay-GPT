@@ -43,12 +43,12 @@ export default function App() {
   const [userSpeaking, setUserSpeaking] = useState(false); // User speaking (for waveform)
   const [timer, setTimer] = useState(0);
   const [currentLang, setCurrentLang] = useState("hindi"); // Default: Hindi
-  const [langSelected, setLangSelected] = useState(false);
+  const [langSelected, setLangSelected] = useState(false); // LOCKED after first selection
   const [recognitionKey, setRecognitionKey] = useState(0); // for force re-creation
   const [history, setHistory] = useState([]); // To store conversation history
-  const [lastUserUtteranceId, setLastUserUtteranceId] = useState(0); // For interrupt logic
 
   const timerRef = useRef(null);
+  const utteranceIdRef = useRef(0); // For reliable barge-in
 
   // Timer logic
   useEffect(() => {
@@ -78,21 +78,20 @@ export default function App() {
       setUserSpeaking(true);
       setTimeout(() => setUserSpeaking(false), 1200);
 
-      // Barge-in: Interrupt AI speaking if user starts talking
+      // === Barge-in: Interrupt AI speaking if user starts talking ===
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
       }
       setSpeaking(false);
 
-      // Track this user utterance so only latest response is played
-      setLastUserUtteranceId(id => id + 1);
-      const utteranceId = lastUserUtteranceId + 1;
+      utteranceIdRef.current += 1;
+      const thisUtterance = utteranceIdRef.current;
 
       const userSpeech = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
       console.log("🗣️ Detected speech:", userSpeech);
 
-      // --- Language Selection Phase ---
+      // --- Language Selection Phase (ONLY AT START) ---
       if (!langSelected) {
         let detectedLang = null;
         Object.keys(languageKeywords).forEach((lang) => {
@@ -104,7 +103,7 @@ export default function App() {
         });
         if (detectedLang) {
           setCurrentLang(detectedLang);
-          setLangSelected(true);
+          setLangSelected(true); // LOCK language selection now!
           setRecognitionKey((k) => k + 1); // re-mount for new lang
           setHistory([]); // reset history on new language
           await speakText(languages[detectedLang].greeting, detectedLang);
@@ -125,7 +124,8 @@ export default function App() {
       setHistory(newHistory);
 
       try {
-        const res = await fetch("http://localhost:3000/ask", {
+        // SEND TO CONTEXTUAL ENDPOINT
+        const res = await fetch("http://localhost:3000/ask-context", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -139,9 +139,8 @@ export default function App() {
         const data = await res.json();
         console.log("AI Reply:", data.reply);
 
-        // Only speak if this is the latest user request
-        if (utteranceId === lastUserUtteranceId + 1) {
-          // Add AI reply to history
+        // Speak only if this is the latest user request
+        if (utteranceIdRef.current === thisUtterance) {
           setHistory(h => [...h, { role: "assistant", content: data.reply }]);
           await speakText(data.reply, currentLang);
         }
@@ -163,7 +162,7 @@ export default function App() {
       recognition.stop();
     };
     // eslint-disable-next-line
-  }, [connected, muted, currentLang, langSelected, recognitionKey, speaking, history, lastUserUtteranceId]);
+  }, [connected, muted, currentLang, langSelected, recognitionKey, speaking, history]);
 
   // Mute/unmute logic
   const handleMute = () => {
@@ -176,7 +175,7 @@ export default function App() {
   const handleEnd = () => {
     setConnected(false);
     setMuted(false);
-    setLangSelected(false);
+    setLangSelected(false); // Reset language selection for next session
     setCurrentLang("hindi"); // reset to Hindi on end
     setHistory([]); // clear conversation
     recognitionRef.current?.stop();
@@ -219,7 +218,7 @@ export default function App() {
   const handleConnect = async () => {
     setConnected(true);
     setMuted(false);
-    setLangSelected(false);
+    setLangSelected(false); // Always reset language selection for new session
     setCurrentLang("hindi"); // default for recognition
     setRecognitionKey((k) => k + 1);
     setHistory([]); // clear conversation

@@ -10,8 +10,32 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import OpenAI from "openai";
 
+// --- NEW IMPORTS FOR CONTEXT QnA ---
+import { Pinecone } from "@pinecone-database/pinecone";
+import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/hf_transformers";
+import { askGrok } from "./grok.js";
+
 dotenv.config();
 console.log("OpenAI Key Loaded:", process.env.OPENAI_API_KEY ? "✅ YES" : "❌ NO");
+console.log("Groq Key Loaded:", process.env.GROQ_API_KEY ? "✅ YES" : "❌ NO");
+console.log("OpenAI Key Loaded:", process.env.OPENAI_API_KEY ? "✅ YES" : "❌ NO");
+console.log("Node Process Info:", process.pid, process.platform, process.version);
+
+// --- SYSTEM PROMPTS GLOBAL SCOPE ---
+const systemPrompts = {
+  hindi: "तुम एक भारत का कानूनी सहायक न्याय GPT हो, जवाब हिंदी में दो।",
+  english: "You are Nyay GPT, a legal assistant for India. Reply in English.",
+  punjabi: "ਤੁਸੀਂ ਨਿਆਂ GPT ਹੋ, ਭਾਰਤ ਲਈ ਕਾਨੂੰਨੀ ਸਹਾਇਕ। ਜਵਾਬ ਪੰਜਾਬੀ ਵਿੱਚ ਦਿਓ।",
+  tamil: "நீங்கள் நியாய GPT, இந்தியாவின் சட்ட உதவியாளர். பதில் தமிழில் கொடு.",
+  marathi: "तुम्ही न्याय GPT आहात, भारतासाठी कायदेशीर सहाय्यक. उत्तर मराठीत द्या.",
+  telugu: "మీరు న్యాయ GPT, భారతదేశానికి న్యాయ సహాయకుడు. సమాధానం తెలుగు లో ఇవ్వండి.",
+  bengali: "আপনি ন্যায় GPT, ভারতের জন্য আইনি সহকারী। উত্তর বাংলায় দিন।",
+  kannada: "ನೀವು ನ್ಯಾಯ GPT, ಭಾರತದ ಕಾನೂನು ಸಹಾಯಕ. ಉತ್ತರವನ್ನು ಕನ್ನಡದಲ್ಲಿ ನೀಡಿರಿ.",
+  malayalam: "നിങ്ങൾ ന്യായ GPT ആണ്, ഇന്ത്യയിലെ നിയമ സഹായി. ഉത്തരം മലയാളത്തിൽ നൽകുക.",
+  gujarati: "તમે ન્યાય GPT છો, ભારત માટેનો કાનૂની સહાયક. જવાબ ગુજરાતી માં આપો.",
+  urdu: "آپ نیاۓ GPT ہیں، بھارت کے لیے قانونی معاون۔ جواب اردو میں دیں۔",
+  odia: "ଆପଣ ନ୍ୟାୟ GPT, ଭାରତ ପାଇଁ ଆଇନି ସହାୟକ। ଉତ୍ତର ଓଡ଼ିଆରେ ଦିଅ।",
+};
 
 const app = express();
 const PORT = 3000;
@@ -20,10 +44,16 @@ const upload = multer({ dest: "uploads/" });
 const ttsClient = new TextToSpeechClient();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// --- NEW PINECONE & EMBEDDINGS SETUP ---
+const pinecone = new Pinecone();
+const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX_NAME);
+const embeddings = new HuggingFaceTransformersEmbeddings({
+  modelName: "Xenova/all-MiniLM-L6-v2",
+});
+
 app.use(cors());
 app.use(bodyParser.json());
 
-// Route: Ask NyayGPT
 app.post("/ask", async (req, res) => {
   const { history, language } = req.body;
 
@@ -40,21 +70,6 @@ app.post("/ask", async (req, res) => {
     // Combine conversation history
     const formatted = history.map((msg) => `${msg.role === "user" ? "Q" : "A"}: ${msg.content}`).join("\n");
 
-    // Choose prompt based on language
-    const systemPrompts = {
-      hindi: "तुम एक भारत का कानूनी सहायक न्याय GPT हो, जवाब हिंदी में दो।",
-      english: "You are Nyay GPT, a legal assistant for India. Reply in English.",
-      punjabi: "ਤੁਸੀਂ ਨਿਆਂ GPT ਹੋ, ਭਾਰਤ ਲਈ ਕਾਨੂੰਨੀ ਸਹਾਇਕ। ਜਵਾਬ ਪੰਜਾਬੀ ਵਿੱਚ ਦਿਓ।",
-      tamil: "நீங்கள் நியாய GPT, இந்தியாவின் சட்ட உதவியாளர். பதில் தமிழில் கொடு.",
-      marathi: "तुम्ही न्याय GPT आहात, भारतासाठी कायदेशीर सहाय्यक. उत्तर मराठीत द्या.",
-      telugu: "మీరు న్యాయ GPT, భారతదేశానికి న్యాయ సహాయకుడు. సమాధానం తెలుగు లో ఇవ్వండి.",
-      bengali: "আপনি ন্যায় GPT, ভারতের জন্য আইনি সহকারী। উত্তর বাংলায় দিন।",
-      kannada: "ನೀವು ನ್ಯಾಯ GPT, ಭಾರತದ ಕಾನೂನು ಸಹಾಯಕ. ಉತ್ತರವನ್ನು ಕನ್ನಡದಲ್ಲಿ ನೀಡಿರಿ.",
-      malayalam: "നിങ്ങൾ ന്യായ GPT ആണ്, ഇന്ത്യയിലെ നിയമ സഹായി. ഉത്തരം മലയാളത്തിൽ നൽകുക.",
-      gujarati: "તમે ન્યાય GPT છો, ભારત માટેનો કાનૂની સહાયક. જવાબ ગુજરાતી માં આપો.",
-      urdu: "آپ نیاۓ GPT ہیں، بھارت کے لیے قانونی معاون۔ جواب اردو میں دیں۔",
-      odia: "ଆପଣ ନ୍ୟାୟ GPT, ଭାରତ ପାଇଁ ଆଇନି ସହାୟକ। ଉତ୍ତର ଓଡ଼ିଆରେ ଦିଅ।",
-    };
     // Default to Hindi if not provided or invalid
     const lang = (language || "hindi").toLowerCase();
     const sysPrompt = systemPrompts[lang] || systemPrompts["hindi"];
@@ -73,7 +88,63 @@ app.post("/ask", async (req, res) => {
   }
 });
 
-// Route: Text to Speech with WaveNet and SSML support
+
+// --- NEW ROUTE: /ask-context (Legal context via Pinecone + Grok) ---
+app.post("/ask-context", async (req, res) => {
+  const { history, language } = req.body;
+  console.log("[ASK-CONTEXT] New request received:", { history, language });
+
+  if (!history || !Array.isArray(history)) {
+    console.log("[ASK-CONTEXT] ❌ Invalid input");
+    return res.status(400).json({ reply: "Invalid input." });
+  }
+
+  try {
+    const userQuestion = history[history.length - 1].content;
+    console.log(`[ASK-CONTEXT] User question: "${userQuestion}"`);
+
+    // 1. Generate embedding for user question
+    console.log("[ASK-CONTEXT] ➡ Generating embedding for question...");
+    const questionEmbedding = await embeddings.embedQuery(userQuestion);
+
+    // 2. Pinecone vector search
+    console.log("[ASK-CONTEXT] ➡ Querying Pinecone for relevant context...");
+    const searchResult = await pineconeIndex.query({
+      vector: questionEmbedding,
+      topK: 5,
+      includeMetadata: true,
+    });
+
+    // 3. Prepare context for LLM
+    const context = searchResult.matches?.map(m => m.metadata.text).join("\n\n") || "";
+    if (searchResult.matches?.length) {
+      console.log(`[ASK-CONTEXT] ✅ Legal documents found: ${searchResult.matches.length} segment(s)`);
+    } else {
+      console.log("[ASK-CONTEXT] ⚠️ No relevant legal documents found in Pinecone.");
+    }
+
+    // 4. Prepare prompt (multilingual)
+    const lang = (language || "hindi").toLowerCase();
+    const sysPrompt = systemPrompts[lang] || systemPrompts["hindi"];
+    const finalPrompt = `${sysPrompt}\nनीचे दिए गए कानूनी दस्तावेज़ों के संदर्भ में उत्तर दें:\n${context}\n\nQ: ${userQuestion}\nA:`;
+
+    console.log("[ASK-CONTEXT] ➡ Prompt generated for Groq:", finalPrompt);
+
+    // 5. Call Groq for answer (instead of OpenAI)
+    console.log("[ASK-CONTEXT] ➡ Sending prompt to Groq...");
+    const answer = await askGrok(sysPrompt, finalPrompt);
+
+    console.log("[ASK-CONTEXT] ✅ Response generated by Groq:", answer);
+    res.set("Content-Type", "application/json; charset=utf-8");
+    res.json({ reply: answer });
+
+  } catch (err) {
+    console.error("[ASK-CONTEXT] ERROR:", err);
+    res.set("Content-Type", "application/json; charset=utf-8");
+    res.status(500).json({ reply: "सर्वर में कोई त्रुटि हुई है।" });
+  }
+});
+
 app.post("/speak", async (req, res) => {
   const { text, language } = req.body;
 
@@ -123,17 +194,18 @@ app.post("/speak", async (req, res) => {
   }
 });
 
-
-// Optional: Whisper STT
+// Optional: Whisper STT (unchanged)
 app.post("/stt", upload.single("audio"), async (req, res) => {
   const audioFile = fs.createReadStream(req.file.path);
 
   try {
+    console.log(`[STT] Audio file received: ${req.file.path}`);
     const transcription = await openai.createTranscription(audioFile, "whisper-1");
     fs.unlinkSync(req.file.path);
+    console.log(`[STT] Transcription result: ${transcription.data.text}`);
     res.json({ text: transcription.data.text });
   } catch (err) {
-    console.error("STT error:", err.message);
+    console.error("[STT] error:", err.message);
     res.status(500).json({ error: "Speech recognition failed." });
   }
 });
