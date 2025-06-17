@@ -483,3 +483,13 @@
   transition: transform 0.3s ease-in-out;
 }
 
+.avatar-face-container {
+  width: 220px;          /* Adjust as needed for your card */
+  height: 260px;         /* Adjust as needed */
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  margin-top: 70px;      /* Adjust to move model below heading */
+  border-radius: 24px;   /* Optional: for rounded look */
+  background: transparent;
+}

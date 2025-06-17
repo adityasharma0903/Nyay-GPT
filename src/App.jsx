@@ -62,7 +62,7 @@ const languageGreetings = {
     "നമസ്കാരം, ഞാൻ നവ്യ, നിങ്ങളുടെ ലീഗൽ ഏജന്റ്. മികച്ച സഹായത്തിനായി, നിങ്ങൾക്ക് എന്ത് തരത്തിലുള്ള നിയമ സഹായം വേണമെന്ന് അല്ലെങ്കിൽ നിങ്ങൾ അടിയന്തരാവസ്ഥയിലാണോ എന്ന് പറയാമോ?",
   gujarati:
     "નમસ્તે, હું નવ્યા, તમારી લીગલ એજન્ટ છું. તમારી વધુ સારી મદદ માટે, કૃપા કરીને કહો તમને કઈ પ્રકારની કાનૂની મદદ જોઈએ છે અથવા તમે ઇમરજન્સી માં છો?",
-  urdu: "السلام علیکم، میں نویا، آپ کی قانونی ایجنٹ ہوں۔ آپ کی بہتر مدد کے لیے، کیا آپ بتا سکتے ہیں آپ کو کس چیز کی قانونی مدد चाहिए یا آپ ایمرجेंسی میں ہیں?",
+  urdu: "السلام علیکم، میں نویا، آپ کی قانونی ایجنٹ ہوں۔ آپ کی بہتر مدد کے لیے، کیا آپ بتا سکتے ہیں آپ کو کس چیز की قانونی مدد चाहिए या آپ ایمرجینسی میں ہیں؟",
   odia: "ନମସ୍କାର, ମୁଁ ନବ୍ୟା, ଆପଣଙ୍କର ଲିଗାଲ୍ ଏଜେଣ୍ଟ। ଆପଣଙ୍କୁ ଭଲ ସହଯୋଗ ଦେବା ପାଇଁ, ଦୟାକରି କହନ୍ତୁ ଆପଣ କେଉଁ ପ୍ରକାରର ଆଇନିକ ସହଯୋଗ ଚାହାଁନ୍ତି କିମ୍ବା ଆପଣ ଆପାତ୍କାଳୀନ ସ୍ଥିତିରେ ଅଛନ୍ତି କି?",
 }
 
@@ -95,6 +95,35 @@ export default function App() {
   const utteranceIdRef = useRef(0)
 
   const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+
+  // 🚩 ADD THIS useEffect FOR MOBILE AUDIO UNLOCK
+  useEffect(() => {
+    const unlockAudio = () => {
+      try {
+        if (!audioContextRef.current) {
+          audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioContextRef.current.state === "suspended") {
+          audioContextRef.current.resume();
+        }
+        // Play a silent buffer to unlock audio on iOS/Android
+        const buffer = audioContextRef.current.createBuffer(1, 1, 22050);
+        const source = audioContextRef.current.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContextRef.current.destination);
+        source.start(0);
+      } catch (e) {}
+      document.removeEventListener("touchend", unlockAudio, true);
+      document.removeEventListener("click", unlockAudio, true);
+    };
+    document.addEventListener("touchend", unlockAudio, true);
+    document.addEventListener("click", unlockAudio, true);
+    return () => {
+      document.removeEventListener("touchend", unlockAudio, true);
+      document.removeEventListener("click", unlockAudio, true);
+    };
+  }, []);
+  // 🚩 END AUDIO UNLOCK
 
   useEffect(() => {
     if (!connected) return
@@ -259,10 +288,6 @@ export default function App() {
                 timestamp: Date.now(),
               }
 
-              console.log(
-                `🗣️ HUMANIZED ANALYSIS - Vol: ${(volume * 100).toFixed(0)}% | VLow: ${(veryLowFreq * 100).toFixed(0)}% | Low: ${(lowFreq * 100).toFixed(0)}% | Mid: ${(midFreq * 100).toFixed(0)}% | High: ${(highFreq * 100).toFixed(0)}%`,
-              )
-
               setAudioData(humanizedAudioData)
               animationFrameRef.current = requestAnimationFrame(analyzeHumanizedAudio)
             }
@@ -270,8 +295,7 @@ export default function App() {
 
           analyzeHumanizedAudio()
         } catch (error) {
-          console.error("Humanized audio analysis failed:", error)
-          // Enhanced fallback with more realistic patterns
+          // fallback
           const createRealisticFakeData = () => {
             const baseVolume = 0.4 + Math.random() * 0.4
             const time = Date.now() * 0.001
@@ -296,7 +320,7 @@ export default function App() {
             } else {
               clearInterval(fakeInterval)
             }
-          }, 50) // Higher frequency updates for smoother animation
+          }, 50)
         }
       } else {
         if (animationFrameRef.current) {
@@ -358,6 +382,7 @@ export default function App() {
     }
   }
 
+  // 🚩 PATCH speakText TO ENSURE MOBILE AUDIO PLAYS
   const speakText = async (text, langKey = currentLang || "hindi") => {
     console.log("🎤 Starting HUMANIZED speech:", text.substring(0, 50) + "...")
 
@@ -387,27 +412,32 @@ export default function App() {
       })
       const blob = await res.blob()
       const audioUrl = URL.createObjectURL(blob)
-      const audio = new Audio(audioUrl)
+      const audio = new window.Audio(audioUrl)
       audioRef.current = audio
 
       audio.onended = () => {
-        console.log("🎤 HUMANIZED speech ended")
         setSpeaking(false)
         setMouthOpen(0)
         setAudioData(null)
       }
       audio.onerror = () => {
-        console.log("🎤 HUMANIZED speech error")
         setSpeaking(false)
         setMouthOpen(0)
         setAudioData(null)
       }
 
       setSpeaking(true)
-      await audio.play()
-      console.log("🎤 HUMANIZED speech playing - advanced lip-sync active")
+      // MOBILE PATCH: TRY TO PLAY, IF FAILS, PROMPT USER
+      try {
+        await audio.play()
+      } catch (err) {
+        // User gesture required
+        alert("Please tap anywhere on the screen to enable audio, then try again.");
+        setSpeaking(false)
+        setMouthOpen(0)
+        setAudioData(null)
+      }
     } catch (error) {
-      console.error("HUMANIZED speech error:", error)
       setSpeaking(false)
       setMouthOpen(0)
       setAudioData(null)
@@ -476,16 +506,17 @@ export default function App() {
 
       {/* HUMANIZED FACE VIEW */}
       <div className="avatar-face-container" style={{ width: 220, height: 320, margin: "10px auto" }}>
-<AvatarLipsync
-  mouthOpen={mouthOpen}
-  speaking={speaking}
-  cameraPosition={[0, 1.6, 1.55]}   // Y ko 1.6 (slightly above mid-face), Z ko 1.55 (kam zoom)
-  cameraTarget={[0, 1.8, 0]}       // thoda upar target for natural head position
-  audioData={audioData}
-/>
+        <AvatarLipsync
+          mouthOpen={mouthOpen}
+          speaking={speaking}
+          cameraPosition={[0, 1.6, 1.55]}
+          cameraTarget={[0, 1.8, 0]}
+          audioData={audioData}
+        />
+        {/* For debugging: show audio controls only for dev */}
+        {/* <audio ref={audioRef} style={{ display: "block" }} controls /> */}
       </div>
 
-      {/* Enhanced debug info for humanized speech */}
       {process.env.NODE_ENV === "development" && audioData && (
         <div
           style={{

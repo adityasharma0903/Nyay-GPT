@@ -7,7 +7,7 @@ import { useGLTF, OrbitControls } from "@react-three/drei"
 function AvatarModel({ mouthOpen = 0, speaking = false, audioData = null }) {
   const group = useRef()
   const headRef = useRef()
-  const { scene } = useGLTF("https://models.readyplayer.me/6851185af3eb78408d901bf8.glb", true)
+  const { scene } = useGLTF("https://models.readyplayer.me/68514be56a740807c4053ab1.glb", true)
 
   const [headRotation, setHeadRotation] = useState({ x: 0, y: 0, z: 0 })
   const [blinkTimer, setBlinkTimer] = useState(0)
@@ -302,20 +302,32 @@ export default function AvatarLipsync({
 }) {
   return (
     <div className="avatar-face-container">
-      <Canvas
-        camera={{ position: cameraPosition, fov: 18, near: 0.01, far: 20 }}
-        style={{ width: "100%", height: "100%", background: "transparent" }}
-      >
-        <ambientLight intensity={3.0} />
-        <directionalLight position={[3, 6, 4]} intensity={1.8} />
-        <directionalLight position={[-3, 4, 4]} intensity={1.0} />
-        <pointLight position={[0, 5, 2]} intensity={1.5} />
-        <spotLight position={[0, 6, 3]} intensity={0.8} angle={0.2} penumbra={0.3} />
-        <group position={[0, 0.2, 0]}>
-          <AvatarModel mouthOpen={mouthOpen} speaking={speaking} audioData={audioData} />
-        </group>
-        <OrbitControls enablePan={false} enableZoom={false} enableRotate={false} target={cameraTarget} />
-      </Canvas>
-    </div>
+  <Canvas
+    camera={{ position: [0, 1.45, 2.1], fov: 19, near: 0.01, far: 20 }}
+    style={{
+      width: "100%",
+      height: "100%",
+      background: "transparent",
+      position: "absolute",
+      top: 0,
+      left: 0
+    }}
+  >
+    <ambientLight intensity={2.0} />
+    <directionalLight position={[3, 6, 4]} intensity={1.6} />
+    <directionalLight position={[-3, 4, 4]} intensity={0.9} />
+    <pointLight position={[0, 5, 2]} intensity={1.0} />
+    <spotLight position={[0, 6, 3]} intensity={0.5} angle={0.2} penumbra={0.3} />
+    <group position={[0, 0.6, 0]} scale={[1.07, 1.07, 1.07]}>
+      <AvatarModel mouthOpen={mouthOpen} speaking={speaking} audioData={audioData} />
+    </group>
+    <OrbitControls
+      enablePan={false}
+      enableZoom={false}
+      enableRotate={false}
+      target={[0, 1.15, 0]}
+    />
+  </Canvas>
+</div>
   )
 }
