@@ -78,11 +78,7 @@ Be empathetic and supportive.`,
 
 // --- EXPRESS APP SETUP ---
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+const PORT = 3000;
 
 const upload = multer({ dest: "uploads/" });
 const ttsClient = new TextToSpeechClient();
