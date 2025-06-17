@@ -2,10 +2,14 @@
 
 import { useEffect, useRef, useState } from "react"
 import "./AppUI.css"
+import AvatarLipsync from "./components/Avatar.jsx"
 
 // Supported Languages & Greetings
 const languages = {
-  english: { code: "en-IN", greeting: "Hello! I'm Nyay GPT — your AI legal assistant. Feel free to ask me any legal question." },
+  english: {
+    code: "en-IN",
+    greeting: "Hello! I'm Nyay GPT — your AI legal assistant. Feel free to ask me any legal question.",
+  },
   hindi: { code: "hi-IN", greeting: "नमस्ते! मैं न्याय GPT हूँ। आप मुझसे कोई भी कानूनी सवाल पूछ सकते हैं।" },
   punjabi: { code: "pa-IN", greeting: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਨਿਆਂ GPT ਹਾਂ। ਤੁਸੀਂ ਮੈਨੂੰ ਕੋਈ ਵੀ ਕਾਨੂੰਨੀ ਸਵਾਲ ਪੁੱਛ ਸਕਦੇ ਹੋ।" },
   tamil: { code: "ta-IN", greeting: "வணக்கம்! நான் நியாய GPT. நீங்கள் என்னிடம் எந்தவொரு சட்டக் கேள்வியையும் கேட்கலாம்." },
@@ -27,27 +31,38 @@ const languageKeywords = {
   marathi: ["marathi", "मराठी"],
   telugu: ["telugu", "तेलुगू"],
   bengali: ["bengali", "বেঙ্গলি", "বাঙালি", "बंगाली"],
-  kannada: ["kannada", "ಕನ್ನಡ", "कन्नड़", "कನ್ನಡ"],
+  kannada: ["kannada", "ಕನ್ನಡ", "कन्नड़", "ಕನ್ನಡ"],
   malayalam: ["malayalam", "മലയാളം", "मलयालम"],
   gujarati: ["gujarati", "ગુજરાતી", "गुजराती"],
   urdu: ["urdu", "اردو", "उर्दू"],
   odia: ["odia", "odiya", "ଓଡ଼ିଆ", "ओड़िया"],
 }
 
-const initialGreeting = "आप कानूनी सहायता तक पहुँच चुके हैं। आपकी बेहतर मदद के लिए कृपया बताएं आपकी पसंदीदा भाषा क्या है? For example: Hindi, English, Gujrati.       You have accessed legal aid , for your better help , please tell us your preferred language for example english , hindi , gujrati"
+const initialGreeting =
+  "आप कानूनी सहायता तक पहुँच चुके हैं। आपकी बेहतर मदद के लिए कृपया बताएं आपकी पसंदीदा भाषा क्या है? For example: Hindi, English, Gujrati.       You have accessed legal aid , for your better help , please tell us your preferred language for example english , hindi , gujrati"
 
 const languageGreetings = {
-  hindi: "नमस्ते जी, मैं नव्या swaraj ai से आपकी लीगल एजेंट। आपकी बेहतर सहायता के लिए, क्या आप बता सकते हैं आपको किस प्रकार की कानूनी सहायता चाहिए या क्या आप इमरजेंसी में हैं?",
-  english: "Hello! I am Navya, your legal agent. For better assistance, can you tell me what help you need or if you are in an emergency?",
-  punjabi: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ਮੈਂ ਨਵਿਆ, ਤੁਹਾਡੀ ਲੀਗਲ ਏਜੰਟ ਹਾਂ। ਤੁਹਾਡੀ ਬਿਹਤਰ ਮਦਦ ਲਈ, ਕੀ ਤੁਸੀਂ ਦੱਸ ਸਕਦੇ ਹੋ ਕਿ ਤੁਹਾਨੂੰ ਕਿਸ ਕਿਸਮ ਦੀ ਕਾਨੂੰਨੀ ਮਦਦ ਚਾਹੀਦੀ ਹੈ ਜਾਂ ਤੁਸੀਂ ਐਮਰਜੈਂਸੀ ਵਿੱਚ ਹੋ?",
-  tamil: "வணக்கம், நான் நவ்யா, உங்கள் சட்ட உதவியாளர். சிறந்த உதவிக்காக, நீங்கள் என்ன உதவி தேவை என்று அல்லது அவசர நிலைமையில் உள்ளீர்களா என்று சொல்ல முடியுமா?",
-  marathi: "नमस्कार, मी नव्या, तुमची लीगल एजंट. तुमच्या उत्तम मदतीसाठी, कृपया सांगा तुम्हाला कोणत्या प्रकारची कायदेशीर मदत हवी आहे किंवा तुम्ही आणीबाणी स्थितीत आहात का?",
-  telugu: "నమస్తే, నేను నవ్యా, మీ లీగల్ ఏజెంట్. మీకు మెరుగైన సహాయం అందించేందుకు, మీరు ఏ విధమైన చట్ట సహాయం కావాలో లేదా మీరు ఎమర్జెన్సీలో ఉన్నారా అని చెప్పగలరా?",
-  bengali: "নমস্কার, আমি নব্যা, আপনার লিগ্যাল এজেন্ট। আপনার আরও ভাল সহায়তার জন্য, দয়া করে বলুন আপনি কী ধরনের আইনি সহায়তা চান বা আপনি জরুরি অবস্থায় রয়েছেন কিনা।",
-  kannada: "ನಮಸ್ಕಾರ, ನಾನು ನವ್ಯಾ, ನಿಮ್ಮ ಲೀಗಲ್ ಏಜೆಂಟ್. ಉತ್ತಮ ಸಹಾಯಕ್ಕಾಗಿ, ನಿಮಗೆ ಯಾವ ರೀತಿಯ ಕಾನೂನು ಸಹಾಯ ಬೇಕು ಅಥವಾ ನೀವು ತುರ್ತು ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಇದ್ದೀರಾ ಎಂಬುದನ್ನು ಹೇಳಿ.",
-  malayalam: "നമസ്കാരം, ഞാൻ നവ്യ, നിങ്ങളുടെ ലീഗൽ ഏജന്റ്. മികച്ച സഹായത്തിനായി, നിങ്ങൾക്ക് എന്ത് തരത്തിലുള്ള നിയമ സഹായം വേണമെന്ന് അല്ലെങ്കിൽ നിങ്ങൾ അടിയന്തരാവസ്ഥയിലാണോ എന്ന് പറയാമോ?",
-  gujarati: "નમસ્તે, હું નવ્યા, તમારી લીગલ એજન્ટ છું. તમારી વધુ સારી મદદ માટે, કૃપા કરીને કહો તમને કઈ પ્રકારની કાનૂની મદદ જોઈએ છે અથવા તમે ઇમરજન્સી માં છો?",
-  urdu: "السلام علیکم، میں نویا، آپ کی قانونی ایجنٹ ہوں۔ آپ کی بہتر مدد کے لیے، کیا آپ بتا سکتے ہیں آپ کو کس چیز کی قانونی مدد چاہیے یا آپ ایمرجنسی میں ہیں؟",
+  hindi:
+    "नमस्ते जी, मैं नव्या swaraj ai से आपकी लीगल एजेंट। आपकी बेहतर सहायता के लिए, क्या आप बता सकते हैं आपको किस प्रकार की कानूनी सहायता चाहिए या क्या आप इमरजेंसी में हैं?",
+  english:
+    "Hello! I am Navya, your legal agent. For better assistance, can you tell me what help you need or if you are in an emergency?",
+  punjabi:
+    "ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ਮੈਂ ਨਵਿਆ, ਤੁਹਾਡੀ ਲੀਗਲ ਏਜੰਟ ਹਾਂ। ਤੁਹਾਡੀ ਬਿਹਤਰ ਮਦਦ ਲਈ, ਕੀ ਤੁਸੀਂ ਦੱਸ ਸਕਦੇ ਹੋ ਕਿ ਤੁਹਾਨੂੰ ਕਿਸ ਕਿਸਮ ਦੀ ਕਾਨੂੰਨੀ ਮਦਦ ਚਾਹੀਦੀ ਹੈ ਜਾਂ ਤੁਸੀਂ ਐਮਰਜੈਂਸੀ ਵਿੱਚ ਹੋ?",
+  tamil:
+    "வணக்கம், நான் நவ்யா, உங்கள் சட்ட உதவியாளர். சிறந்த உதவிக்காக, நீங்கள் என்ன உதவி தேவை என்று அல்லது அவசர நிலைமையில் உள்ளீர்களா என்று சொல்ல முடியுமா?",
+  marathi:
+    "नमस्कार, मी नव्या, तुमची लीगल एजंट. तुमच्या उत्तम मदतीसाठी, कृपया सांगा तुम्हाला कोणत्या प्रकारची कायदेशीर मदत हवी आहे किंवा तुम्ही आणीबाणी स्थितीत आहात का?",
+  telugu:
+    "నమస్తే, నేను నవ్యా, మీ లీగల్ ఏజెంట్. మీకు మెరుగైన సహాయం అందించేందుకు, మీరు ఏ విధమైన చట్ట సహాయం కావాలో లేదా మీరు ఎమర్జెన్సీలో ఉన్నారా అని చెప్పగలరా?",
+  bengali:
+    "নমস্কার, আমি নব্যা, আপনার লিগ্যাল এজেন্ট। আপনার আরও ভাল সহায়তার জন্য, দয়া করে বলুন আপনি কী ধরনের আইনি সহায়তা চান বা আপনি জরুরি অবস্থায় রয়েছেন কিনা।",
+  kannada:
+    "ನಮಸ್ಕಾರ, ನಾನು ನವ್ಯಾ, ನಿಮ್ಮ ಲೀಗಲ್ ಏಜೆಂಟ್. ಉತ್ತಮ ಸಹಾಯಕ್ಕಾಗಿ, ನಿಮಗೆ ಯಾವ ರೀತಿಯ ಕಾನೂನು ಸಹಾಯ ಬೇಕು ಅಥವಾ ನೀವು ತುರ್ತು ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಇದ್ದೀರಾ ಎಂಬುದನ್ನು ಹೇಳಿ.",
+  malayalam:
+    "നമസ്കാരം, ഞാൻ നവ്യ, നിങ്ങളുടെ ലീഗൽ ഏജന്റ്. മികച്ച സഹായത്തിനായി, നിങ്ങൾക്ക് എന്ത് തരത്തിലുള്ള നിയമ സഹായം വേണമെന്ന് അല്ലെങ്കിൽ നിങ്ങൾ അടിയന്തരാവസ്ഥയിലാണോ എന്ന് പറയാമോ?",
+  gujarati:
+    "નમસ્તે, હું નવ્યા, તમારી લીગલ એજન્ટ છું. તમારી વધુ સારી મદદ માટે, કૃપા કરીને કહો તમને કઈ પ્રકારની કાનૂની મદદ જોઈએ છે અથવા તમે ઇમરજન્સી માં છો?",
+  urdu: "السلام علیکم، میں نویا، آپ کی قانونی ایجنٹ ہوں۔ آپ کی بہتر مدد کے لیے، کیا آپ بتا سکتے ہیں آپ کو کس چیز کی قانونی مدد चाहिए یا آپ ایمرجेंسی میں ہیں?",
   odia: "ନମସ୍କାର, ମୁଁ ନବ୍ୟା, ଆପଣଙ୍କର ଲିଗାଲ୍ ଏଜେଣ୍ଟ। ଆପଣଙ୍କୁ ଭଲ ସହଯୋଗ ଦେବା ପାଇଁ, ଦୟାକରି କହନ୍ତୁ ଆପଣ କେଉଁ ପ୍ରକାରର ଆଇନିକ ସହଯୋଗ ଚାହାଁନ୍ତି କିମ୍ବା ଆପଣ ଆପାତ୍କାଳୀନ ସ୍ଥିତିରେ ଅଛନ୍ତି କି?",
 }
 
@@ -55,6 +70,9 @@ export default function App() {
   const recognitionRef = useRef(null)
   const audioRef = useRef(null)
   const apiCallInProgressRef = useRef(false)
+  const audioContextRef = useRef(null)
+  const analyserRef = useRef(null)
+  const animationFrameRef = useRef(null)
 
   const [connected, setConnected] = useState(false)
   const [muted, setMuted] = useState(false)
@@ -69,18 +87,17 @@ export default function App() {
   const [userPos, setUserPos] = useState(null)
   const [showStations, setShowStations] = useState(false)
   const [selectedStation, setSelectedStation] = useState(null)
-  const [phase, setPhase] = useState("init") // "init", "askLang", "normal"
+  const [phase, setPhase] = useState("init")
+  const [mouthOpen, setMouthOpen] = useState(0)
+  const [audioData, setAudioData] = useState(null)
 
   const timerRef = useRef(null)
   const utteranceIdRef = useRef(0)
 
-  // API key from vite .env file
   const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
-  // MAIN SEAMLESS VOICE EFFECT
   useEffect(() => {
     if (!connected) return
-    // Only run the effect when the assistant is not speaking and not muted
     if (muted || speaking) return
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -101,7 +118,7 @@ export default function App() {
 
       setUserSpeaking(true)
       setTimeout(() => setUserSpeaking(false), 1200)
-      recognition.stop() // Stop listening as soon as we get input
+      recognition.stop()
 
       utteranceIdRef.current += 1
       const thisUtterance = utteranceIdRef.current
@@ -121,19 +138,18 @@ export default function App() {
           setLangSelected(true)
           setRecognitionKey((k) => k + 1)
           setHistory([])
-          setPhase("normal") // Now ready for main conversation
+          setPhase("normal")
           await speakText(languageGreetings[detectedLang], detectedLang)
           return
         } else {
           await speakText("कृपया अपनी पसंदीदा भाषा का नाम दोबारा बताएं। For example: Hindi, English, Tamil, etc.", "hindi")
-          setRecognitionKey((k) => k + 1) // Force restart recognition after TTS
+          setRecognitionKey((k) => k + 1)
           return
         }
       }
 
-      // Normal phase - with API call protection
       if (phase === "normal" && !apiCallInProgressRef.current) {
-        apiCallInProgressRef.current = true // Set flag to prevent multiple calls
+        apiCallInProgressRef.current = true
         setSpeaking(true)
         const newHistory = [...history, { role: "user", content: userSpeech }]
         setHistory(newHistory)
@@ -151,14 +167,14 @@ export default function App() {
           if (utteranceIdRef.current === thisUtterance && apiCallInProgressRef.current) {
             setHistory((h) => [...h, { role: "assistant", content: data.reply }])
             await speakText(data.reply, currentLang)
-            setRecognitionKey((k) => k + 1) // Restart recognition after TTS
+            setRecognitionKey((k) => k + 1)
           }
         } catch (err) {
           console.error("API Error:", err)
           setSpeaking(false)
           setRecognitionKey((k) => k + 1)
         } finally {
-          apiCallInProgressRef.current = false // Always reset the flag
+          apiCallInProgressRef.current = false
         }
       }
     }
@@ -180,8 +196,7 @@ export default function App() {
       stoppedByApp = true
       recognition.stop()
     }
-  // Include recognitionKey and speaking in deps so we restart after TTS
-  }, [connected, muted, recognitionKey, speaking, phase, currentLang])
+  }, [connected, muted, recognitionKey, speaking, phase, currentLang, history])
 
   useEffect(() => {
     if (connected) {
@@ -193,11 +208,117 @@ export default function App() {
     return () => clearInterval(timerRef.current)
   }, [connected])
 
+  // ENHANCED HUMANIZED AUDIO ANALYSIS
+  useEffect(() => {
+    const setupHumanizedAudioAnalysis = async () => {
+      if (speaking && audioRef.current) {
+        try {
+          if (!audioContextRef.current) {
+            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
+          }
+
+          if (audioContextRef.current.state === "suspended") {
+            await audioContextRef.current.resume()
+          }
+
+          if (!analyserRef.current) {
+            analyserRef.current = audioContextRef.current.createAnalyser()
+            analyserRef.current.fftSize = 512 // Higher resolution for better phoneme detection
+            analyserRef.current.smoothingTimeConstant = 0.2 // Less smoothing for more responsive
+
+            const source = audioContextRef.current.createMediaElementSource(audioRef.current)
+            source.connect(analyserRef.current)
+            analyserRef.current.connect(audioContextRef.current.destination)
+          }
+
+          const bufferLength = analyserRef.current.frequencyBinCount
+          const dataArray = new Uint8Array(bufferLength)
+
+          const analyzeHumanizedAudio = () => {
+            if (speaking && analyserRef.current) {
+              analyserRef.current.getByteFrequencyData(dataArray)
+
+              // Enhanced frequency analysis for human speech
+              const volume = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength / 255
+
+              // Detailed frequency bands for phoneme detection
+              const veryLowFreq = dataArray.slice(0, 16).reduce((sum, val) => sum + val, 0) / 16 / 255 // 0-750Hz
+              const lowFreq = dataArray.slice(16, 32).reduce((sum, val) => sum + val, 0) / 16 / 255 // 750-1500Hz
+              const midFreq = dataArray.slice(32, 64).reduce((sum, val) => sum + val, 0) / 32 / 255 // 1500-3000Hz
+              const highFreq = dataArray.slice(64, 96).reduce((sum, val) => sum + val, 0) / 32 / 255 // 3000-4500Hz
+              const veryHighFreq = dataArray.slice(96, 128).reduce((sum, val) => sum + val, 0) / 32 / 255 // 4500-6000Hz
+
+              const humanizedAudioData = {
+                volume: volume,
+                frequencies: Array.from(dataArray),
+                veryLowFreq: veryLowFreq,
+                lowFreq: lowFreq,
+                midFreq: midFreq,
+                highFreq: highFreq,
+                veryHighFreq: veryHighFreq,
+                timestamp: Date.now(),
+              }
+
+              console.log(
+                `🗣️ HUMANIZED ANALYSIS - Vol: ${(volume * 100).toFixed(0)}% | VLow: ${(veryLowFreq * 100).toFixed(0)}% | Low: ${(lowFreq * 100).toFixed(0)}% | Mid: ${(midFreq * 100).toFixed(0)}% | High: ${(highFreq * 100).toFixed(0)}%`,
+              )
+
+              setAudioData(humanizedAudioData)
+              animationFrameRef.current = requestAnimationFrame(analyzeHumanizedAudio)
+            }
+          }
+
+          analyzeHumanizedAudio()
+        } catch (error) {
+          console.error("Humanized audio analysis failed:", error)
+          // Enhanced fallback with more realistic patterns
+          const createRealisticFakeData = () => {
+            const baseVolume = 0.4 + Math.random() * 0.4
+            const time = Date.now() * 0.001
+
+            return {
+              volume: baseVolume * (0.8 + Math.sin(time * 8) * 0.2),
+              frequencies: Array.from({ length: 256 }, (_, i) => Math.random() * 100 + 50),
+              veryLowFreq: 0.3 + Math.sin(time * 3) * 0.2,
+              lowFreq: 0.25 + Math.cos(time * 4) * 0.15,
+              midFreq: 0.2 + Math.sin(time * 6) * 0.1,
+              highFreq: 0.15 + Math.cos(time * 8) * 0.08,
+              veryHighFreq: 0.1 + Math.sin(time * 12) * 0.05,
+              timestamp: Date.now(),
+            }
+          }
+
+          setAudioData(createRealisticFakeData())
+
+          const fakeInterval = setInterval(() => {
+            if (speaking) {
+              setAudioData(createRealisticFakeData())
+            } else {
+              clearInterval(fakeInterval)
+            }
+          }, 50) // Higher frequency updates for smoother animation
+        }
+      } else {
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current)
+        }
+        setAudioData(null)
+      }
+    }
+
+    setupHumanizedAudioAnalysis()
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [speaking])
+
   const handleMute = () => {
     setMuted((m) => !m)
     if (!muted) {
       recognitionRef.current?.stop()
-      // Stop any current audio
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current.src = ""
@@ -225,25 +346,38 @@ export default function App() {
       audioRef.current.src = ""
     }
     setSpeaking(false)
-    apiCallInProgressRef.current = false // Reset API call flag
+    apiCallInProgressRef.current = false
+
+    if (audioContextRef.current) {
+      audioContextRef.current.close()
+      audioContextRef.current = null
+      analyserRef.current = null
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+    }
   }
 
-  // The new, robust speakText function
   const speakText = async (text, langKey = currentLang || "hindi") => {
-    // STOP RECOGNITION FIRST (prevents loops)
+    console.log("🎤 Starting HUMANIZED speech:", text.substring(0, 50) + "...")
+
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop()
       } catch (e) {}
     }
-
-    // STOP ANY CURRENT AUDIO
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ""
     }
 
-    setSpeaking(true)
+    if (audioContextRef.current && analyserRef.current) {
+      try {
+        audioContextRef.current.close()
+      } catch (e) {}
+      audioContextRef.current = null
+      analyserRef.current = null
+    }
 
     try {
       const res = await fetch("http://localhost:3000/speak", {
@@ -257,15 +391,26 @@ export default function App() {
       audioRef.current = audio
 
       audio.onended = () => {
+        console.log("🎤 HUMANIZED speech ended")
         setSpeaking(false)
-        // Recognition will restart via useEffect (speaking now false)
+        setMouthOpen(0)
+        setAudioData(null)
       }
       audio.onerror = () => {
+        console.log("🎤 HUMANIZED speech error")
         setSpeaking(false)
+        setMouthOpen(0)
+        setAudioData(null)
       }
+
+      setSpeaking(true)
       await audio.play()
+      console.log("🎤 HUMANIZED speech playing - advanced lip-sync active")
     } catch (error) {
+      console.error("HUMANIZED speech error:", error)
       setSpeaking(false)
+      setMouthOpen(0)
+      setAudioData(null)
     }
   }
 
@@ -281,7 +426,7 @@ export default function App() {
     setSelectedStation(null)
     setPhase("askLang")
     await speakText(initialGreeting, "hindi")
-    setRecognitionKey((k) => k + 1) // Ensure recognition is ready after TTS
+    setRecognitionKey((k) => k + 1)
   }
 
   const handleNearbyPolice = () => {
@@ -321,11 +466,52 @@ export default function App() {
           <span className="ai-status-battery" />
         </div>
       </div>
-      <div className="ai-avatar-ui-premium">
-        <span>AI</span>
+
+      <div className="ai-agent-title-premium" style={{ marginTop: 65, textAlign: "center" }}>
+        NyayGPT 
       </div>
-      <div className="ai-agent-title-premium">Navya Legal Agent</div>
-      <div className="ai-agent-subtitle-premium">{connected ? "Connected" : "Tap to connect"}</div>
+      <div className="ai-agent-subtitle-premium" style={{ textAlign: "center" }}>
+        {connected ? "Connected" : "Tap to connect"}
+      </div>
+
+      {/* HUMANIZED FACE VIEW */}
+      <div className="avatar-face-container" style={{ width: 220, height: 320, margin: "10px auto" }}>
+<AvatarLipsync
+  mouthOpen={mouthOpen}
+  speaking={speaking}
+  cameraPosition={[0, 1.6, 1.55]}   // Y ko 1.6 (slightly above mid-face), Z ko 1.55 (kam zoom)
+  cameraTarget={[0, 1.8, 0]}       // thoda upar target for natural head position
+  audioData={audioData}
+/>
+      </div>
+
+      {/* Enhanced debug info for humanized speech */}
+      {process.env.NODE_ENV === "development" && audioData && (
+        <div
+          style={{
+            position: "fixed",
+            top: 10,
+            right: 10,
+            background: "rgba(0,0,0,0.95)",
+            color: "white",
+            padding: 12,
+            fontSize: 10,
+            borderRadius: 8,
+            fontFamily: "monospace",
+            lineHeight: 1.4,
+          }}
+        >
+          <div style={{ color: "#00ff00", fontWeight: "bold" }}>🗣️ HUMANIZED LIP-SYNC</div>
+          <div>🎤 Speaking: {speaking ? "YES" : "NO"}</div>
+          <div>🔊 Volume: {(audioData.volume * 100).toFixed(0)}%</div>
+          <div>🔉 VeryLow: {(audioData.veryLowFreq * 100).toFixed(0)}% (Vowels)</div>
+          <div>🔉 Low: {(audioData.lowFreq * 100).toFixed(0)}% (Consonants)</div>
+          <div>🔉 Mid: {(audioData.midFreq * 100).toFixed(0)}% (Speech)</div>
+          <div>🔉 High: {(audioData.highFreq * 100).toFixed(0)}% (Sibilants)</div>
+          <div>🔉 VHigh: {(audioData.veryHighFreq * 100).toFixed(0)}% (Fricatives)</div>
+        </div>
+      )}
+
       {connected && (
         <div className={`ai-agent-waves${(speaking || userSpeaking) && !muted ? " speaking" : ""}`}>
           {[...Array(10)].map((_, i) => (
@@ -361,18 +547,35 @@ export default function App() {
         </div>
       )}
 
-      {/* ---- MODAL for police stations ---- */}
       {showStations && (
-        <div className="stations-modal-bg" onClick={() => { setShowStations(false); setSelectedStation(null) }}>
-          <div className="stations-modal" onClick={e => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => { setShowStations(false); setSelectedStation(null) }} aria-label="Close">
+        <div
+          className="stations-modal-bg"
+          onClick={() => {
+            setShowStations(false)
+            setSelectedStation(null)
+          }}
+        >
+          <div className="stations-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="close-btn"
+              onClick={() => {
+                setShowStations(false)
+                setSelectedStation(null)
+              }}
+              aria-label="Close"
+            >
               &times;
             </button>
             <h3>Nearby Police Stations</h3>
             {policeStations.length ? (
               <ul>
                 {policeStations.map((s, i) => (
-                  <li key={i} style={{ cursor: "pointer" }} onClick={() => setSelectedStation(s)} title="Show directions on map">
+                  <li
+                    key={i}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setSelectedStation(s)}
+                    title="Show directions on map"
+                  >
                     <b>{s.name}</b>
                     <span>{s.vicinity}</span>
                   </li>
@@ -385,10 +588,9 @@ export default function App() {
         </div>
       )}
 
-      {/* ---- DIRECTIONS MAP MODAL ---- */}
       {selectedStation && userPos && (
         <div className="directions-modal-bg" onClick={() => setSelectedStation(null)}>
-          <div className="directions-modal" onClick={e => e.stopPropagation()}>
+          <div className="directions-modal" onClick={(e) => e.stopPropagation()}>
             <button className="close-btn" onClick={() => setSelectedStation(null)} aria-label="Close">
               &times;
             </button>

@@ -461,3 +461,25 @@
   background: none; border: none; font-size: 1.4rem; color: #8294ba; cursor: pointer;
 }
 .directions-modal h3 { font-size: 1.13rem; margin-bottom: 10px; color: #173a7c; }
+
+
+.avatar-face-container {
+  width: 220px;      /* adjust as per your UI */
+  height: 220px;     /* adjust to cover just the face */
+  overflow: hidden;  /* crop anything outside */
+  border-radius: 50%; /* optional: for circular crop */
+  margin: auto;
+  margin-top: 80px;
+  position: relative;
+}
+
+.avatar-face-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  object-position: center 15%;
+  /* transform: scale(0.88);    1 se kam, to model chota dikhega */
+  transform-origin: center 30%;
+  transition: transform 0.3s ease-in-out;
+}
+
