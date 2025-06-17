@@ -92,7 +92,11 @@ const embeddings = new HuggingFaceTransformersEmbeddings({
 });
 
 // --- MIDDLEWARE ---
-app.use(cors());
+app.use(cors({
+  origin: 'https://nyaygpt.vercel.app/',  // <-- Replace with actual frontend URL
+  credentials: true
+}));
+
 app.use(bodyParser.json());
 
 // --- ROUTE: /ask ---
@@ -315,5 +319,5 @@ app.post("/stt", upload.single("audio"), async (req, res) => {
 
 // --- START SERVER ---
 app.listen(PORT, () => {
-  console.log(`✅ NyayGPT backend running on http://localhost:${PORT}`);
+  console.log(`✅ NyayGPT backend running on port ${PORT}`);
 });
