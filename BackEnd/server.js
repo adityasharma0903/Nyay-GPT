@@ -93,7 +93,7 @@ const embeddings = new HuggingFaceTransformersEmbeddings({
 
 // --- MIDDLEWARE ---
 app.use(cors({
-  origin: 'https://nyaygpt.vercel.app/',  // <-- Replace with actual frontend URL
+  origin: 'https://nyaygpt.vercel.app',  // <-- Replace with actual frontend URL
   credentials: true
 }));
 
