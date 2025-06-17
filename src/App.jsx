@@ -183,7 +183,7 @@ export default function App() {
         const newHistory = [...history, { role: "user", content: userSpeech }]
         setHistory(newHistory)
         try {
-          const res = await fetch("http://localhost:3000/ask-context", {
+          const res = await fetch("https://nyay-gpt.onrender.com/ask-context", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -405,7 +405,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/speak", {
+      const res = await fetch("https://nyay-gpt.onrender.com/speak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, language: langKey }),
@@ -469,7 +469,7 @@ export default function App() {
         const { latitude, longitude } = pos.coords
         setUserPos({ lat: latitude, lng: longitude })
         try {
-          const res = await fetch(`http://localhost:3000/nearby-police?lat=${latitude}&lng=${longitude}`)
+          const res = await fetch(`https://nyay-gpt.onrender.com/nearby-police?lat=${latitude}&lng=${longitude}`)
           const data = await res.json()
           setPoliceStations(data.stations || [])
           setShowStations(true)
