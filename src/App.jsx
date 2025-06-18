@@ -4,6 +4,12 @@ import { useEffect, useRef, useState } from "react"
 import "./AppUI.css"
 import AvatarLipsync from "./components/Avatar.jsx"
 
+
+const backendBaseUrl =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://nyay-gpt.onrender.com";
+
 // Supported Languages & Greetings
 const languages = {
   english: {
@@ -183,7 +189,7 @@ export default function App() {
         const newHistory = [...history, { role: "user", content: userSpeech }]
         setHistory(newHistory)
         try {
-          const res = await fetch("https://nyay-gpt.onrender.com/ask-context", {
+          const res = await fetch(`${backendBaseUrl}/ask-context`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -405,7 +411,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch("https://nyay-gpt.onrender.com/speak", {
+      const res = await fetch(`${backendBaseUrl}/speak`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, language: langKey }),
@@ -469,7 +475,7 @@ export default function App() {
         const { latitude, longitude } = pos.coords
         setUserPos({ lat: latitude, lng: longitude })
         try {
-          const res = await fetch(`https://nyay-gpt.onrender.com/nearby-police?lat=${latitude}&lng=${longitude}`)
+          const res = await fetch(`${backendBaseUrl}/nearby-police?lat=${latitude}&lng=${longitude}`)
           const data = await res.json()
           setPoliceStations(data.stations || [])
           setShowStations(true)
