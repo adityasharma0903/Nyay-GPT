@@ -92,8 +92,19 @@ const embeddings = new HuggingFaceTransformersEmbeddings({
 });
 
 // --- MIDDLEWARE ---
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://nyaygpt.vercel.app"
+];
+
 app.use(cors({
-  origin: 'https://nyaygpt.vercel.app',  // <-- Replace with actual frontend URL
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS error: Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
 
