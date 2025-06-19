@@ -638,6 +638,20 @@ export default function App() {
             <span className="ai-location-icon" />
             <div>Nearby Police</div>
           </button>
+                    <button
+            className="ai-nearby-btn"
+            onClick={handleRequestCall}
+            disabled={callRequestLoading}
+            style={{
+              background: callRequestLoading
+                ? "linear-gradient(135deg, #ccc, #999)"
+                : "linear-gradient(135deg, #ff9f1a, #ff6e1a)",
+              cursor: callRequestLoading ? "not-allowed" : "pointer",
+            }}
+          >
+            <span className="ai-location-icon" />
+            <div>{callRequestLoading ? "Requesting..." : "Request Call"}</div>
+          </button>
         </div>
       ) : (
         <div className="ai-agent-btn-row-premium">
@@ -653,20 +667,7 @@ export default function App() {
             <span className="ai-end-icon" />
             <div>End</div>
           </button>
-          <button
-            className="ai-nearby-btn"
-            onClick={handleRequestCall}
-            disabled={callRequestLoading}
-            style={{
-              background: callRequestLoading
-                ? "linear-gradient(135deg, #ccc, #999)"
-                : "linear-gradient(135deg, #ff9f1a, #ff6e1a)",
-              cursor: callRequestLoading ? "not-allowed" : "pointer",
-            }}
-          >
-            <span className="ai-location-icon" />
-            <div>{callRequestLoading ? "Requesting..." : "Request Call"}</div>
-          </button>
+
         </div>
       )}
 
