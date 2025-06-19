@@ -1,34 +1,34 @@
 // --- IMPORTS ---
-import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import dotenv from "dotenv";
-import fs from "fs";
-import util from "util";
-import multer from "multer";
-import { ChatGroq } from "@langchain/groq";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { TextToSpeechClient } from "@google-cloud/text-to-speech";
-import OpenAI from "openai";
-import fetch from "node-fetch";
+import express from "express"
+import cors from "cors"
+import bodyParser from "body-parser"
+import dotenv from "dotenv"
+import fs from "fs"
+import multer from "multer"
+import { ChatGroq } from "@langchain/groq"
+import { ChatPromptTemplate } from "@langchain/core/prompts"
+import { TextToSpeechClient } from "@google-cloud/text-to-speech"
+import OpenAI from "openai"
+import fetch from "node-fetch"
 
 // --- NEW IMPORTS FOR CONTEXT QnA ---
-import { Pinecone } from "@pinecone-database/pinecone";
-import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/hf_transformers";
-import { askGrok } from "./grok.js";
+import { Pinecone } from "@pinecone-database/pinecone"
+import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/hf_transformers"
+import { askGrok } from "./grok.js"
 
 // --- ENVIRONMENT SETUP ---
-dotenv.config();
-console.log("OpenAI Key Loaded:", process.env.OPENAI_API_KEY ? "✅ YES" : "❌ NO");
-console.log("Groq Key Loaded:", process.env.GROQ_API_KEY ? "✅ YES" : "❌ NO");
-console.log("Node Process Info:", process.pid, process.platform, process.version);
+dotenv.config()
+console.log("OpenAI Key Loaded:", process.env.OPENAI_API_KEY ? "✅ YES" : "❌ NO")
+console.log("Groq Key Loaded:", process.env.GROQ_API_KEY ? "✅ YES" : "❌ NO")
+console.log("OmniDim Key Loaded:", process.env.OMNIDIM_API_KEY ? "✅ YES" : "❌ NO")
+console.log("Node Process Info:", process.pid, process.platform, process.version)
 
-// --- SYSTEM PROMPTS GLOBAL SCOPE (upgraded for crispness, safety, engagement) ---
+// --- SYSTEM PROMPTS GLOBAL SCOPE ---
 const systemPrompts = {
   hindi: `तुम एक भारत का कानूनी सहायक न्याय GPT हो, जवाब हिंदी में दो।
 हमेशा उत्तर को संक्षिप्त, स्पष्ट और उपयोगकर्ता के लिए सहायक बनाओ।
 अगर सवाल अस्पष्ट हो तो विनम्रतापूर्वक स्पष्ट जानकारी माँगो।
-कभी भी कोई खतरनाक कानूनी सलाह मत दो—गंभीर/आपात स्थिति में पेशेवर या पुलिस से संपर्क करने की सलाह दो।`,
+कभी भी कोई खतरनाक कानूनी सलाह मत दो—गंभीर/आपात स्थिति में पेशेवर/पुलिस से संपर्क करने की सलाह दो।`,
   english: `You are Nyay-GPT, a highly knowledgeable, friendly, and concise legal assistant for India. 
 Always answer crisply and clearly, using the user's language.
 If the question is ambiguous or incomplete, ask a short, polite clarifying question.
@@ -60,7 +60,7 @@ Be empathetic and supportive.`,
 ಯಾವುದೇ ಅಪಾಯಕಾರಿ ಕಾನೂನು ಸಲಹೆ ನೀಡಬೇಡಿ—ಗಂಭೀರ ಅಥವಾ ತುರ್ತು ಸಂದರ್ಭಗಳಲ್ಲಿ ತಜ್ಞ ಅಥವಾ ಪೊಲೀಸರನ್ನು ಸಂಪರ್ಕಿಸಲು ಸೂಚಿಸಿ.`,
   malayalam: `നിങ്ങൾ ന്യായ GPT ആണ്, ഇന്ത്യയിലെ നിയമ സഹായി. ഉത്തരം മലയാളത്തിൽ നൽകുക.
 എപ്പോഴും ഉത്തരം സംക്ഷിപ്തവും വ്യക്തവും ഉപകാരപ്രദവുമാക്കുക.
-ചോദ്യം അസ్పഷ്ടമാണെങ്കിൽ, വിനയപൂർവ്വം വിശദീകരണം ചോദിക്കുക.
+ചോദ്യം അസ్പഷ്ടമാണെങ്കിൽ, വിനയപൂർവ്വം വിശദീകരണം ചോദിക്കുക.
 പോലീസിനോട് അല്ലെങ്കിൽ വിദഗ്ധരോട് ബന്ധപ്പെടാൻ നിർദ്ദേശിക്കുക.`,
   gujarati: `તમે ન્યાય GPT છો, ભારત માટેનો કાનૂની સહાયક. જવાબ ગુજરાતી માં આપો.
 હંમેશા જવાબ સંક્ષિપ્ત, સ્પષ્ટ અને ઉપયોગી હોવો જોઈએ.
@@ -74,175 +74,196 @@ Be empathetic and supportive.`,
 ସବୁବେଳେ ଉତ୍ତରକୁ ସଂକ୍ଷିପ୍ତ, ସ୍ପଷ୍ଟ ଏବଂ ସହାୟକ କରନ୍ତୁ।
 ପ୍ରଶ୍ନ ଅସ୍ପଷ୍ଟ ଥିଲେ, ଦୟାକରି ଅଧିକ ସୂଚନା ଚାହାନ୍ତୁ।
 କେବେ ମଧ୍ୟ ଜଣେ ଦ୍ରୁତ ଆବଶ୍ୟକତାରେ ବିପଦଜନକ ଆଇନି ପରାମର୍ଶ ଦିଅନ୍ତୁ ନାହିଁ—ଗମ୍ଭୀର/ଆପାତ୍କାଳୀନ ପରିସ୍ଥିତିରେ ବିଶେଷଜ୍ଞ କିମ୍ବା ପୋଲିସ ସହିତ ଯୋଗାଯୋଗ କରିବାକୁ ପରାମର୍ଶ ଦିଅନ୍ତୁ।`,
-};
+}
 
 // --- EXPRESS APP SETUP ---
-const app = express();
-const PORT = 3000;
+const app = express()
+const PORT = process.env.PORT || 3000
 
-const upload = multer({ dest: "uploads/" });
-const ttsClient = new TextToSpeechClient();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const upload = multer({ dest: "uploads/" })
+const ttsClient = new TextToSpeechClient()
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-// --- NEW PINECONE & EMBEDDINGS SETUP ---
-const pinecone = new Pinecone();
-const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX_NAME);
+// --- PINECONE & EMBEDDINGS SETUP ---
+const pinecone = new Pinecone()
+const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX_NAME)
 const embeddings = new HuggingFaceTransformersEmbeddings({
   modelName: "Xenova/all-MiniLM-L6-v2",
-});
+})
 
 // --- MIDDLEWARE ---
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://nyaygpt.vercel.app"
-];
+const allowedOrigins = ["http://localhost:5173", "http://localhost:3000", "https://nyaygpt.vercel.app"]
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS error: Not allowed by CORS"));
-    }
-  },
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error("CORS error: Not allowed by CORS"))
+      }
+    },
+    credentials: true,
+  }),
+)
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "10mb" }))
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }))
+
+// --- ERROR HANDLING MIDDLEWARE ---
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err)
+  res.status(500).json({
+    error: "Internal Server Error",
+    message: process.env.NODE_ENV === "development" ? err.message : "Something went wrong",
+  })
+})
+
+// --- HEALTH CHECK ---
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() })
+})
 
 // --- ROUTE: /ask ---
 app.post("/ask", async (req, res) => {
-  const { history, language } = req.body;
+  const { history, language } = req.body
 
   if (!history || !Array.isArray(history)) {
-    return res.status(400).json({ reply: "Invalid input." });
+    return res.status(400).json({ reply: "Invalid input." })
   }
 
   try {
     const model = new ChatGroq({
       apiKey: process.env.GROQ_API_KEY,
-      model: "llama3-70b-8192"
-    });
+      model: "llama3-70b-8192",
+    })
 
-    // Combine conversation history
-    const formatted = history.map((msg) => `${msg.role === "user" ? "Q" : "A"}: ${msg.content}`).join("\n");
+    const formatted = history.map((msg) => `${msg.role === "user" ? "Q" : "A"}: ${msg.content}`).join("\n")
+    const lang = (language || "hindi").toLowerCase()
+    const sysPrompt = systemPrompts[lang] || systemPrompts["hindi"]
 
-    // Default to Hindi if not provided or invalid
-    const lang = (language || "hindi").toLowerCase();
-    const sysPrompt = systemPrompts[lang] || systemPrompts["hindi"];
-
-    // --- UPGRADED: Add context, crispness, safety, engagement to the prompt
     const prompt = ChatPromptTemplate.fromTemplate(
-      sysPrompt + "\n" +
-      "Always keep answers under 100 words unless more detail is crucial.\n" +
-      formatted + "\nA:"
-    );
+      sysPrompt + "\n" + "Always keep answers under 100 words unless more detail is crucial.\n" + formatted + "\nA:",
+    )
 
-    const chain = prompt.pipe(model);
-    const result = await chain.invoke({});
+    const chain = prompt.pipe(model)
+    const result = await chain.invoke({})
 
-    res.json({ reply: result.content });
+    res.json({ reply: result.content })
   } catch (err) {
-    console.error("Error:", err.message);
-    res.status(500).json({ reply: "सर्वर में कोई त्रुटि हुई है।" });
+    console.error("Error in /ask:", err.message)
+    res.status(500).json({ reply: "सर्वर में कोई त्रुटि हुई है।" })
   }
-});
+})
 
-// --- ROUTE: /ask-context (Legal context via Pinecone + Grok) ---
+// --- ROUTE: /ask-context ---
 app.post("/ask-context", async (req, res) => {
-  const { history, language } = req.body;
-  console.log("[ASK-CONTEXT] New request received:", { history, language });
+  const { history, language } = req.body
+  console.log("[ASK-CONTEXT] New request received:", { history, language })
 
   if (!history || !Array.isArray(history)) {
-    console.log("[ASK-CONTEXT] ❌ Invalid input");
-    return res.status(400).json({ reply: "Invalid input." });
+    console.log("[ASK-CONTEXT] ❌ Invalid input")
+    return res.status(400).json({ reply: "Invalid input." })
   }
 
   try {
-    const userQuestion = history[history.length - 1].content;
-    console.log(`[ASK-CONTEXT] User question: "${userQuestion}"`);
+    const userQuestion = history[history.length - 1].content
+    console.log(`[ASK-CONTEXT] User question: "${userQuestion}"`)
 
-    // 1. Generate embedding for user question
-    console.log("[ASK-CONTEXT] ➡ Generating embedding for question...");
-    const questionEmbedding = await embeddings.embedQuery(userQuestion);
+    // Generate embedding for user question
+    console.log("[ASK-CONTEXT] ➡ Generating embedding for question...")
+    const questionEmbedding = await embeddings.embedQuery(userQuestion)
 
-    // 2. Pinecone vector search
-    console.log("[ASK-CONTEXT] ➡ Querying Pinecone for relevant context...");
+    // Pinecone vector search
+    console.log("[ASK-CONTEXT] ➡ Querying Pinecone for relevant context...")
     const searchResult = await pineconeIndex.query({
       vector: questionEmbedding,
       topK: 5,
       includeMetadata: true,
-    });
+    })
 
-    // 3. Prepare context for LLM
-    const context = searchResult.matches?.map(m => m.metadata.text).join("\n\n") || "";
+    // Prepare context for LLM
+    const context = searchResult.matches?.map((m) => m.metadata.text).join("\n\n") || ""
     if (searchResult.matches?.length) {
-      console.log(`[ASK-CONTEXT] ✅ Legal documents found: ${searchResult.matches.length} segment(s)`);
+      console.log(`[ASK-CONTEXT] ✅ Legal documents found: ${searchResult.matches.length} segment(s)`)
     } else {
-      console.log("[ASK-CONTEXT] ⚠️ No relevant legal documents found in Pinecone.");
+      console.log("[ASK-CONTEXT] ⚠️ No relevant legal documents found in Pinecone.")
     }
 
-    // --- UPGRADED: Add safety, crispness, and instructions for the LLM ---
-    const lang = (language || "hindi").toLowerCase();
-    const sysPrompt = systemPrompts[lang] || systemPrompts["hindi"];
+    const lang = (language || "hindi").toLowerCase()
+    const sysPrompt = systemPrompts[lang] || systemPrompts["hindi"]
     const finalPrompt = `${sysPrompt}
 नीचे दिए गए कानूनी दस्तावेज़ों के संदर्भ में उत्तर दें (यदि कोई सटीक संदर्भ है तो उसका उल्लेख करें)। 
 हमेशा उत्तर 100 शब्दों के भीतर रखें जब तक अधिक विस्तार आवश्यक न हो।
 अगर सवाल अस्पष्ट हो तो विनम्रतापूर्वक स्पष्ट जानकारी माँगें।
 कभी भी कोई खतरनाक कानूनी सलाह मत दें—गंभीर या आपात स्थिति में पेशेवर/पुलिस से संपर्क करने की सलाह दें।
 ${context ? `\n\nसंदर्भ:\n${context}\n` : ""}
-\nQ: ${userQuestion}\nA:`;
+\nQ: ${userQuestion}\nA:`
 
-    console.log("[ASK-CONTEXT] ➡ Prompt generated for Groq:", finalPrompt);
+    console.log("[ASK-CONTEXT] ➡ Sending prompt to Groq...")
+    const answer = await askGrok(sysPrompt, finalPrompt)
 
-    // 5. Call Groq for answer (instead of OpenAI)
-    console.log("[ASK-CONTEXT] ➡ Sending prompt to Groq...");
-    const answer = await askGrok(sysPrompt, finalPrompt);
-
-    // --- UPGRADED: Emergency/criminal/medical topic detection ---
-    // Add an extra warning if keywords are present in the answer or the question
+    // Emergency keyword detection
     const emergencyKeywords = [
-      "violence", "rape", "murder", "emergency", "harassment", "attack", "threat", "injury", "police", "crime", "suicide", "danger", "molestation", "kidnap", "missing"
-    ];
-    const textCheck = (userQuestion + " " + (answer || "")).toLowerCase();
-    const found = emergencyKeywords.some(w => textCheck.includes(w));
-    let reply = answer;
+      "violence",
+      "rape",
+      "murder",
+      "emergency",
+      "harassment",
+      "attack",
+      "threat",
+      "injury",
+      "police",
+      "crime",
+      "suicide",
+      "danger",
+      "molestation",
+      "kidnap",
+      "missing",
+    ]
+    const textCheck = (userQuestion + " " + (answer || "")).toLowerCase()
+    const found = emergencyKeywords.some((w) => textCheck.includes(w))
+    let reply = answer
     if (found) {
-      reply += `\n\n⚠️ If this is an emergency or serious crime, please immediately contact your local police or emergency helpline.`;
+      reply += `\n\n⚠️ If this is an emergency or serious crime, please immediately contact your local police or emergency helpline.`
     }
 
-    console.log("[ASK-CONTEXT] ✅ Response generated by Groq:", reply);
-    res.set("Content-Type", "application/json; charset=utf-8");
-    res.json({ reply });
+    console.log("[ASK-CONTEXT] ✅ Response generated:", reply)
+    res.set("Content-Type", "application/json; charset=utf-8")
+    res.json({ reply })
   } catch (err) {
-    console.error("[ASK-CONTEXT] ERROR:", err);
-    res.set("Content-Type", "application/json; charset=utf-8");
-    res.status(500).json({ reply: "सर्वर में कोई त्रुटि हुई है।" });
+    console.error("[ASK-CONTEXT] ERROR:", err)
+    res.set("Content-Type", "application/json; charset=utf-8")
+    res.status(500).json({ reply: "सर्वर में कोई त्रुटि हुई है।" })
   }
-});
+})
 
 // --- ROUTE: /speak for TTS ---
 app.post("/speak", async (req, res) => {
-  const { text, language } = req.body;
+  const { text, language } = req.body
+
+  if (!text) {
+    return res.status(400).json({ error: "Text is required" })
+  }
 
   // Voice selection map
   const voiceMap = {
-    hindi:     { code: "hi-IN", name: "hi-IN-Standard-E" },
-    punjabi:   { code: "pa-IN", name: "pa-IN-Wavenet-A" },
-    tamil:     { code: "ta-IN", name: "ta-IN-Wavenet-A" },
-    marathi:   { code: "mr-IN", name: "mr-IN-Wavenet-A" },
-    telugu:    { code: "te-IN", name: "te-IN-Wavenet-A" },
-    bengali:   { code: "bn-IN", name: "bn-IN-Wavenet-A" },
-    kannada:   { code: "kn-IN", name: "kn-IN-Wavenet-A" },
+    hindi: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    punjabi: { code: "pa-IN", name: "pa-IN-Wavenet-A" },
+    tamil: { code: "ta-IN", name: "ta-IN-Wavenet-A" },
+    marathi: { code: "mr-IN", name: "mr-IN-Wavenet-A" },
+    telugu: { code: "te-IN", name: "te-IN-Wavenet-A" },
+    bengali: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
+    kannada: { code: "kn-IN", name: "kn-IN-Wavenet-A" },
     malayalam: { code: "ml-IN", name: "ml-IN-Wavenet-A" },
-    gujarati:  { code: "gu-IN", name: "gu-IN-Wavenet-A" },
-    urdu:      { code: "ur-IN", name: "ur-IN-Wavenet-A" },
-    odia:      { code: "or-IN", name: "or-IN-Standard-A" } // fallback
-  };
+    gujarati: { code: "gu-IN", name: "gu-IN-Wavenet-A" },
+    urdu: { code: "ur-IN", name: "ur-IN-Wavenet-A" },
+    odia: { code: "or-IN", name: "or-IN-Standard-A" },
+    english: { code: "en-IN", name: "en-IN-Standard-E" },
+  }
 
-  const selected = voiceMap[language] || voiceMap.hindi;
+  const selected = voiceMap[language] || voiceMap.hindi
 
-  // SSML for natural voice: pause, emphasis, and slight pitch
   const ssml = `
     <speak>
       <prosody rate="medium" pitch="+0st">
@@ -250,116 +271,175 @@ app.post("/speak", async (req, res) => {
       </prosody>
       <break time="300ms"/>
     </speak>
-  `;
+  `
 
   const request = {
     input: { ssml },
     voice: {
       languageCode: selected.code,
-      name: selected.name
+      name: selected.name,
     },
     audioConfig: { audioEncoding: "MP3" },
-  };
-
-  try {
-    const [response] = await ttsClient.synthesizeSpeech(request);
-    res.set("Content-Type", "audio/mpeg");
-    res.send(response.audioContent);
-  } catch (error) {
-    console.error("TTS error:", error);
-    res.status(500).send("Speech synthesis failed.");
   }
-});
- 
-// omnidimension integration
-app.post("/request-call", async (req, res) => {
-  const { phone, topic, language } = req.body;
 
   try {
-    const response = await fetch("https://api.omnidim.io/v1/call", {
+    const [response] = await ttsClient.synthesizeSpeech(request)
+    res.set("Content-Type", "audio/mpeg")
+    res.send(response.audioContent)
+  } catch (error) {
+    console.error("TTS error:", error)
+    res.status(500).json({ error: "Speech synthesis failed." })
+  }
+})
+
+// --- FIXED ROUTE: /request-call ---
+app.post("/request-call", async (req, res) => {
+  console.log("[REQUEST-CALL] Received request:", req.body)
+
+  const { phone, topic, language } = req.body
+
+  // Validate input
+  if (!phone) {
+    console.log("[REQUEST-CALL] ❌ Missing phone number")
+    return res.status(400).json({ error: "Phone number is required" })
+  }
+
+  if (!process.env.OMNIDIM_API_KEY) {
+    console.log("[REQUEST-CALL] ❌ Missing OMNIDIM_API_KEY")
+    return res.status(500).json({ error: "OmniDimension API key not configured" })
+  }
+
+  try {
+    console.log("[REQUEST-CALL] ➡ Making request to OmniDimension API...")
+
+    const requestBody = {
+      agentId: process.env.OMNIDIM_AGENT_ID || "NyayGPT",
+      phone: phone,
+      topic: topic || "Legal Help",
+      language: language || "hindi",
+      link: `https://yourdomain.com/docs/${(topic || "legal-help").toLowerCase().replace(/ /g, "-")}.pdf`,
+      source: "NyayGPT Web",
+    }
+
+    console.log("[REQUEST-CALL] Request body:", requestBody)
+
+    const response = await fetch("https://backend.omnidim.io/api/v1/calls/dispatch", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OMNIDIM_API_KEY}`,
+        Authorization: `Bearer ${process.env.OMNIDIM_API_KEY}`,
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
-      body: JSON.stringify({
-        agentId: "NyayGPT", // replace with your OmniDimension agent ID
-        phone,
-        topic,
-        language,
-        link: `https://yourdomain.com/docs/${topic.toLowerCase().replace(/ /g, "-")}.pdf`,
-        source: "NyayGPT Web",
-      }),
-    });
+      body: JSON.stringify(requestBody),
+    })
+
+    const responseText = await response.text()
+    console.log("[REQUEST-CALL] OmniDimension response:", response.status, responseText)
+
     if (!response.ok) {
-      console.error("OmniDimension error:", await response.text());
-      return res.status(500).send("Call dispatch failed");
+      console.error("[REQUEST-CALL] ❌ OmniDimension API error:", response.status, responseText)
+      return res.status(response.status).json({
+        error: "Call dispatch failed",
+        details: responseText,
+        status: response.status,
+      })
     }
-    res.send("Call dispatched");
+
+    console.log("[REQUEST-CALL] ✅ Call dispatched successfully")
+    res.json({
+      success: true,
+      message: "Call dispatched successfully",
+      data: responseText,
+    })
   } catch (err) {
-    console.error("Server error in /request-call:", err);
-    res.status(500).send("Internal error");
+    console.error("[REQUEST-CALL] ❌ Server error:", err)
+    res.status(500).json({
+      error: "Internal server error",
+      message: err.message,
+    })
   }
-});
+})
 
 // --- ROUTE: /nearby-police ---
 app.get("/nearby-police", async (req, res) => {
-  console.log("NEARBY POLICE ROUTE HIT, QUERY:", req.query);
+  console.log("NEARBY POLICE ROUTE HIT, QUERY:", req.query)
 
-  const { lat, lng } = req.query;
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  const { lat, lng } = req.query
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY
 
   if (!lat || !lng) {
-    return res.status(400).json({ error: "Missing lat or lng parameter" });
+    return res.status(400).json({ error: "Missing lat or lng parameter" })
   }
   if (!apiKey) {
-    return res.status(500).json({ error: "Google Maps API key not set in .env" });
+    return res.status(500).json({ error: "Google Maps API key not set in .env" })
   }
 
   try {
-    const apiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=police&key=${apiKey}`;
-    const response = await fetch(apiUrl);
-    const data = await response.json();
+    const apiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=police&key=${apiKey}`
+    const response = await fetch(apiUrl)
+    const data = await response.json()
 
-    // --- DEBUG: LOG FULL GOOGLE API RESPONSE ---
-    console.log("GOOGLE API RESPONSE:", JSON.stringify(data, null, 2));
+    console.log("GOOGLE API RESPONSE:", JSON.stringify(data, null, 2))
 
     if (!data.results) {
-      console.error("GOOGLE API ERROR:", data);
-      return res.status(500).json({ error: "Google Places API error", details: data });
+      console.error("GOOGLE API ERROR:", data)
+      return res.status(500).json({ error: "Google Places API error", details: data })
     }
 
-    const stations = data.results.map(s => ({
+    const stations = data.results.map((s) => ({
       name: s.name,
       vicinity: s.vicinity,
       lat: s.geometry.location.lat,
-      lng: s.geometry.location.lng
-    }));
+      lng: s.geometry.location.lng,
+    }))
 
-    res.json({ stations });
+    res.json({ stations })
   } catch (error) {
-    console.error("Nearby police error:", error);
-    res.status(500).json({ error: "Failed to fetch police stations." });
+    console.error("Nearby police error:", error)
+    res.status(500).json({ error: "Failed to fetch police stations." })
   }
-});
+})
 
 // --- ROUTE: /stt (Speech to Text) ---
 app.post("/stt", upload.single("audio"), async (req, res) => {
-  const audioFile = fs.createReadStream(req.file.path);
+  if (!req.file) {
+    return res.status(400).json({ error: "Audio file is required" })
+  }
+
+  const audioFile = fs.createReadStream(req.file.path)
 
   try {
-    console.log(`[STT] Audio file received: ${req.file.path}`);
-    const transcription = await openai.createTranscription(audioFile, "whisper-1");
-    fs.unlinkSync(req.file.path);
-    console.log(`[STT] Transcription result: ${transcription.data.text}`);
-    res.json({ text: transcription.data.text });
+    console.log(`[STT] Audio file received: ${req.file.path}`)
+    const transcription = await openai.audio.transcriptions.create({
+      file: audioFile,
+      model: "whisper-1",
+    })
+
+    fs.unlinkSync(req.file.path) // Clean up uploaded file
+    console.log(`[STT] Transcription result: ${transcription.text}`)
+    res.json({ text: transcription.text })
   } catch (err) {
-    console.error("[STT] error:", err.message);
-    res.status(500).json({ error: "Speech recognition failed." });
+    console.error("[STT] error:", err.message)
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path) // Clean up on error
+    }
+    res.status(500).json({ error: "Speech recognition failed." })
   }
-});
+})
 
 // --- START SERVER ---
 app.listen(PORT, () => {
-  console.log(`✅ NyayGPT backend running on port ${PORT}`);
-});
+  console.log(`✅ NyayGPT backend running on port ${PORT}`)
+  console.log(`🌐 Health check: http://localhost:${PORT}/health`)
+})
+
+// --- GRACEFUL SHUTDOWN ---
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, shutting down gracefully")
+  process.exit(0)
+})
+
+process.on("SIGINT", () => {
+  console.log("SIGINT received, shutting down gracefully")
+  process.exit(0)
+})
