@@ -490,6 +490,31 @@ export default function App() {
     )
   }
 
+  const handleRequestCall = async () => {
+  let phone = localStorage.getItem("nyaygpt_user_phone");
+  if (!phone) {
+    phone = prompt("📲 Enter your phone number (with country code):");
+    if (!phone) return;
+    localStorage.setItem("nyaygpt_user_phone", phone);
+  }
+  try {
+    const res = await fetch(`${backendBaseUrl}/request-call`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phone,
+        topic: "Legal Help",
+        language: currentLang || "hindi",
+      }),
+    });
+    if (res.ok) alert("✅ Call request sent. Expect a call soon.");
+    else alert("❌ Couldn't place call. Try again soon.");
+     } catch {
+    alert("❌ Server error. Please try again.");
+    }
+  };
+
+
   const formatTime = (sec) => `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`
 
   return (
@@ -581,6 +606,17 @@ export default function App() {
             <span className="ai-end-icon" />
             <div>End</div>
           </button>
+
+          <button
+  className="ai-nearby-btn"
+  onClick={handleRequestCall}
+  style={{ background: 'linear-gradient(135deg, #ff9f1a, #ff6e1a)' }}
+>
+  <span className="ai-location-icon" />
+  <div>Request Call</div>
+</button>
+
+
         </div>
       )}
 

@@ -270,6 +270,37 @@ app.post("/speak", async (req, res) => {
     res.status(500).send("Speech synthesis failed.");
   }
 });
+ 
+// omnidimension integration
+app.post("/request-call", async (req, res) => {
+  const { phone, topic, language } = req.body;
+
+  try {
+    const response = await fetch("https://api.omnidim.io/v1/call", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OMNIDIM_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        agentId: "NyayGPT", // replace with your OmniDimension agent ID
+        phone,
+        topic,
+        language,
+        link: `https://yourdomain.com/docs/${topic.toLowerCase().replace(/ /g, "-")}.pdf`,
+        source: "NyayGPT Web",
+      }),
+    });
+    if (!response.ok) {
+      console.error("OmniDimension error:", await response.text());
+      return res.status(500).send("Call dispatch failed");
+    }
+    res.send("Call dispatched");
+  } catch (err) {
+    console.error("Server error in /request-call:", err);
+    res.status(500).send("Internal error");
+  }
+});
 
 // --- ROUTE: /nearby-police ---
 app.get("/nearby-police", async (req, res) => {
