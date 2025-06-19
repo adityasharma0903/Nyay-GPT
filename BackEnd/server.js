@@ -313,7 +313,7 @@ app.post("/request-call", async (req, res) => {
     console.log("[REQUEST-CALL] ➡ Making request to OmniDimension API...")
 
     const requestBody = {
-      agentId: process.env.OMNIDIM_AGENT_ID || "NyayGPT",
+      agentId: process.env.OMNIDIM_AGENT_ID || 1409,
       phone: phone,
       topic: topic || "Legal Help",
       language: language || "hindi",
