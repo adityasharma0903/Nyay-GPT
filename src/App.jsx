@@ -4,11 +4,8 @@ import { useEffect, useRef, useState } from "react"
 import "./AppUI.css"
 import AvatarLipsync from "./components/Avatar.jsx"
 
-
 const backendBaseUrl =
-  window.location.hostname === "localhost"
-    ? "http://localhost:3000"
-    : "https://nyay-gpt.onrender.com";
+  window.location.hostname === "localhost" ? "http://localhost:3000" : "https://nyay-gpt.onrender.com"
 
 // Supported Languages & Greetings
 const languages = {
@@ -96,41 +93,43 @@ export default function App() {
   const [phase, setPhase] = useState("init")
   const [mouthOpen, setMouthOpen] = useState(0)
   const [audioData, setAudioData] = useState(null)
+  const [callRequestLoading, setCallRequestLoading] = useState(false)
 
   const timerRef = useRef(null)
   const utteranceIdRef = useRef(0)
 
   const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
-  // 🚩 ADD THIS useEffect FOR MOBILE AUDIO UNLOCK
+  // Audio unlock for mobile devices
   useEffect(() => {
     const unlockAudio = () => {
       try {
         if (!audioContextRef.current) {
-          audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+          audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
         }
         if (audioContextRef.current.state === "suspended") {
-          audioContextRef.current.resume();
+          audioContextRef.current.resume()
         }
-        // Play a silent buffer to unlock audio on iOS/Android
-        const buffer = audioContextRef.current.createBuffer(1, 1, 22050);
-        const source = audioContextRef.current.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audioContextRef.current.destination);
-        source.start(0);
-      } catch (e) {}
-      document.removeEventListener("touchend", unlockAudio, true);
-      document.removeEventListener("click", unlockAudio, true);
-    };
-    document.addEventListener("touchend", unlockAudio, true);
-    document.addEventListener("click", unlockAudio, true);
+        const buffer = audioContextRef.current.createBuffer(1, 1, 22050)
+        const source = audioContextRef.current.createBufferSource()
+        source.buffer = buffer
+        source.connect(audioContextRef.current.destination)
+        source.start(0)
+      } catch (e) {
+        console.log("Audio unlock failed:", e)
+      }
+      document.removeEventListener("touchend", unlockAudio, true)
+      document.removeEventListener("click", unlockAudio, true)
+    }
+    document.addEventListener("touchend", unlockAudio, true)
+    document.addEventListener("click", unlockAudio, true)
     return () => {
-      document.removeEventListener("touchend", unlockAudio, true);
-      document.removeEventListener("click", unlockAudio, true);
-    };
-  }, []);
-  // 🚩 END AUDIO UNLOCK
+      document.removeEventListener("touchend", unlockAudio, true)
+      document.removeEventListener("click", unlockAudio, true)
+    }
+  }, [])
 
+  // Speech recognition setup
   useEffect(() => {
     if (!connected) return
     if (muted || speaking) return
@@ -218,14 +217,18 @@ export default function App() {
       if (connected && !muted && !stoppedByApp && !speaking) {
         try {
           recognition.start()
-        } catch (e) {}
+        } catch (e) {
+          console.log("Recognition restart failed:", e)
+        }
       }
     }
 
     recognitionRef.current = recognition
     try {
       recognition.start()
-    } catch (e) {}
+    } catch (e) {
+      console.log("Recognition start failed:", e)
+    }
 
     return () => {
       stoppedByApp = true
@@ -233,6 +236,7 @@ export default function App() {
     }
   }, [connected, muted, recognitionKey, speaking, phase, currentLang, history])
 
+  // Timer setup
   useEffect(() => {
     if (connected) {
       timerRef.current = setInterval(() => setTimer((t) => t + 1), 1000)
@@ -243,7 +247,7 @@ export default function App() {
     return () => clearInterval(timerRef.current)
   }, [connected])
 
-  // ENHANCED HUMANIZED AUDIO ANALYSIS
+  // Audio analysis for lip sync
   useEffect(() => {
     const setupHumanizedAudioAnalysis = async () => {
       if (speaking && audioRef.current) {
@@ -258,8 +262,8 @@ export default function App() {
 
           if (!analyserRef.current) {
             analyserRef.current = audioContextRef.current.createAnalyser()
-            analyserRef.current.fftSize = 512 // Higher resolution for better phoneme detection
-            analyserRef.current.smoothingTimeConstant = 0.2 // Less smoothing for more responsive
+            analyserRef.current.fftSize = 512
+            analyserRef.current.smoothingTimeConstant = 0.2
 
             const source = audioContextRef.current.createMediaElementSource(audioRef.current)
             source.connect(analyserRef.current)
@@ -273,15 +277,12 @@ export default function App() {
             if (speaking && analyserRef.current) {
               analyserRef.current.getByteFrequencyData(dataArray)
 
-              // Enhanced frequency analysis for human speech
               const volume = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength / 255
-
-              // Detailed frequency bands for phoneme detection
-              const veryLowFreq = dataArray.slice(0, 16).reduce((sum, val) => sum + val, 0) / 16 / 255 // 0-750Hz
-              const lowFreq = dataArray.slice(16, 32).reduce((sum, val) => sum + val, 0) / 16 / 255 // 750-1500Hz
-              const midFreq = dataArray.slice(32, 64).reduce((sum, val) => sum + val, 0) / 32 / 255 // 1500-3000Hz
-              const highFreq = dataArray.slice(64, 96).reduce((sum, val) => sum + val, 0) / 32 / 255 // 3000-4500Hz
-              const veryHighFreq = dataArray.slice(96, 128).reduce((sum, val) => sum + val, 0) / 32 / 255 // 4500-6000Hz
+              const veryLowFreq = dataArray.slice(0, 16).reduce((sum, val) => sum + val, 0) / 16 / 255
+              const lowFreq = dataArray.slice(16, 32).reduce((sum, val) => sum + val, 0) / 16 / 255
+              const midFreq = dataArray.slice(32, 64).reduce((sum, val) => sum + val, 0) / 32 / 255
+              const highFreq = dataArray.slice(64, 96).reduce((sum, val) => sum + val, 0) / 32 / 255
+              const veryHighFreq = dataArray.slice(96, 128).reduce((sum, val) => sum + val, 0) / 32 / 255
 
               const humanizedAudioData = {
                 volume: volume,
@@ -301,7 +302,7 @@ export default function App() {
 
           analyzeHumanizedAudio()
         } catch (error) {
-          // fallback
+          console.log("Audio analysis failed, using fallback:", error)
           const createRealisticFakeData = () => {
             const baseVolume = 0.4 + Math.random() * 0.4
             const time = Date.now() * 0.001
@@ -370,6 +371,7 @@ export default function App() {
     setShowStations(false)
     setSelectedStation(null)
     setPhase("init")
+    setCallRequestLoading(false)
     recognitionRef.current?.stop()
     if (audioRef.current) {
       audioRef.current.pause()
@@ -388,9 +390,8 @@ export default function App() {
     }
   }
 
-  // 🚩 PATCH speakText TO ENSURE MOBILE AUDIO PLAYS
   const speakText = async (text, langKey = currentLang || "hindi") => {
-    console.log("🎤 Starting HUMANIZED speech:", text.substring(0, 50) + "...")
+    console.log("🎤 Starting speech:", text.substring(0, 50) + "...")
 
     if (recognitionRef.current) {
       try {
@@ -416,6 +417,11 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, language: langKey }),
       })
+
+      if (!res.ok) {
+        throw new Error(`TTS request failed: ${res.status}`)
+      }
+
       const blob = await res.blob()
       const audioUrl = URL.createObjectURL(blob)
       const audio = new window.Audio(audioUrl)
@@ -426,24 +432,25 @@ export default function App() {
         setMouthOpen(0)
         setAudioData(null)
       }
-      audio.onerror = () => {
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e)
         setSpeaking(false)
         setMouthOpen(0)
         setAudioData(null)
       }
 
       setSpeaking(true)
-      // MOBILE PATCH: TRY TO PLAY, IF FAILS, PROMPT USER
       try {
         await audio.play()
       } catch (err) {
-        // User gesture required
-        alert("Please tap anywhere on the screen to enable audio, then try again.");
+        console.error("Audio play failed:", err)
+        alert("Please tap anywhere on the screen to enable audio, then try again.")
         setSpeaking(false)
         setMouthOpen(0)
         setAudioData(null)
       }
     } catch (error) {
+      console.error("TTS error:", error)
       setSpeaking(false)
       setMouthOpen(0)
       setAudioData(null)
@@ -476,44 +483,83 @@ export default function App() {
         setUserPos({ lat: latitude, lng: longitude })
         try {
           const res = await fetch(`${backendBaseUrl}/nearby-police?lat=${latitude}&lng=${longitude}`)
+          if (!res.ok) {
+            throw new Error(`Failed to fetch police stations: ${res.status}`)
+          }
           const data = await res.json()
           setPoliceStations(data.stations || [])
           setShowStations(true)
           setSelectedStation(null)
         } catch (e) {
-          alert("Failed to fetch police stations.")
+          console.error("Police stations fetch error:", e)
+          alert("Failed to fetch police stations. Please try again.")
         }
       },
       (err) => {
+        console.error("Geolocation error:", err)
         alert("Location permission denied or unavailable")
       },
     )
   }
 
   const handleRequestCall = async () => {
-  let phone = localStorage.getItem("nyaygpt_user_phone");
-  if (!phone) {
-    phone = prompt("📲 Enter your phone number (with country code):");
-    if (!phone) return;
-    localStorage.setItem("nyaygpt_user_phone", phone);
-  }
-  try {
-    const res = await fetch(`${backendBaseUrl}/request-call`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        phone,
+    if (callRequestLoading) return
+
+    setCallRequestLoading(true)
+
+    try {
+      let phone = localStorage.getItem("nyaygpt_user_phone")
+      if (!phone) {
+        phone = prompt("📲 Enter your phone number (with country code, e.g., +91XXXXXXXXXX):")
+        if (!phone) {
+          setCallRequestLoading(false)
+          return
+        }
+
+        // Basic phone validation
+        const phoneRegex = /^\+?[1-9]\d{1,14}$/
+        if (!phoneRegex.test(phone.replace(/\s+/g, ""))) {
+          alert("Please enter a valid phone number with country code")
+          setCallRequestLoading(false)
+          return
+        }
+
+        localStorage.setItem("nyaygpt_user_phone", phone)
+      }
+
+      const requestBody = {
+        phone: phone.replace(/\s+/g, ""), // Remove spaces
         topic: "Legal Help",
         language: currentLang || "hindi",
-      }),
-    });
-    if (res.ok) alert("✅ Call request sent. Expect a call soon.");
-    else alert("❌ Couldn't place call. Try again soon.");
-     } catch {
-    alert("❌ Server error. Please try again.");
-    }
-  };
+      }
 
+      console.log("Sending call request:", requestBody)
+
+      const res = await fetch(`${backendBaseUrl}/request-call`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      const responseText = await res.text()
+      console.log("Call request response:", res.status, responseText)
+
+      if (res.ok) {
+        alert("✅ Call request sent successfully. You should receive a call shortly.")
+      } else {
+        console.error("Call request failed:", res.status, responseText)
+        alert(`❌ Call request failed: ${responseText || "Unknown error"}. Please try again.`)
+      }
+    } catch (error) {
+      console.error("Call request error:", error)
+      alert("❌ Network error. Please check your connection and try again.")
+    } finally {
+      setCallRequestLoading(false)
+    }
+  }
 
   const formatTime = (sec) => `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`
 
@@ -529,13 +575,13 @@ export default function App() {
       </div>
 
       <div className="ai-agent-title-premium" style={{ marginTop: 65, textAlign: "center" }}>
-        NyayGPT 
+        NyayGPT
       </div>
       <div className="ai-agent-subtitle-premium" style={{ textAlign: "center" }}>
         {connected ? "Connected" : "Tap to connect"}
       </div>
 
-      {/* HUMANIZED FACE VIEW */}
+      {/* Avatar Face */}
       <div className="avatar-face-container" style={{ width: 220, height: 320, margin: "10px auto" }}>
         <AvatarLipsync
           mouthOpen={mouthOpen}
@@ -544,10 +590,9 @@ export default function App() {
           cameraTarget={[0, 1.8, 0]}
           audioData={audioData}
         />
-        {/* For debugging: show audio controls only for dev */}
-        {/* <audio ref={audioRef} style={{ display: "block" }} controls /> */}
       </div>
 
+      {/* Debug Audio Info (Development Only) */}
       {process.env.NODE_ENV === "development" && audioData && (
         <div
           style={{
@@ -563,17 +608,18 @@ export default function App() {
             lineHeight: 1.4,
           }}
         >
-          <div style={{ color: "#00ff00", fontWeight: "bold" }}>🗣️ HUMANIZED LIP-SYNC</div>
+          <div style={{ color: "#00ff00", fontWeight: "bold" }}>🗣️ AUDIO DEBUG</div>
           <div>🎤 Speaking: {speaking ? "YES" : "NO"}</div>
           <div>🔊 Volume: {(audioData.volume * 100).toFixed(0)}%</div>
-          <div>🔉 VeryLow: {(audioData.veryLowFreq * 100).toFixed(0)}% (Vowels)</div>
-          <div>🔉 Low: {(audioData.lowFreq * 100).toFixed(0)}% (Consonants)</div>
-          <div>🔉 Mid: {(audioData.midFreq * 100).toFixed(0)}% (Speech)</div>
-          <div>🔉 High: {(audioData.highFreq * 100).toFixed(0)}% (Sibilants)</div>
-          <div>🔉 VHigh: {(audioData.veryHighFreq * 100).toFixed(0)}% (Fricatives)</div>
+          <div>🔉 VeryLow: {(audioData.veryLowFreq * 100).toFixed(0)}%</div>
+          <div>🔉 Low: {(audioData.lowFreq * 100).toFixed(0)}%</div>
+          <div>🔉 Mid: {(audioData.midFreq * 100).toFixed(0)}%</div>
+          <div>🔉 High: {(audioData.highFreq * 100).toFixed(0)}%</div>
+          <div>🔉 VHigh: {(audioData.veryHighFreq * 100).toFixed(0)}%</div>
         </div>
       )}
 
+      {/* Audio Waves */}
       {connected && (
         <div className={`ai-agent-waves${(speaking || userSpeaking) && !muted ? " speaking" : ""}`}>
           {[...Array(10)].map((_, i) => (
@@ -582,6 +628,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Control Buttons */}
       {!connected ? (
         <div className="ai-start-btn-row">
           <button className="ai-premium-call-btn" onClick={handleConnect}>
@@ -606,20 +653,24 @@ export default function App() {
             <span className="ai-end-icon" />
             <div>End</div>
           </button>
-
           <button
-  className="ai-nearby-btn"
-  onClick={handleRequestCall}
-  style={{ background: 'linear-gradient(135deg, #ff9f1a, #ff6e1a)' }}
->
-  <span className="ai-location-icon" />
-  <div>Request Call</div>
-</button>
-
-
+            className="ai-nearby-btn"
+            onClick={handleRequestCall}
+            disabled={callRequestLoading}
+            style={{
+              background: callRequestLoading
+                ? "linear-gradient(135deg, #ccc, #999)"
+                : "linear-gradient(135deg, #ff9f1a, #ff6e1a)",
+              cursor: callRequestLoading ? "not-allowed" : "pointer",
+            }}
+          >
+            <span className="ai-location-icon" />
+            <div>{callRequestLoading ? "Requesting..." : "Request Call"}</div>
+          </button>
         </div>
       )}
 
+      {/* Police Stations Modal */}
       {showStations && (
         <div
           className="stations-modal-bg"
@@ -661,6 +712,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Directions Modal */}
       {selectedStation && userPos && (
         <div className="directions-modal-bg" onClick={() => setSelectedStation(null)}>
           <div className="directions-modal" onClick={(e) => e.stopPropagation()}>

@@ -294,34 +294,34 @@ app.post("/speak", async (req, res) => {
 
 // --- FIXED ROUTE: /request-call ---
 app.post("/request-call", async (req, res) => {
-  console.log("[REQUEST-CALL] Received request:", req.body)
+  console.log("[REQUEST-CALL] Received request:", req.body);
 
-  const { phone, topic, language } = req.body
+  const { phone, topic, language } = req.body;
 
-  // Validate input
   if (!phone) {
-    console.log("[REQUEST-CALL] ❌ Missing phone number")
-    return res.status(400).json({ error: "Phone number is required" })
+    console.log("[REQUEST-CALL] ❌ Missing phone number");
+    return res.status(400).json({ error: "Phone number is required" });
   }
 
   if (!process.env.OMNIDIM_API_KEY) {
-    console.log("[REQUEST-CALL] ❌ Missing OMNIDIM_API_KEY")
-    return res.status(500).json({ error: "OmniDimension API key not configured" })
+    console.log("[REQUEST-CALL] ❌ Missing OMNIDIM_API_KEY");
+    return res.status(500).json({ error: "OmniDimension API key not configured" });
   }
 
   try {
-    console.log("[REQUEST-CALL] ➡ Making request to OmniDimension API...")
+    console.log("[REQUEST-CALL] ➡ Making request to OmniDimension API...");
 
     const requestBody = {
-      agentId: process.env.OMNIDIM_AGENT_ID || 1409,
-      phone: phone,
-      topic: topic || "Legal Help",
-      language: language || "hindi",
-      link: `https://yourdomain.com/docs/${(topic || "legal-help").toLowerCase().replace(/ /g, "-")}.pdf`,
-      source: "NyayGPT Web",
-    }
+      agent_id: parseInt(process.env.OMNIDIM_AGENT_ID), // Ensure it's a number
+      to_number: phone.startsWith("+") ? phone : `+91${phone}`, // Add country code if missing
+      call_context: {
+        topic: topic || "Legal Help",
+        language: language || "hindi",
+        source: "NyayGPT Web",
+      }
+    };
 
-    console.log("[REQUEST-CALL] Request body:", requestBody)
+    console.log("[REQUEST-CALL] Request body:", requestBody);
 
     const response = await fetch("https://backend.omnidim.io/api/v1/calls/dispatch", {
       method: "POST",
@@ -331,34 +331,33 @@ app.post("/request-call", async (req, res) => {
         Accept: "application/json",
       },
       body: JSON.stringify(requestBody),
-    })
+    });
 
-    const responseText = await response.text()
-    console.log("[REQUEST-CALL] OmniDimension response:", response.status, responseText)
+    const responseText = await response.text();
+    console.log("[REQUEST-CALL] OmniDimension response:", response.status, responseText);
 
     if (!response.ok) {
-      console.error("[REQUEST-CALL] ❌ OmniDimension API error:", response.status, responseText)
       return res.status(response.status).json({
         error: "Call dispatch failed",
         details: responseText,
         status: response.status,
-      })
+      });
     }
 
-    console.log("[REQUEST-CALL] ✅ Call dispatched successfully")
     res.json({
       success: true,
       message: "Call dispatched successfully",
       data: responseText,
-    })
+    });
   } catch (err) {
-    console.error("[REQUEST-CALL] ❌ Server error:", err)
+    console.error("[REQUEST-CALL] ❌ Server error:", err);
     res.status(500).json({
       error: "Internal server error",
       message: err.message,
-    })
+    });
   }
-})
+});
+
 
 // --- ROUTE: /nearby-police ---
 app.get("/nearby-police", async (req, res) => {
@@ -436,10 +435,5 @@ app.listen(PORT, () => {
 // --- GRACEFUL SHUTDOWN ---
 process.on("SIGTERM", () => {
   console.log("SIGTERM received, shutting down gracefully")
-  process.exit(0)
-})
-
-process.on("SIGINT", () => {
-  console.log("SIGINT received, shutting down gracefully")
   process.exit(0)
 })
