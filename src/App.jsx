@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import "./AppUI.css"
-import AvatarLipsync from "./components/Avatar.jsx"
+import { FaMicrophone, FaMicrophoneSlash, FaMapMarkerAlt, FaPhone, FaTimes, FaVolumeUp } from "react-icons/fa"
 
 const backendBaseUrl =
   window.location.hostname === "localhost" ? "http://localhost:3000" : "https://nyay-gpt.onrender.com"
@@ -62,10 +61,10 @@ const languageGreetings = {
   kannada:
     "ನಮಸ್ಕಾರ, ನಾನು ನವ್ಯಾ, ನಿಮ್ಮ ಲೀಗಲ್ ಏಜೆಂಟ್. ಉತ್ತಮ ಸಹಾಯಕ್ಕಾಗಿ, ನಿಮಗೆ ಯಾವ ರೀತಿಯ ಕಾನೂನು ಸಹಾಯ ಬೇಕು ಅಥವಾ ನೀವು ತುರ್ತು ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಇದ್ದೀರಾ ಎಂಬುದನ್ನು ಹೇಳಿ.",
   malayalam:
-    "നമസ്കാരം, ഞാൻ നവ്യ, നിങ്ങളുടെ ലീഗൽ ഏജന്റ്. മികച്ച സഹായത്തിനായി, നിങ്ങൾക്ക് എന്ത് തരത്തിലുള്ള നിയമ സഹായം വേണമെന്ന് അല്ലെങ്കിൽ നിങ്ങൾ അടിയന്തരാവസ്ഥയിലാണോ എന്ന് പറയാമോ?",
+    "നമസ്കാരം, ഞാൻ നവ്യ, നിങ്ങളുടെ ലീഗൽ ഏജന്റ്. മികച്ച സഹായത്തിനായി, നിങ്ങൾക്ക് എന്ത് തരത്തിലുള്ള നിയമ സഹായം വേണമെന്ന് അല്ലെങ്കിൽ നിങ്ങൾ അടിയന്തരാവസ്���യിലാണോ എന്ന് പറയാമോ?",
   gujarati:
     "નમસ્તે, હું નવ્યા, તમારી લીગલ એજન્ટ છું. તમારી વધુ સારી મદદ માટે, કૃપા કરીને કહો તમને કઈ પ્રકારની કાનૂની મદદ જોઈએ છે અથવા તમે ઇમરજન્સી માં છો?",
-  urdu: "السلام علیکم، میں نویا، آپ کی قانونی ایجنٹ ہوں۔ آپ کی بہتر مدد کے لیے، کیا آپ بتا سکتے ہیں آپ کو کس چیز की قانونی مدد चाहिए या آپ ایمرجینسی میں ہیں؟",
+  urdu: "السلام علیکم، میں نویا، آپ کی قانونی ایجنٹ ہوں۔ آپ کی بہتر مدد کے لیے، کیا آپ بتا سکتے ہیں آپ کو کس چیز की قانونی مدد चاहिए یا آپ ایمرجینسی میں ہیں؟",
   odia: "ନମସ୍କାର, ମୁଁ ନବ୍ୟା, ଆପଣଙ୍କର ଲିଗାଲ୍ ଏଜେଣ୍ଟ। ଆପଣଙ୍କୁ ଭଲ ସହଯୋଗ ଦେବା ପାଇଁ, ଦୟାକରି କହନ୍ତୁ ଆପଣ କେଉଁ ପ୍ରକାରର ଆଇନିକ ସହଯୋଗ ଚାହାଁନ୍ତି କିମ୍ବା ଆପଣ ଆପାତ୍କାଳୀନ ସ୍ଥିତିରେ ଅଛନ୍ତି କି?",
 }
 
@@ -73,14 +72,14 @@ export default function App() {
   const recognitionRef = useRef(null)
   const audioRef = useRef(null)
   const apiCallInProgressRef = useRef(false)
-  const audioContextRef = useRef(null)
-  const analyserRef = useRef(null)
-  const animationFrameRef = useRef(null)
+  const timerRef = useRef(null)
+  const utteranceIdRef = useRef(0)
 
   const [connected, setConnected] = useState(false)
   const [muted, setMuted] = useState(false)
   const [speaking, setSpeaking] = useState(false)
   const [userSpeaking, setUserSpeaking] = useState(false)
+  const [readyToSpeak, setReadyToSpeak] = useState(false)
   const [timer, setTimer] = useState(0)
   const [currentLang, setCurrentLang] = useState("")
   const [langSelected, setLangSelected] = useState(false)
@@ -91,12 +90,9 @@ export default function App() {
   const [showStations, setShowStations] = useState(false)
   const [selectedStation, setSelectedStation] = useState(null)
   const [phase, setPhase] = useState("init")
-  const [mouthOpen, setMouthOpen] = useState(0)
-  const [audioData, setAudioData] = useState(null)
   const [callRequestLoading, setCallRequestLoading] = useState(false)
-
-  const timerRef = useRef(null)
-  const utteranceIdRef = useRef(0)
+  const [showPhoneModal, setShowPhoneModal] = useState(false)
+  const [phoneNumber, setPhoneNumber] = useState("")
 
   const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
@@ -104,16 +100,10 @@ export default function App() {
   useEffect(() => {
     const unlockAudio = () => {
       try {
-        if (!audioContextRef.current) {
-          audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
-        }
-        if (audioContextRef.current.state === "suspended") {
-          audioContextRef.current.resume()
-        }
-        const buffer = audioContextRef.current.createBuffer(1, 1, 22050)
-        const source = audioContextRef.current.createBufferSource()
+        const buffer = new AudioContext().createBuffer(1, 1, 22050)
+        const source = new AudioContext().createBufferSource()
         source.buffer = buffer
-        source.connect(audioContextRef.current.destination)
+        source.connect(new AudioContext().destination)
         source.start(0)
       } catch (e) {
         console.log("Audio unlock failed:", e)
@@ -151,6 +141,7 @@ export default function App() {
       if (muted || speaking || apiCallInProgressRef.current) return
 
       setUserSpeaking(true)
+      setReadyToSpeak(false)
       setTimeout(() => setUserSpeaking(false), 1200)
       recognition.stop()
 
@@ -247,105 +238,6 @@ export default function App() {
     return () => clearInterval(timerRef.current)
   }, [connected])
 
-  // Audio analysis for lip sync
-  useEffect(() => {
-    const setupHumanizedAudioAnalysis = async () => {
-      if (speaking && audioRef.current) {
-        try {
-          if (!audioContextRef.current) {
-            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
-          }
-
-          if (audioContextRef.current.state === "suspended") {
-            await audioContextRef.current.resume()
-          }
-
-          if (!analyserRef.current) {
-            analyserRef.current = audioContextRef.current.createAnalyser()
-            analyserRef.current.fftSize = 512
-            analyserRef.current.smoothingTimeConstant = 0.2
-
-            const source = audioContextRef.current.createMediaElementSource(audioRef.current)
-            source.connect(analyserRef.current)
-            analyserRef.current.connect(audioContextRef.current.destination)
-          }
-
-          const bufferLength = analyserRef.current.frequencyBinCount
-          const dataArray = new Uint8Array(bufferLength)
-
-          const analyzeHumanizedAudio = () => {
-            if (speaking && analyserRef.current) {
-              analyserRef.current.getByteFrequencyData(dataArray)
-
-              const volume = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength / 255
-              const veryLowFreq = dataArray.slice(0, 16).reduce((sum, val) => sum + val, 0) / 16 / 255
-              const lowFreq = dataArray.slice(16, 32).reduce((sum, val) => sum + val, 0) / 16 / 255
-              const midFreq = dataArray.slice(32, 64).reduce((sum, val) => sum + val, 0) / 32 / 255
-              const highFreq = dataArray.slice(64, 96).reduce((sum, val) => sum + val, 0) / 32 / 255
-              const veryHighFreq = dataArray.slice(96, 128).reduce((sum, val) => sum + val, 0) / 32 / 255
-
-              const humanizedAudioData = {
-                volume: volume,
-                frequencies: Array.from(dataArray),
-                veryLowFreq: veryLowFreq,
-                lowFreq: lowFreq,
-                midFreq: midFreq,
-                highFreq: highFreq,
-                veryHighFreq: veryHighFreq,
-                timestamp: Date.now(),
-              }
-
-              setAudioData(humanizedAudioData)
-              animationFrameRef.current = requestAnimationFrame(analyzeHumanizedAudio)
-            }
-          }
-
-          analyzeHumanizedAudio()
-        } catch (error) {
-          console.log("Audio analysis failed, using fallback:", error)
-          const createRealisticFakeData = () => {
-            const baseVolume = 0.4 + Math.random() * 0.4
-            const time = Date.now() * 0.001
-
-            return {
-              volume: baseVolume * (0.8 + Math.sin(time * 8) * 0.2),
-              frequencies: Array.from({ length: 256 }, (_, i) => Math.random() * 100 + 50),
-              veryLowFreq: 0.3 + Math.sin(time * 3) * 0.2,
-              lowFreq: 0.25 + Math.cos(time * 4) * 0.15,
-              midFreq: 0.2 + Math.sin(time * 6) * 0.1,
-              highFreq: 0.15 + Math.cos(time * 8) * 0.08,
-              veryHighFreq: 0.1 + Math.sin(time * 12) * 0.05,
-              timestamp: Date.now(),
-            }
-          }
-
-          setAudioData(createRealisticFakeData())
-
-          const fakeInterval = setInterval(() => {
-            if (speaking) {
-              setAudioData(createRealisticFakeData())
-            } else {
-              clearInterval(fakeInterval)
-            }
-          }, 50)
-        }
-      } else {
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current)
-        }
-        setAudioData(null)
-      }
-    }
-
-    setupHumanizedAudioAnalysis()
-
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
-      }
-    }
-  }, [speaking])
-
   const handleMute = () => {
     setMuted((m) => !m)
     if (!muted) {
@@ -355,6 +247,7 @@ export default function App() {
         audioRef.current.src = ""
       }
       setSpeaking(false)
+      setReadyToSpeak(false)
     } else {
       setRecognitionKey((k) => k + 1)
     }
@@ -372,6 +265,7 @@ export default function App() {
     setSelectedStation(null)
     setPhase("init")
     setCallRequestLoading(false)
+    setReadyToSpeak(false)
     recognitionRef.current?.stop()
     if (audioRef.current) {
       audioRef.current.pause()
@@ -379,15 +273,6 @@ export default function App() {
     }
     setSpeaking(false)
     apiCallInProgressRef.current = false
-
-    if (audioContextRef.current) {
-      audioContextRef.current.close()
-      audioContextRef.current = null
-      analyserRef.current = null
-    }
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current)
-    }
   }
 
   const speakText = async (text, langKey = currentLang || "hindi") => {
@@ -401,14 +286,6 @@ export default function App() {
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ""
-    }
-
-    if (audioContextRef.current && analyserRef.current) {
-      try {
-        audioContextRef.current.close()
-      } catch (e) {}
-      audioContextRef.current = null
-      analyserRef.current = null
     }
 
     try {
@@ -429,31 +306,28 @@ export default function App() {
 
       audio.onended = () => {
         setSpeaking(false)
-        setMouthOpen(0)
-        setAudioData(null)
+        setReadyToSpeak(true)
       }
       audio.onerror = (e) => {
         console.error("Audio playback error:", e)
         setSpeaking(false)
-        setMouthOpen(0)
-        setAudioData(null)
+        setReadyToSpeak(true)
       }
 
       setSpeaking(true)
+      setReadyToSpeak(false)
       try {
         await audio.play()
       } catch (err) {
         console.error("Audio play failed:", err)
         alert("Please tap anywhere on the screen to enable audio, then try again.")
         setSpeaking(false)
-        setMouthOpen(0)
-        setAudioData(null)
+        setReadyToSpeak(false)
       }
     } catch (error) {
       console.error("TTS error:", error)
       setSpeaking(false)
-      setMouthOpen(0)
-      setAudioData(null)
+      setReadyToSpeak(false)
     }
   }
 
@@ -502,38 +376,38 @@ export default function App() {
     )
   }
 
-  const handleRequestCall = async () => {
+  const handleRequestCall = () => {
+    const savedPhone = localStorage.getItem("nyaygpt_user_phone")
+    if (savedPhone) {
+      setPhoneNumber(savedPhone)
+    }
+    setShowPhoneModal(true)
+  }
+
+  const submitCallRequest = async () => {
     if (callRequestLoading) return
+
+    if (!phoneNumber.trim()) {
+      alert("Please enter your phone number")
+      return
+    }
+
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/
+    if (!phoneRegex.test(phoneNumber.replace(/\s+/g, ""))) {
+      alert("Please enter a valid phone number with country code")
+      return
+    }
 
     setCallRequestLoading(true)
 
     try {
-      let phone = localStorage.getItem("nyaygpt_user_phone")
-      if (!phone) {
-        phone = prompt("📲 Enter your phone number (with country code, e.g., +91XXXXXXXXXX):")
-        if (!phone) {
-          setCallRequestLoading(false)
-          return
-        }
-
-        // Basic phone validation
-        const phoneRegex = /^\+?[1-9]\d{1,14}$/
-        if (!phoneRegex.test(phone.replace(/\s+/g, ""))) {
-          alert("Please enter a valid phone number with country code")
-          setCallRequestLoading(false)
-          return
-        }
-
-        localStorage.setItem("nyaygpt_user_phone", phone)
-      }
+      localStorage.setItem("nyaygpt_user_phone", phoneNumber)
 
       const requestBody = {
-        phone: phone.replace(/\s+/g, ""), // Remove spaces
+        phone: phoneNumber.replace(/\s+/g, ""),
         topic: "Legal Help",
         language: currentLang || "hindi",
       }
-
-      console.log("Sending call request:", requestBody)
 
       const res = await fetch(`${backendBaseUrl}/request-call`, {
         method: "POST",
@@ -545,10 +419,10 @@ export default function App() {
       })
 
       const responseText = await res.text()
-      console.log("Call request response:", res.status, responseText)
 
       if (res.ok) {
         alert("✅ Call request sent successfully. You should receive a call shortly.")
+        setShowPhoneModal(false)
       } else {
         console.error("Call request failed:", res.status, responseText)
         alert(`❌ Call request failed: ${responseText || "Unknown error"}. Please try again.`)
@@ -564,190 +438,904 @@ export default function App() {
   const formatTime = (sec) => `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`
 
   return (
-    <div className="ai-agent-ui-container premium-bg">
-      <div className="ai-status-bar">
-        <span>{formatTime(timer)} • Voice</span>
-        <div className="ai-status-icons">
-          <span className="ai-status-icon" />
-          <span className="ai-status-icon" />
-          <span className="ai-status-battery" />
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)",
+        color: "#ffffff",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+      }}
+    >
+      {/* Background Pattern */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                           radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 50%)`,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Glassmorphism Navbar */}
+      <nav
+        style={{
+          background: "rgba(17, 24, 39, 0.7)",
+          backdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+          padding: "1rem 1.5rem",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+          position: "relative",
+          zIndex: 10,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "64rem",
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div
+              style={{
+                width: "2rem",
+                height: "2rem",
+                background: "linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%)",
+                borderRadius: "0.5rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(255, 255, 255, 0.2)",
+              }}
+            >
+              <span style={{ color: "#000000", fontWeight: "bold", fontSize: "0.875rem" }}>N</span>
+            </div>
+            <h1 style={{ fontSize: "1.25rem", fontWeight: "bold", textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)" }}>
+              NyayGPT
+            </h1>
+          </div>
+          <div
+            style={{
+              fontSize: "0.875rem",
+              color: "rgba(255, 255, 255, 0.8)",
+              background: "rgba(255, 255, 255, 0.1)",
+              padding: "0.5rem 1rem",
+              borderRadius: "1rem",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div
+        style={{
+          flex: "1",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "3rem 1.5rem",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <div style={{ width: "100%", maxWidth: "28rem", margin: "0 auto" }}>
+          {/* Glassmorphism Status Card */}
+          <div
+            style={{
+              textAlign: "center",
+              marginBottom: "4.5rem",
+              background: "rgba(255, 255, 255, 0.05)",
+              backdropFilter: "blur(20px)",
+              borderRadius: "1.5rem",
+              padding: "1.5rem",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+            }}
+          >
+            <div style={{ fontSize: "1.125rem", color: "#ffffff", marginBottom: "0.5rem", fontWeight: "600" }}>
+              {connected ? "Connected - Ready to Help" : "Your AI Legal Assistant"}
+            </div>
+            <div style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.7)" }}>
+              {speaking && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                  <FaVolumeUp style={{ color: "#60a5fa" }} />
+                  <span>NyayGPT is speaking...</span>
+                </div>
+              )}
+              {userSpeaking && "👂 Listening..."}
+              {!speaking && !userSpeaking && !readyToSpeak && connected && "Ready for your question"}
+              {!connected && "Tap the microphone to start"}
+            </div>
+          </div>
+
+          {/* Main Microphone */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "3rem" }}>
+            <div style={{ position: "relative" }}>
+              {/* Microphone Button */}
+              <button
+                onClick={connected ? handleEnd : handleConnect}
+                style={{
+                  width: "8rem",
+                  height: "8rem",
+                  borderRadius: "50%",
+                  border: readyToSpeak ? "3px solid rgba(248, 113, 113, 0.8)" : "3px solid rgba(255, 255, 255, 0.2)",
+                  background: readyToSpeak
+                    ? "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
+                    : "rgba(255, 255, 255, 0.1)",
+                  backdropFilter: "blur(20px)",
+                  transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  outline: "none",
+                  boxShadow: readyToSpeak
+                    ? "0 0 40px rgba(248, 113, 113, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)"
+                    : "0 8px 32px rgba(0, 0, 0, 0.3)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!readyToSpeak) {
+                    e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                    e.target.style.transform = "scale(1.05)"
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!readyToSpeak) {
+                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                    e.target.style.transform = "scale(1)"
+                  }
+                }}
+              >
+                {connected ? (
+                  userSpeaking ? (
+                    <FaMicrophone
+                      style={{
+                        width: "3rem",
+                        height: "3rem",
+                        color: "#ffffff",
+                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                      }}
+                    />
+                  ) : (
+                    <FaMicrophoneSlash
+                      style={{
+                        width: "3rem",
+                        height: "3rem",
+                        color: "#ffffff",
+                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                      }}
+                    />
+                  )
+                ) : (
+                  <FaMicrophone
+                    style={{
+                      width: "3rem",
+                      height: "3rem",
+                      color: "#ffffff",
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                    }}
+                  />
+                )}
+              </button>
+
+              {/* Speaking Animation Waves */}
+              {speaking && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: "0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {[...Array(3)].map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        position: "absolute",
+                        width: "8rem",
+                        height: "8rem",
+                        border: "2px solid rgba(96, 165, 250, 0.6)",
+                        borderRadius: "50%",
+                        animation: "ping 2s infinite",
+                        animationDelay: `${i * 0.5}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Red Pulse when ready to speak */}
+              {readyToSpeak && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: "0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      width: "9rem",
+                      height: "9rem",
+                      border: "2px solid rgba(248, 113, 113, 0.8)",
+                      borderRadius: "50%",
+                      animation: "pulse 1.5s infinite",
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Text */}
+          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+            {connected ? (
+              userSpeaking ? (
+                <p style={{ color: "#f87171", fontWeight: "500", margin: 0 }}>
+                  <FaMicrophone style={{ marginRight: "0.5rem" }} />
+                  Speak now...
+                </p>
+              ) : speaking ? (
+                <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>
+                  {/* <FaVolumeUp style={{ marginRight: "0.5rem" }} /> */}
+                  NyayGPT is speaking...
+                </p>
+              ) : readyToSpeak ? (
+                <p
+                  style={{
+                    color: "#f87171",
+                    fontWeight: "600",
+                    fontSize: "1.1rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                    margin: 0,
+                    textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                  }}
+                >
+                  <FaMicrophone style={{ color: "#f87171" }} />
+                  SPEAK NOW
+                </p>
+              ) : (
+                <p style={{ color: "rgba(255, 255, 255, 0.8)", margin: 0 }}>Ask your legal question</p>
+              )
+            ) : (
+              <p style={{ color: "rgba(255, 255, 255, 0.8)", margin: 0 }}>Tell your legal issue</p>
+            )}
+          </div>
+
+          {/* Glassmorphism Control Buttons */}
+          {!connected ? (
+            <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem" }}>
+              <button
+                onClick={handleNearbyPolice}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "1rem",
+                  background: "rgba(255, 255, 255, 0.1)",
+                  backdropFilter: "blur(20px)",
+                  borderRadius: "1rem",
+                  transition: "all 0.3s ease",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  cursor: "pointer",
+                  outline: "none",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                  e.target.style.transform = "translateY(-2px)"
+                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                  e.target.style.transform = "translateY(0)"
+                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
+                }}
+              >
+                <FaMapMarkerAlt
+                  style={{
+                    width: "1.5rem",
+                    height: "1.5rem",
+                    color: "#60a5fa",
+                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                  }}
+                />
+                <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
+                  Nearby Police
+                </span>
+              </button>
+
+              <button
+                onClick={handleRequestCall}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "1rem",
+                  background: "rgba(255, 255, 255, 0.1)",
+                  backdropFilter: "blur(20px)",
+                  borderRadius: "1rem",
+                  transition: "all 0.3s ease",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  cursor: "pointer",
+                  outline: "none",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                  e.target.style.transform = "translateY(-2px)"
+                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                  e.target.style.transform = "translateY(0)"
+                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
+                }}
+              >
+                <FaPhone
+                  style={{
+                    width: "1.5rem",
+                    height: "1.5rem",
+                    color: "#10b981",
+                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                  }}
+                />
+                <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
+                  Request Call
+                </span>
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", justifyContent: "center", gap: "2rem" }}>
+              <button
+                onClick={handleMute}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "1rem",
+                  borderRadius: "1rem",
+                  transition: "all 0.3s ease",
+                  background: muted
+                    ? "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
+                    : "rgba(255, 255, 255, 0.1)",
+                  backdropFilter: "blur(20px)",
+                  border: muted ? "1px solid rgba(248, 113, 113, 0.3)" : "1px solid rgba(255, 255, 255, 0.1)",
+                  cursor: "pointer",
+                  outline: "none",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)"
+                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)"
+                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
+                }}
+              >
+                {muted ? (
+                  <FaMicrophoneSlash
+                    style={{
+                      width: "1.5rem",
+                      height: "1.5rem",
+                      color: "#ffffff",
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                    }}
+                  />
+                ) : (
+                  <FaMicrophone
+                    style={{
+                      width: "1.5rem",
+                      height: "1.5rem",
+                      color: "#ffffff",
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                    }}
+                  />
+                )}
+                <span style={{ fontSize: "0.875rem", color: "#ffffff", fontWeight: "500" }}>
+                  {muted ? "Unmute" : "Mute"}
+                </span>
+              </button>
+
+              <button
+                onClick={handleNearbyPolice}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "1rem",
+                  background: "rgba(255, 255, 255, 0.1)",
+                  backdropFilter: "blur(20px)",
+                  borderRadius: "1rem",
+                  transition: "all 0.3s ease",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  cursor: "pointer",
+                  outline: "none",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                  e.target.style.transform = "translateY(-2px)"
+                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                  e.target.style.transform = "translateY(0)"
+                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
+                }}
+              >
+                <FaMapMarkerAlt
+                  style={{
+                    width: "1.5rem",
+                    height: "1.5rem",
+                    color: "#60a5fa",
+                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                  }}
+                />
+                <span style={{ fontSize: "0.875rem", color: "#ffffff", fontWeight: "500" }}>Police</span>
+              </button>
+
+              <button
+                onClick={handleEnd}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "1rem",
+                  background: "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)",
+                  backdropFilter: "blur(20px)",
+                  borderRadius: "1rem",
+                  transition: "all 0.3s ease",
+                  border: "1px solid rgba(248, 113, 113, 0.3)",
+                  cursor: "pointer",
+                  outline: "none",
+                  boxShadow: "0 8px 32px rgba(220, 38, 38, 0.3)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background =
+                    "linear-gradient(135deg, rgba(185, 28, 28, 0.9) 0%, rgba(220, 38, 38, 0.7) 100%)"
+                  e.target.style.transform = "translateY(-2px)"
+                  e.target.style.boxShadow = "0 12px 40px rgba(220, 38, 38, 0.4)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background =
+                    "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
+                  e.target.style.transform = "translateY(0)"
+                  e.target.style.boxShadow = "0 8px 32px rgba(220, 38, 38, 0.3)"
+                }}
+              >
+                <FaPhone
+                  style={{
+                    width: "1.5rem",
+                    height: "1.5rem",
+                    color: "#ffffff",
+                    transform: "rotate(225deg)",
+                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                  }}
+                />
+                <span style={{ fontSize: "0.875rem", color: "#ffffff", fontWeight: "500" }}>End</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="ai-agent-title-premium" style={{ marginTop: 65, textAlign: "center" }}>
-        NyayGPT
-      </div>
-      <div className="ai-agent-subtitle-premium" style={{ textAlign: "center" }}>
-        {connected ? "Connected" : "Tap to connect"}
-      </div>
-
-      {/* Avatar Face */}
-      <div className="avatar-face-container" style={{ width: 220, height: 320, margin: "10px auto" }}>
-        <AvatarLipsync
-          mouthOpen={mouthOpen}
-          speaking={speaking}
-          cameraPosition={[0, 1.6, 1.55]}
-          cameraTarget={[0, 1.8, 0]}
-          audioData={audioData}
-        />
-      </div>
-
-      {/* Debug Audio Info (Development Only) */}
-      {process.env.NODE_ENV === "development" && audioData && (
+      {/* Glassmorphism Phone Number Modal */}
+      {showPhoneModal && (
         <div
           style={{
             position: "fixed",
-            top: 10,
-            right: 10,
-            background: "rgba(0,0,0,0.95)",
-            color: "white",
-            padding: 12,
-            fontSize: 10,
-            borderRadius: 8,
-            fontFamily: "monospace",
-            lineHeight: 1.4,
+            inset: "0",
+            background: "rgba(0, 0, 0, 0.8)",
+            backdropFilter: "blur(10px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+            zIndex: "50",
           }}
         >
-          <div style={{ color: "#00ff00", fontWeight: "bold" }}>🗣️ AUDIO DEBUG</div>
-          <div>🎤 Speaking: {speaking ? "YES" : "NO"}</div>
-          <div>🔊 Volume: {(audioData.volume * 100).toFixed(0)}%</div>
-          <div>🔉 VeryLow: {(audioData.veryLowFreq * 100).toFixed(0)}%</div>
-          <div>🔉 Low: {(audioData.lowFreq * 100).toFixed(0)}%</div>
-          <div>🔉 Mid: {(audioData.midFreq * 100).toFixed(0)}%</div>
-          <div>🔉 High: {(audioData.highFreq * 100).toFixed(0)}%</div>
-          <div>🔉 VHigh: {(audioData.veryHighFreq * 100).toFixed(0)}%</div>
-        </div>
-      )}
-
-      {/* Audio Waves */}
-      {connected && (
-        <div className={`ai-agent-waves${(speaking || userSpeaking) && !muted ? " speaking" : ""}`}>
-          {[...Array(10)].map((_, i) => (
-            <div className="ai-wave-bar" key={i} />
-          ))}
-        </div>
-      )}
-
-      {/* Control Buttons */}
-      {!connected ? (
-        <div className="ai-start-btn-row">
-          <button className="ai-premium-call-btn" onClick={handleConnect}>
-            <span className="ai-call-icon" />
-          </button>
-          <button className="ai-nearby-btn" onClick={handleNearbyPolice}>
-            <span className="ai-location-icon" />
-            <div>Nearby Police</div>
-          </button>
-                    <button
-            className="ai-nearby-btn"
-            onClick={handleRequestCall}
-            disabled={callRequestLoading}
+          <div
             style={{
-              background: callRequestLoading
-                ? "linear-gradient(135deg, #ccc, #999)"
-                : "linear-gradient(135deg, #ff9f1a, #ff6e1a)",
-              cursor: callRequestLoading ? "not-allowed" : "pointer",
+              background: "rgba(17, 24, 39, 0.9)",
+              backdropFilter: "blur(30px)",
+              borderRadius: "1.5rem",
+              padding: "2rem",
+              width: "100%",
+              maxWidth: "24rem",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
             }}
           >
-            <span className="ai-location-icon" />
-            <div>{callRequestLoading ? "Requesting..." : "Request Call"}</div>
-          </button>
-        </div>
-      ) : (
-        <div className="ai-agent-btn-row-premium">
-          <button className={`ai-mute-btn${muted ? " muted" : ""}`} onClick={handleMute}>
-            <span className={`ai-mic-icon${muted ? " off" : ""}`} />
-            <div>Mute</div>
-          </button>
-          <button className="ai-nearby-btn" onClick={handleNearbyPolice}>
-            <span className="ai-location-icon" />
-            <div>Nearby Police</div>
-          </button>
-          <button className="ai-end-btn" onClick={handleEnd}>
-            <span className="ai-end-icon" />
-            <div>End</div>
-          </button>
-
-        </div>
-      )}
-
-      {/* Police Stations Modal */}
-      {showStations && (
-        <div
-          className="stations-modal-bg"
-          onClick={() => {
-            setShowStations(false)
-            setSelectedStation(null)
-          }}
-        >
-          <div className="stations-modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="close-btn"
-              onClick={() => {
-                setShowStations(false)
-                setSelectedStation(null)
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "1.5rem",
               }}
-              aria-label="Close"
             >
-              &times;
-            </button>
-            <h3>Nearby Police Stations</h3>
-            {policeStations.length ? (
-              <ul>
-                {policeStations.map((s, i) => (
-                  <li
-                    key={i}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setSelectedStation(s)}
-                    title="Show directions on map"
-                  >
-                    <b>{s.name}</b>
-                    <span>{s.vicinity}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div>No nearby police stations found.</div>
-            )}
+              <h3 style={{ fontSize: "1.25rem", fontWeight: "600", color: "#ffffff", margin: 0 }}>Request Call</h3>
+              <button
+                onClick={() => setShowPhoneModal(false)}
+                style={{
+                  color: "rgba(255, 255, 255, 0.6)",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  outline: "none",
+                  padding: "0.5rem",
+                  borderRadius: "0.5rem",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.color = "#ffffff"
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.color = "rgba(255, 255, 255, 0.6)"
+                  e.target.style.background = "transparent"
+                }}
+              >
+                <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: "1.5rem" }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.875rem",
+                  color: "rgba(255, 255, 255, 0.8)",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Phone Number (with country code)
+              </label>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+91XXXXXXXXXX"
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  background: "rgba(255, 255, 255, 0.1)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  borderRadius: "0.75rem",
+                  color: "#ffffff",
+                  fontSize: "1rem",
+                  outline: "none",
+                  transition: "all 0.3s ease",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "rgba(96, 165, 250, 0.5)"
+                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "rgba(255, 255, 255, 0.2)"
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: "1rem" }}>
+              <button
+                onClick={() => setShowPhoneModal(false)}
+                style={{
+                  flex: "1",
+                  padding: "0.75rem",
+                  background: "rgba(255, 255, 255, 0.1)",
+                  backdropFilter: "blur(10px)",
+                  color: "#ffffff",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  borderRadius: "0.75rem",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  outline: "none",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                  e.target.style.transform = "translateY(-1px)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                  e.target.style.transform = "translateY(0)"
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitCallRequest}
+                disabled={callRequestLoading}
+                style={{
+                  flex: "1",
+                  padding: "0.75rem",
+                  background: callRequestLoading
+                    ? "rgba(75, 85, 99, 0.8)"
+                    : "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)",
+                  backdropFilter: "blur(10px)",
+                  color: "#ffffff",
+                  border: "1px solid rgba(16, 185, 129, 0.3)",
+                  borderRadius: "0.75rem",
+                  cursor: callRequestLoading ? "not-allowed" : "pointer",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  outline: "none",
+                  opacity: callRequestLoading ? 0.6 : 1,
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (!callRequestLoading) {
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgba(5, 150, 105, 0.9) 0%, rgba(4, 120, 87, 1) 100%)"
+                    e.target.style.transform = "translateY(-1px)"
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!callRequestLoading) {
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)"
+                    e.target.style.transform = "translateY(0)"
+                  }
+                }}
+              >
+                {callRequestLoading ? "Requesting..." : "Request Call"}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Directions Modal */}
-      {selectedStation && userPos && (
-        <div className="directions-modal-bg" onClick={() => setSelectedStation(null)}>
-          <div className="directions-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setSelectedStation(null)} aria-label="Close">
-              &times;
-            </button>
-            <h3>
-              Directions to <span style={{ color: "#29489c" }}>{selectedStation.name}</span>
-            </h3>
-            <iframe
-              width="100%"
-              height="380"
-              frameBorder="0"
-              style={{ border: 0, borderRadius: "12px" }}
-              allowFullScreen
-              loading="lazy"
-              src={
-                MAPS_EMBED_API_KEY
-                  ? `https://www.google.com/maps/embed/v1/directions?key=${MAPS_EMBED_API_KEY}` +
-                    `&origin=${userPos.lat},${userPos.lng}` +
-                    `&destination=${selectedStation.lat},${selectedStation.lng}` +
-                    `&mode=driving`
-                  : undefined
-              }
-              title="Directions Map"
-            />
-            {!MAPS_EMBED_API_KEY && (
-              <div style={{ color: "red", marginTop: 16 }}>
-                API Key missing. Please set VITE_GOOGLE_MAPS_API_KEY in your .env file.
+      {/* Glassmorphism Police Stations Modal */}
+      {showStations && (
+        <div
+          style={{
+            position: "fixed",
+            inset: "0",
+            background: "rgba(0, 0, 0, 0.8)",
+            backdropFilter: "blur(10px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+            zIndex: "50",
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(17, 24, 39, 0.9)",
+              backdropFilter: "blur(30px)",
+              borderRadius: "1.5rem",
+              padding: "1.5rem",
+              width: "100%",
+              maxWidth: "28rem",
+              maxHeight: "24rem",
+              overflowY: "auto",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "1rem",
+              }}
+            >
+              <h3 style={{ fontSize: "1.125rem", fontWeight: "600", color: "#ffffff", margin: 0 }}>
+                Nearby Police Stations
+              </h3>
+              <button
+                onClick={() => {
+                  setShowStations(false)
+                  setSelectedStation(null)
+                }}
+                style={{
+                  color: "rgba(255, 255, 255, 0.6)",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  outline: "none",
+                  padding: "0.5rem",
+                  borderRadius: "0.5rem",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.color = "#ffffff"
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.color = "rgba(255, 255, 255, 0.6)"
+                  e.target.style.background = "transparent"
+                }}
+              >
+                <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
+              </button>
+            </div>
+
+            {policeStations.length ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                {policeStations.map((station, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedStation(station)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "0.75rem",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      backdropFilter: "blur(10px)",
+                      borderRadius: "0.75rem",
+                      transition: "all 0.3s ease",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      cursor: "pointer",
+                      outline: "none",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                      e.target.style.transform = "translateY(-1px)"
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "rgba(255, 255, 255, 0.05)"
+                      e.target.style.transform = "translateY(0)"
+                    }}
+                  >
+                    <div style={{ fontWeight: "500", color: "#ffffff", marginBottom: "0.25rem" }}>{station.name}</div>
+                    <div style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.7)" }}>{station.vicinity}</div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", color: "rgba(255, 255, 255, 0.6)", padding: "2rem 0" }}>
+                No nearby police stations found.
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Glassmorphism Directions Modal */}
+      {selectedStation && userPos && (
+        <div
+          style={{
+            position: "fixed",
+            inset: "0",
+            background: "rgba(0, 0, 0, 0.8)",
+            backdropFilter: "blur(10px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+            zIndex: "50",
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(17, 24, 39, 0.9)",
+              backdropFilter: "blur(30px)",
+              borderRadius: "1.5rem",
+              padding: "1.5rem",
+              width: "100%",
+              maxWidth: "48rem",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "1rem",
+              }}
+            >
+              <h3 style={{ fontSize: "1.125rem", fontWeight: "600", color: "#ffffff", margin: 0 }}>
+                Directions to <span style={{ color: "#60a5fa" }}>{selectedStation.name}</span>
+              </h3>
+              <button
+                onClick={() => setSelectedStation(null)}
+                style={{
+                  color: "rgba(255, 255, 255, 0.6)",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  outline: "none",
+                  padding: "0.5rem",
+                  borderRadius: "0.5rem",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.color = "#ffffff"
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.color = "rgba(255, 255, 255, 0.6)"
+                  e.target.style.background = "transparent"
+                }}
+              >
+                <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
+              </button>
+            </div>
+
+            {MAPS_EMBED_API_KEY ? (
+              <iframe
+                width="100%"
+                height="400"
+                frameBorder="0"
+                style={{ border: 0, borderRadius: "1rem" }}
+                allowFullScreen
+                loading="lazy"
+                src={`https://www.google.com/maps/embed/v1/directions?key=${MAPS_EMBED_API_KEY}&origin=${userPos.lat},${userPos.lng}&destination=${selectedStation.lat},${selectedStation.lng}&mode=driving`}
+                title="Directions Map"
+              />
+            ) : (
+              <div
+                style={{
+                  textAlign: "center",
+                  color: "#f87171",
+                  padding: "2rem 0",
+                  background: "rgba(248, 113, 113, 0.1)",
+                  borderRadius: "1rem",
+                  border: "1px solid rgba(248, 113, 113, 0.2)",
+                }}
+              >
+                API Key missing. Please set VITE_GOOGLE_MAPS_API_KEY in your environment variables.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+      `}</style>
     </div>
   )
 }
