@@ -483,25 +483,36 @@ export default function App() {
             justifyContent: "space-between",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <div
-              style={{
-                width: "2rem",
-                height: "2rem",
-                background: "linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%)",
-                borderRadius: "0.5rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 4px 16px rgba(255, 255, 255, 0.2)",
-              }}
-            >
-              <span style={{ color: "#000000", fontWeight: "bold", fontSize: "0.875rem" }}>N</span>
-            </div>
-            <h1 style={{ fontSize: "1.25rem", fontWeight: "bold", textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)" }}>
-              NyayGPT
-            </h1>
-          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", height: "3rem" }}>
+  <div
+    style={{
+      width: "3rem",
+      height: "3rem",
+      borderRadius: "0.5rem",
+      overflow: "hidden",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#000000", // optional
+      // boxShadow: "0 4px 16px rgba(255, 255, 255, 0.1)",
+    }}
+  >
+    <img
+      src="/image.png"
+      alt="Logo"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "contain", // ensures full image visible
+      }}
+    />
+  </div>
+  <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)", color: "#fff" }}>
+    Chanakya AI
+  </h1>
+</div>
+
+
           <div
             style={{
               fontSize: "0.875rem",
@@ -552,7 +563,7 @@ export default function App() {
               {speaking && (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
                   <FaVolumeUp style={{ color: "#60a5fa" }} />
-                  <span>NyayGPT is speaking...</span>
+                  <span>Chanakya AI is speaking...</span>
                 </div>
               )}
               {userSpeaking && "👂 Listening..."}
@@ -696,7 +707,7 @@ export default function App() {
               ) : speaking ? (
                 <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>
                   {/* <FaVolumeUp style={{ marginRight: "0.5rem" }} /> */}
-                  NyayGPT is speaking...
+                  Chanakya AI is speaking...
                 </p>
               ) : readyToSpeak ? (
                 <p
