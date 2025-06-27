@@ -1788,18 +1788,27 @@ export default function App() {
               📍 <strong>Address:</strong> {selectedAdvocate.vicinity}
             </p>
             <p style={{ margin: "0 0 1rem" }}>
-              📞 <strong>Phone:</strong>{" "}
-              {selectedAdvocate.phone && selectedAdvocate.phone !== "Not available"
-                ? (
-                  <a
-                    href={`tel:${selectedAdvocate.phone.replace(/[^0-9+]/g, '')}`}
-                    style={{ color: "#34d399", textDecoration: "underline" }}
-                  >
-                    {selectedAdvocate.phone}
-                  </a>
-                )
-                : "Not available"}
-            </p>
+  📞 <strong>Phone:</strong>{" "}
+  {selectedAdvocate.phone && selectedAdvocate.phone !== "Not available"
+    ? (
+      <a
+        href={`tel:${selectedAdvocate.phone.replace(/[^0-9+]/g, '')}`}
+        style={{
+          color: "#34d399",
+          textDecoration: "underline",
+          fontWeight: "600",
+          cursor: "pointer",
+        }}
+        onClick={(e) => {
+          e.stopPropagation(); // prevent closing modal
+        }}
+      >
+        {selectedAdvocate.phone}
+      </a>
+    )
+    : "Not available"}
+</p>
+
 
             {MAPS_EMBED_API_KEY && (
               <img
