@@ -8,57 +8,7 @@ const backendBaseUrl =
   window.location.hostname === "localhost" ? "http://localhost:3000" : "https://nyay-gpt.onrender.com"
 
 // Supported Languages & Greetings
-const languages = {
-  english: {
-    code: "en-IN",
-    greeting: "Hello! I'm Nyay GPT — your AI legal assistant. Feel free to ask me any legal question.",
-  },
-  hindi: {
-    code: "hi-IN",
-    greeting: "नमस्ते! मैं न्याय GPT हूँ। आप मुझसे कोई भी कानूनी सवाल पूछ सकते हैं।",
-  },
-  punjabi: {
-    code: "pa-IN",
-    greeting: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਨਿਆਂ GPT ਹਾਂ। ਤੁਸੀਂ ਮੈਨੂੰ ਕੋਈ ਵੀ ਕਾਨੂੰਨੀ ਸਵਾਲ ਪੁੱਛ ਸਕਦੇ ਹੋ।",
-  },
-  tamil: {
-    code: "ta-IN",
-    greeting: "வணக்கம்! நான் நியாய GPT. நீங்கள் என்னிடம் எந்தவொரு சட்டக் கேள்வியையும் கேட்கலாம்.",
-  },
-  marathi: {
-    code: "mr-IN",
-    greeting: "नमस्कार! मी न्याय GPT आहे. तुम्ही मला कोणताही कायदेशीर प्रश्न विचारू शकता.",
-  },
-  telugu: {
-    code: "te-IN",
-    greeting: "నమస్తే! నేను న్యాయ GPT. మీరు నన్ను ఎలాంటి చట్ట సంబంధిత ప్రశ్నలు అడగవచ్చు.",
-  },
-  bengali: {
-    code: "bn-IN",
-    greeting: "নমস্কার! আমি ন্যায় GPT। আপনি আমাকে যেকোনো আইনি প্রশ্ন করতে পারেন।",
-  },
-  kannada: {
-    code: "kn-IN",
-    greeting: "ನಮಸ್ಕಾರ! ನಾನು ನ್ಯಾಯ GPT. ನೀವು ನನಗೆ ಯಾವುದೇ ಕಾನೂನು ಪ್ರಶ್ನೆ ಕೇಳಬಹುದು.",
-  },
-  malayalam: {
-    code: "ml-IN",
-    greeting: "നമസ്കാരം! ഞാൻ ന്യായ GPT. നിങ്ങൾക്ക് എനിക്ക് നിയമപരമായ ചോദ്യങ്ങൾ ചോദിക്കാം.",
-  },
-  gujarati: {
-    code: "gu-IN",
-    greeting: "નમસ્તે! હું ન્યાય GPT છું. તમે મને કોઈ પણ કાનૂની પ્રશ્ન પૂછો.",
-  },
-  urdu: {
-    code: "ur-IN",
-    greeting: "السلام علیکم! میں نیاۓ GPT ہوں، آپ مجھ سے کوئی بھی قانونی سوال پوچھ سکتے ہیں۔",
-  },
-  odia: {
-    code: "or-IN",
-    greeting: "ନମସ୍କାର! ମୁଁ ନ୍ୟାୟ GPT। ଆପଣ ମୋତେ କୌଣସି ଆଇନିକ ପ୍ରଶ୍ନ ପଚାରିପାରିବେ।",
-  },
-  // Add other languages as needed...
-}
+         
 
 const languageKeywords = {
   english: ["english", "इंग्लिश", "अंग्रेजी"],
@@ -73,7 +23,6 @@ const languageKeywords = {
   gujarati: ["gujarati", "ગુજરાતી", "गुजराती"],
   urdu: ["urdu", "اردو", "उर्दू"],
   odia: ["odia", "odiya", "ଓଡ଼ିଆ", "ओड़िया"],
-  // Add other language keywords as needed...
 }
 
 const initialGreeting =
@@ -86,7 +35,41 @@ const languageGreetings = {
     "नमस्ते जी, मैं नव्या, चाणक्य एआई से आपकी लीगल एजेंट। आपकी बेहतर सहायता के लिए, क्या आप बता सकते हैं आपको किस प्रकार की कानूनी सहायता चाहिए या क्या आप इमरजेंसी में हैं?",
   punjabi:
     "ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ਮੈਂ ਨਵਿਆ, ਚਾਣਕਯ ਏਆਈ ਤੋਂ ਤੁਹਾਡੀ ਲੀਗਲ ਏਜੰਟ ਹਾਂ। ਤੁਹਾਡੀ ਬਿਹਤਰ ਮਦਦ ਲਈ, ਕੀ ਤੁਸੀਂ ਦੱਸ ਸਕਦੇ ਹੋ ਕਿ ਤੁਹਾਨੂੰ ਕਿਸ ਕਿਸਮ ਦੀ ਕਾਨੂੰਨੀ ਮਦਦ ਚਾਹੀਦੀ ਹੈ ਜਾਂ ਤੁਸੀਂ ਐਮਰਜੈਂਸੀ ਵਿੱਚ ਹੋ?",
-  // Add other language greetings as needed...
+  tamil:
+    "வணக்கம், நான் நவ்யா, சாணக்யா ஏஐயில் இருந்து உங்கள் சட்ட உதவியாளர். சிறந்த உதவிக்காக, நீங்கள் என்ன உதவி தேவை என்று அல்லது அவசர நிலைமையில் உள்ளீர்களா என்று சொல்ல முடியுமா?",
+  marathi:
+    "नमस्कार, मी नव्या, चाणक्य एआयमधून तुमची लीगल एजंट. तुमच्या उत्तम मदतीसाठी, कृपया सांगा तुम्हाला कोणत्या प्रकारची कायदेशीर मदत हवी आहे किंवा तुम्ही आणीबाणी स्थितीत आहात का?",
+  telugu:
+    "నమస్తే, నేను నవ్యా, చాణక్య ఎఐ నుండి మీ లీగల్ ఏజెంట్. మీకు మెరుగైన సహాయం అందించేందుకు, మీరు ఏ విధమైన చట్ట సహాయం కావాలో లేదా మీరు ఎమర్జెన్సీలో ఉన్నారా అని చెప్పగలరా?",
+  bengali:
+    "নমস্কার, আমি নব্যা, চাণক্য এআই থেকে আপনার লিগ্যাল এজেন্ট। আপনার আরও ভাল সহায়তার জন্য, দয়া করে বলুন আপনি কী ধরনের আইনি সহায়তা চান বা আপনি জরুরি অবস্থায় রয়েছেন কিনা।",
+  kannada:
+    "ನಮಸ್ಕಾರ, ನಾನು ನವ್ಯಾ, ಚಾಣಕ್ಯ ಎಐ ಯಿಂದ ನಿಮ್ಮ ಲೀಗಲ್ ಏಜೆಂಟ್. ಉತ್ತಮ ಸಹಾಯಕ್ಕಾಗಿ, ನಿಮಗೆ ಯಾವ ರೀತಿಯ ಕಾನೂನು ಸಹಾಯ ಬೇಕು ಅಥವಾ ನೀವು ತುರ್ತು ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಇದ್ದೀರಾ ಎಂಬುದನ್ನು ಹೇಳಿ.",
+  malayalam:
+    "നമസ്കാരം, ഞാൻ നവ്യ, ചാണക്യ എഐയിൽ നിന്നുള്ള നിങ്ങളുടെ ലീഗൽ ഏജന്റ്. മികച്ച സഹായത്തിനായി, നിങ്ങൾക്ക് എന്ത് തരത്തിലുള്ള നിയമ സഹായം വേണമെന്ന് അല്ലെങ്കിൽ നിങ്ങൾ അടിയന്തരാവസ്ഥയിലാണോ എന്ന് പറയാമോ?",
+  gujarati:
+    "નમસ્તે, હું નવ્યા, ચાણક્ય એઆઈ તરફથી તમારી લીગલ એજન્ટ છું. તમારી વધુ સારી મદદ માટે, કૃપા કરીને કહો તમને કઈ પ્રકારની કાનૂની મદદ જોઈએ છે અથવા તમે ઇમરજન્સી માં છો?",
+  urdu: "السلام علیکم، میں نویا، چانکیہ اے آئی سے آپ کی قانونی ایجنٹ ہوں۔ آپ کی بہتر مدد کے لیے، کیا آپ بتا سکتے ہیں آپ کو کس چیز کی قانونی مدد چاہیے یا آپ ایمرجینسی میں ہیں؟",
+  odia: "ନମସ୍କାର, ମୁଁ ନବ୍ୟା, ଚାଣକ୍ୟ ଏଆଇ ରୁ ଆପଣଙ୍କର ଲିଗାଲ୍ ଏଜେଣ୍ଟ। ଆପଣଙ୍କୁ ଭଲ ସହଯୋଗ ଦେବା ପାଇଁ, ଦୟାକରି କହନ୍ତୁ ଆପଣ କେଉଁ ପ୍ରକାରର ଆଇନିକ ସହଯୋଗ ଚାହାଁନ୍ତି କିମ୍ବା ଆପଣ ଆପାତ୍କାଳୀନ ସ୍ଥିତିରେ ଅଛନ୍ତି କି?",
+}
+
+// Document analysis prompts
+const documentContextPrompts = {
+  english:
+    "I have analyzed your document. Please tell me what specific concerns you have about this document or what you would like to know?",
+  hindi: "मैंने आपका दस्तावेज़ पढ़ लिया है। कृपया बताएं कि इस दस्तावेज़ के बारे में आपकी क्या चिंता है या आप क्या जानना चाहते हैं?",
+  punjabi: "ਮੈਂ ਤੁਹਾਡਾ ਦਸਤਾਵੇਜ਼ ਪੜ੍ਹ ਲਿਆ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਦੱਸੋ ਕਿ ਇਸ ਦਸਤਾਵੇਜ਼ ਬਾਰੇ ਤੁਹਾਡੀ ਕੀ ਚਿੰਤਾ ਹੈ ਜਾਂ ਤੁਸੀਂ ਕੀ ਜਾਣਨਾ ਚਾਹੁੰਦੇ ਹੋ?",
+  tamil:
+    "நான் உங்கள் ஆவணத்தை பகுப்பாய்வு செய்துள்ளேன். இந்த ஆவணத்தைப் பற்றி உங்களுக்கு என்ன கவலைகள் உள்ளன அல்லது நீங்கள் என்ன தெரிந்துகொள்ள விரும்புகிறீர்கள் என்று சொல்லுங்கள்?",
+  marathi: "मी तुमचा दस्तावेज वाचला आहे। कृपया सांगा की या दस्तावेजाबद्दल तुमची काय चिंता आहे किंवा तुम्हाला काय जाणून घ्यायचे आहे?",
+  telugu: "నేను మీ పత్రాన్ని విశ్లేషించాను। ఈ పత్రం గురించి మీకు ఏ విధమైన ఆందోళనలు ఉన్నాయి లేదా మీరు ఏమి తెలుసుకోవాలని అనుకుంటున్నారు అని దయచేసి చెప్పండి?",
+  bengali: "আমি আপনার নথি বিশ্লেষণ করেছি। দয়া করে বলুন এই নথি সম্পর্কে আপনার কী উদ্বেগ রয়েছে বা আপনি কী জানতে চান?",
+  kannada: "ನಾನು ನಿಮ್ಮ ದಾಖಲೆಯನ್ನು ವಿಶ್ಲೇಷಿಸಿದ್ದೇನೆ। ಈ ದಾಖಲೆಯ ಬಗ್ಗೆ ನಿಮಗೆ ಯಾವ ಕಾಳಜಿಗಳಿವೆ ಅಥವಾ ನೀವು ಏನು ತಿಳಿದುಕೊಳ್ಳಲು ಬಯಸುತ್ತೀರಿ ಎಂದು ದಯವಿಟ್ಟು ಹೇಳಿ?",
+  malayalam:
+    "ഞാൻ നിങ്ങളുടെ രേഖ വിശകലനം ചെയ്തിട്ടുണ്ട്. ഈ രേഖയെക്കുറിച്ച് നിങ്ങൾക്ക് എന്ത് ആശങ്കകളാണുള്ളത് അല്ലെങ്കിൽ നിങ്ങൾ എന്താണ് അറിയാൻ ആഗ്രഹിക്കുന്നത് എന്ന് ദയവായി പറയുക?",
+  gujarati: "મેં તમારા દસ્તાવેજનું વિશ્લેષણ કર્યું છે. કૃપા કરીને કહો કે આ દસ્તાવેજ વિશે તમારી શું ચિંતાઓ છે અથવા તમે શું જાણવા માંગો છો?",
+  urdu: "میں نے آپ کی دستاویز کا تجزیہ کر لیا ہے۔ براہ کرم بتائیں کہ اس دستاویز کے بارے میں آپ کی کیا پریشانیاں ہیں یا آپ کیا جاننا چاہتے ہیں؟",
+  odia: "ମୁଁ ଆପଣଙ୍କର ଦଲିଲ ବିଶ୍ଳେଷଣ କରିଛି। ଦୟାକରି କୁହନ୍ତୁ ଏହି ଦଲିଲ ବିଷୟରେ ଆପଣଙ୍କର କ'ଣ ଚିନ୍ତା ଅଛି କିମ୍ବା ଆପଣ କ'ଣ ଜାଣିବାକୁ ଚାହାଁନ୍ତି?",
 }
 
 export default function App() {
@@ -99,8 +82,11 @@ export default function App() {
   // File upload states
   const [uploadedFile, setUploadedFile] = useState(null)
   const [filePreview, setFilePreview] = useState("")
-  const [awaitingContext, setAwaitingContext] = useState(false)
+  const [awaitingVoiceContext, setAwaitingVoiceContext] = useState(false)
   const [fileLoading, setFileLoading] = useState(false)
+  const [documentText, setDocumentText] = useState("")
+  const [analysisProgress, setAnalysisProgress] = useState(0)
+  const [analysisStage, setAnalysisStage] = useState("")
 
   // Existing states
   const [connected, setConnected] = useState(false)
@@ -129,30 +115,91 @@ export default function App() {
 
   // Audio unlock for mobile devices
   useEffect(() => {
-    const unlockAudio = () => {
+    let audioContext = null
+
+    const unlockAudio = async () => {
       try {
-        const buffer = new AudioContext().createBuffer(1, 1, 22050)
-        const source = new AudioContext().createBufferSource()
+        // Only create one AudioContext instance
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        }
+
+        // Resume if suspended
+        if (audioContext.state === "suspended") {
+          await audioContext.resume()
+        }
+
+        // Create a short silent buffer to unlock audio
+        const buffer = audioContext.createBuffer(1, 1, 22050)
+        const source = audioContext.createBufferSource()
         source.buffer = buffer
-        source.connect(new AudioContext().destination)
+        source.connect(audioContext.destination)
         source.start(0)
+
+        console.log("Audio unlocked successfully")
       } catch (e) {
         console.log("Audio unlock failed:", e)
       }
+
+      // Remove listeners after first successful unlock
       document.removeEventListener("touchend", unlockAudio, true)
       document.removeEventListener("click", unlockAudio, true)
+      document.removeEventListener("keydown", unlockAudio, true)
     }
+
+    // Add multiple event listeners for better coverage
     document.addEventListener("touchend", unlockAudio, true)
     document.addEventListener("click", unlockAudio, true)
+    document.addEventListener("keydown", unlockAudio, true)
+
     return () => {
       document.removeEventListener("touchend", unlockAudio, true)
       document.removeEventListener("click", unlockAudio, true)
+      document.removeEventListener("keydown", unlockAudio, true)
+
+      // Clean up AudioContext
+      if (audioContext && audioContext.state !== "closed") {
+        audioContext.close()
+      }
     }
   }, [])
 
+  // Progress simulation for document analysis
+  const simulateAnalysisProgress = () => {
+    const stages = [
+      { progress: 20, stage: "Reading document..." },
+      { progress: 40, stage: "Extracting text..." },
+      { progress: 60, stage: "Understanding content..." },
+      { progress: 80, stage: "Analyzing legal aspects..." },
+      { progress: 100, stage: "Preparing response..." },
+    ]
+
+    let currentStageIndex = 0
+    setAnalysisProgress(0)
+    setAnalysisStage("Starting analysis...")
+
+    const progressInterval = setInterval(() => {
+      if (currentStageIndex < stages.length) {
+        const stage = stages[currentStageIndex]
+        setAnalysisProgress(stage.progress)
+        setAnalysisStage(stage.stage)
+        currentStageIndex++
+      } else {
+        clearInterval(progressInterval)
+      }
+    }, 800)
+
+    return progressInterval
+  }
+
   // Speech recognition setup
   useEffect(() => {
-    if (!connected) return
+    console.log(
+      `Recognition useEffect triggered - Connected: ${connected}, Muted: ${muted}, Speaking: ${speaking}, Phase: ${phase}`,
+    )
+
+    // Allow recognition during documentContext phase even if not fully connected
+    if (!connected && phase !== "documentContext") return
     if (muted || speaking) return
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -162,87 +209,237 @@ export default function App() {
     }
 
     const langToUse = currentLang && languages[currentLang] ? languages[currentLang].code : "hi-IN"
+    console.log(`Setting up recognition with language: ${langToUse}, Phase: ${phase}`)
+
     const recognition = new SpeechRecognition()
     recognition.lang = langToUse
     recognition.continuous = true
     recognition.interimResults = false
 
     let stoppedByApp = false
+    let isProcessing = false
+
+    recognition.onstart = () => {
+      console.log(`Recognition started successfully - Phase: ${phase}`)
+    }
+
+    recognition.onerror = (event) => {
+      console.error(`Recognition error: ${event.error} - Phase: ${phase}`)
+
+      // Don't restart on abort errors - they're usually caused by rapid restarts
+      if (event.error === "aborted") {
+        console.log("Recognition aborted - likely due to rapid restart, waiting...")
+        return
+      }
+    }
 
     recognition.onresult = async (event) => {
-      if (muted || speaking || apiCallInProgressRef.current) return
+      console.log(`🎤 Recognition result received - Phase: ${phase}, Muted: ${muted}, Speaking: ${speaking}`)
+      console.log(`📋 Document text available: ${!!documentText}, Length: ${documentText?.length || 0}`)
+      console.log(`🔄 API in progress: ${apiCallInProgressRef.current}`)
 
+      if (muted || speaking || apiCallInProgressRef.current || isProcessing) {
+        console.log("⏭️ Ignoring recognition result due to state")
+        return
+      }
+
+      isProcessing = true
       setUserSpeaking(true)
       setReadyToSpeak(false)
       setTimeout(() => setUserSpeaking(false), 1200)
+
+      // Stop recognition to prevent conflicts
+      stoppedByApp = true
       recognition.stop()
 
       utteranceIdRef.current += 1
       const thisUtterance = utteranceIdRef.current
       const userSpeech = event.results[event.results.length - 1][0].transcript.toLowerCase().trim()
 
-      if (phase === "askLang") {
-        let detectedLang = null
-        Object.keys(languageKeywords).forEach((lang) => {
-          languageKeywords[lang].forEach((keyword) => {
-            if (userSpeech.includes(keyword)) {
-              detectedLang = lang
-            }
+      try {
+        // Language selection phase
+        if (phase === "askLang") {
+          let detectedLang = null
+          Object.keys(languageKeywords).forEach((lang) => {
+            languageKeywords[lang].forEach((keyword) => {
+              if (userSpeech.includes(keyword)) {
+                detectedLang = lang
+              }
+            })
           })
-        })
-        if (detectedLang) {
-          setCurrentLang(detectedLang)
-          setLangSelected(true)
-          setRecognitionKey((k) => k + 1)
-          setHistory([])
-          setPhase("normal")
-          await speakText(languageGreetings[detectedLang], detectedLang)
-          return
-        } else {
-          await speakText("कृपया अपनी पसंदीदा भाषा का नाम दोबारा बताएं। For example: Hindi, English, Tamil, etc.", "hindi")
-          setRecognitionKey((k) => k + 1)
-          return
-        }
-      }
-
-      if (phase === "normal" && !apiCallInProgressRef.current) {
-        apiCallInProgressRef.current = true
-        setSpeaking(true)
-        const newHistory = [...history, { role: "user", content: userSpeech }]
-        setHistory(newHistory)
-        try {
-          const res = await fetch(`${backendBaseUrl}/ask-context`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              history: newHistory,
-              language: currentLang,
-            }),
-          })
-          if (!res.ok) throw new Error(`Server responded with ${res.status}`)
-          const data = await res.json()
-          if (utteranceIdRef.current === thisUtterance && apiCallInProgressRef.current) {
-            setHistory((h) => [...h, { role: "assistant", content: data.reply }])
-            await speakText(data.reply, currentLang)
+          if (detectedLang) {
+            setCurrentLang(detectedLang)
+            setLangSelected(true)
             setRecognitionKey((k) => k + 1)
+            setHistory([])
+            setPhase("normal")
+            await speakText(languageGreetings[detectedLang], detectedLang)
+            return
+          } else {
+            await speakText(
+              "कृपया अपनी पसंदीदा भाषा का नाम दोबारा बताएं। For example: Hindi, English, Tamil, etc.",
+              "hindi",
+            )
+            setRecognitionKey((k) => k + 1)
+            return
           }
-        } catch (err) {
-          console.error("API Error:", err)
-          setSpeaking(false)
-          setRecognitionKey((k) => k + 1)
-        } finally {
-          apiCallInProgressRef.current = false
         }
+
+        // Document context collection phase
+        if (phase === "documentContext" && documentText) {
+          console.log("🎯 Document context phase - processing user input:", userSpeech)
+
+          if (apiCallInProgressRef.current) {
+            console.log("⚠️ API call already in progress, ignoring")
+            return
+          }
+
+          apiCallInProgressRef.current = true
+          setSpeaking(true)
+
+          console.log("📤 Starting API call to backend...")
+
+          // Start progress simulation
+          const progressInterval = simulateAnalysisProgress()
+
+          try {
+            const contextText = userSpeech
+            const analysisPrompt = `You are analyzing a legal document. User's situation and concerns: ${contextText}
+
+Document content:
+${documentText}
+
+Please provide analysis focusing on:
+1. What is the main purpose of this document?
+2. What are the important points for the user?
+3. Is any immediate action required?
+4. What steps should be taken next?
+5. Is expert advice needed?
+
+Respond in ${currentLang} language in clear, practical, and understandable terms.`
+
+            console.log("📡 Making fetch request to:", `${backendBaseUrl}/ask-context`)
+
+            const res = await fetch(`${backendBaseUrl}/ask-context`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                history: [{ role: "user", content: analysisPrompt }],
+                language: currentLang,
+              }),
+            })
+
+            console.log("📥 Response status:", res.status)
+
+            if (!res.ok) throw new Error(`Server responded with ${res.status}`)
+            const data = await res.json()
+
+            console.log("✅ Response received:", data.reply?.substring(0, 100) + "...")
+
+            // Clear progress
+            clearInterval(progressInterval)
+            setAnalysisProgress(0)
+            setAnalysisStage("")
+
+            if (utteranceIdRef.current === thisUtterance && apiCallInProgressRef.current) {
+              const newHistory = [
+                ...history,
+                { role: "user", content: `Document analysis context: ${contextText}` },
+                { role: "assistant", content: data.reply },
+              ]
+              setHistory(newHistory)
+
+              // Clean up document analysis state
+              setDocumentText("")
+              setPhase("normal")
+
+              console.log("🎤 Starting TTS response...")
+              await speakText(data.reply, currentLang)
+
+              // Force recognition restart after speaking with delay
+              setTimeout(() => {
+                console.log("🔄 Restarting recognition after document analysis")
+                setRecognitionKey((k) => k + 1)
+              }, 2000)
+            }
+          } catch (err) {
+            console.error("❌ Document analysis error:", err)
+            clearInterval(progressInterval)
+            setAnalysisProgress(0)
+            setAnalysisStage("")
+
+            const errorMessage =
+              currentLang === "hindi"
+                ? "दस्तावेज़ का विश्लेषण करने में समस्या हुई। कृपया दोबारा कोशिश करें।"
+                : "There was an error analyzing your document. Please try again."
+
+            console.log("🎤 Speaking error message...")
+            await speakText(errorMessage, currentLang)
+            setPhase("normal")
+
+            // Force recognition restart after error
+            setTimeout(() => {
+              console.log("🔄 Restarting recognition after error")
+              setRecognitionKey((k) => k + 1)
+            }, 2000)
+          } finally {
+            console.log("🏁 Cleaning up API call state")
+            apiCallInProgressRef.current = false
+          }
+          return
+        }
+
+        // Normal conversation phase
+        if (phase === "normal" && !apiCallInProgressRef.current) {
+          apiCallInProgressRef.current = true
+          setSpeaking(true)
+          const newHistory = [...history, { role: "user", content: userSpeech }]
+          setHistory(newHistory)
+          try {
+            const res = await fetch(`${backendBaseUrl}/ask-context`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                history: newHistory,
+                language: currentLang,
+              }),
+            })
+            if (!res.ok) throw new Error(`Server responded with ${res.status}`)
+            const data = await res.json()
+            if (utteranceIdRef.current === thisUtterance && apiCallInProgressRef.current) {
+              setHistory((h) => [...h, { role: "assistant", content: data.reply }])
+              await speakText(data.reply, currentLang)
+              setRecognitionKey((k) => k + 1)
+            }
+          } catch (err) {
+            console.error("API Error:", err)
+            setSpeaking(false)
+            setRecognitionKey((k) => k + 1)
+          } finally {
+            apiCallInProgressRef.current = false
+          }
+        }
+      } finally {
+        isProcessing = false
       }
     }
 
     recognition.onend = () => {
-      if (connected && !muted && !stoppedByApp && !speaking) {
-        try {
-          recognition.start()
-        } catch (e) {
-          console.log("Recognition restart failed:", e)
-        }
+      console.log("Recognition ended, connected:", connected, "muted:", muted, "speaking:", speaking)
+
+      // Only restart if not stopped by app and conditions are right
+      if (!stoppedByApp && (connected || phase === "documentContext") && !muted && !speaking && !isProcessing) {
+        // Add a longer delay before restarting to avoid rapid restarts
+        setTimeout(() => {
+          if (!stoppedByApp && (connected || phase === "documentContext") && !muted && !speaking && !isProcessing) {
+            try {
+              recognition.start()
+              console.log("Recognition restarted successfully")
+            } catch (e) {
+              console.log("Recognition restart failed:", e)
+            }
+          }
+        }, 1000) // Increased delay to 1 second
       }
     }
 
@@ -255,9 +452,10 @@ export default function App() {
 
     return () => {
       stoppedByApp = true
+      isProcessing = false
       recognition.stop()
     }
-  }, [connected, muted, recognitionKey, speaking, phase, currentLang, history])
+  }, [connected, muted, recognitionKey, speaking, phase, currentLang, history, documentText])
 
   // Timer setup
   useEffect(() => {
@@ -278,17 +476,23 @@ export default function App() {
     } else {
       setFilePreview(file.name)
     }
-    setAwaitingContext(true)
+    setAwaitingVoiceContext(true)
   }
 
-  const handleContextSubmit = async (contextText, file) => {
+  const handleStartVoiceContext = async () => {
+    if (!uploadedFile) return
+
     setFileLoading(true)
-    setAwaitingContext(false)
+    setAwaitingVoiceContext(false)
+
+    // Start progress simulation
+    const progressInterval = simulateAnalysisProgress()
 
     try {
+      // First, extract text from document
       const formData = new FormData()
-      formData.append("file", file)
-      formData.append("context", contextText)
+      formData.append("file", uploadedFile)
+      formData.append("context", "initial_extraction")
       formData.append("language", currentLang || "hindi")
 
       const res = await fetch(`${backendBaseUrl}/upload-legal-file`, {
@@ -302,28 +506,37 @@ export default function App() {
 
       const data = await res.json()
 
-      if (data.reply) {
-        // Add to chat history
-        const newHistory = [
-          ...history,
-          { role: "user", content: `Document uploaded: ${file.name}\nContext: ${contextText}` },
-          { role: "assistant", content: data.reply },
-        ]
-        setHistory(newHistory)
+      // Clear progress
+      clearInterval(progressInterval)
+      setAnalysisProgress(0)
+      setAnalysisStage("")
 
-        // Speak the response using TTS
-        await speakText(data.reply, currentLang || "hindi")
-      } else {
-        throw new Error("No response received from server")
-      }
+      // Store the extracted text for later analysis
+      setDocumentText(data.extractedText || "Document content extracted")
+
+      // Set phase to documentContext BEFORE speaking
+      setPhase("documentContext")
+
+      // Ask for context via voice
+      const contextPrompt = documentContextPrompts[currentLang] || documentContextPrompts["hindi"]
+      await speakText(contextPrompt, currentLang)
+
+      // Ensure recognition is ready after speaking
+      setTimeout(() => {
+        console.log("Ensuring recognition is active for document context")
+        setRecognitionKey((k) => k + 1)
+      }, 1500)
     } catch (error) {
       console.error("File upload error:", error)
+      clearInterval(progressInterval)
+      setAnalysisProgress(0)
+      setAnalysisStage("")
+
       const errorMessage =
         currentLang === "hindi"
           ? "दस्तावेज़ का विश्लेषण करने में समस्या हुई। कृपया दोबारा कोशिश करें।"
           : "There was an error analyzing your document. Please try again."
 
-      setHistory((prev) => [...prev, { role: "assistant", content: errorMessage }])
       await speakText(errorMessage, currentLang || "hindi")
     } finally {
       setFileLoading(false)
@@ -334,8 +547,14 @@ export default function App() {
   const handleClearFile = () => {
     setUploadedFile(null)
     setFilePreview("")
-    setAwaitingContext(false)
+    setAwaitingVoiceContext(false)
     setFileLoading(false)
+    setDocumentText("")
+    setAnalysisProgress(0)
+    setAnalysisStage("")
+    if (phase === "documentContext") {
+      setPhase("normal")
+    }
   }
 
   const handleMute = () => {
@@ -376,24 +595,51 @@ export default function App() {
     apiCallInProgressRef.current = false
   }
 
+  // Improved TTS function with better audio context handling
   const speakText = async (text, langKey = currentLang || "hindi") => {
     console.log("🎤 Starting speech:", text.substring(0, 50) + "...")
 
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop()
-      } catch (e) {}
+      } catch (e) {
+        console.log("Recognition stop error:", e)
+      }
     }
+
     if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current.src = ""
+      try {
+        audioRef.current.pause()
+        audioRef.current.src = ""
+      } catch (e) {
+        console.log("Audio cleanup error:", e)
+      }
     }
 
     try {
+      // Clean text for better pronunciation
+      let cleanedText = text
+
+      // Fix number pronunciation issues
+      cleanedText = cleanedText.replace(/\b1\b/g, "एक")
+      cleanedText = cleanedText.replace(/\b2\b/g, "दो")
+      cleanedText = cleanedText.replace(/\b3\b/g, "तीन")
+      cleanedText = cleanedText.replace(/\b4\b/g, "चार")
+      cleanedText = cleanedText.replace(/\b5\b/g, "पांच")
+      cleanedText = cleanedText.replace(/\b6\b/g, "छह")
+      cleanedText = cleanedText.replace(/\b7\b/g, "सात")
+      cleanedText = cleanedText.replace(/\b8\b/g, "आठ")
+      cleanedText = cleanedText.replace(/\b9\b/g, "नौ")
+      cleanedText = cleanedText.replace(/\b10\b/g, "दस")
+
+      // Remove special characters that cause pronunciation issues
+      cleanedText = cleanedText.replace(/[^\w\s\u0900-\u097F\u0600-\u06FF.,!?]/g, " ")
+      cleanedText = cleanedText.replace(/\s+/g, " ").trim()
+
       const res = await fetch(`${backendBaseUrl}/speak`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, language: langKey }),
+        body: JSON.stringify({ text: cleanedText, language: langKey }),
       })
 
       if (!res.ok) {
@@ -402,33 +648,97 @@ export default function App() {
 
       const blob = await res.blob()
       const audioUrl = URL.createObjectURL(blob)
-      const audio = new window.Audio(audioUrl)
+
+      // Create new audio element with better error handling
+      const audio = new Audio()
       audioRef.current = audio
 
+      // Set up event listeners before setting src
       audio.onended = () => {
+        console.log("Audio playback ended")
         setSpeaking(false)
         setReadyToSpeak(true)
+        URL.revokeObjectURL(audioUrl) // Clean up blob URL
+
+        // Ensure recognition restarts after speaking ends - with single restart attempt
+        if ((connected || phase === "documentContext") && !muted && phase !== "init") {
+          console.log(`Restarting recognition after speech ended - Phase: ${phase}`)
+
+          // Single restart attempt with longer delay
+          setTimeout(() => {
+            console.log("Recognition restart attempt after speech")
+            setRecognitionKey((k) => k + 1)
+          }, 1500)
+        }
       }
+
       audio.onerror = (e) => {
         console.error("Audio playback error:", e)
         setSpeaking(false)
         setReadyToSpeak(true)
+        URL.revokeObjectURL(audioUrl) // Clean up blob URL
+
+        // Restart recognition even on error
+        if ((connected || phase === "documentContext") && !muted && phase !== "init") {
+          setTimeout(() => {
+            console.log("Restarting recognition after audio error")
+            setRecognitionKey((k) => k + 1)
+          }, 500)
+        }
       }
+
+      audio.oncanplaythrough = () => {
+        console.log("Audio can play through")
+      }
+
+      // Set audio properties
+      audio.preload = "auto"
+      audio.src = audioUrl
 
       setSpeaking(true)
       setReadyToSpeak(false)
+
       try {
-        await audio.play()
-      } catch (err) {
-        console.error("Audio play failed:", err)
-        alert("Please tap anywhere on the screen to enable audio, then try again.")
+        // Try to play with user gesture handling
+        const playPromise = audio.play()
+
+        if (playPromise !== undefined) {
+          await playPromise
+          console.log("Audio started playing successfully")
+        }
+      } catch (playError) {
+        console.error("Audio play failed:", playError)
+
+        // If autoplay fails, show user-friendly message
+        if (playError.name === "NotAllowedError") {
+          console.log("Autoplay prevented - user interaction required")
+          // Don't show alert, just log and continue
+        }
+
         setSpeaking(false)
         setReadyToSpeak(false)
+        URL.revokeObjectURL(audioUrl)
+
+        // Restart recognition even if audio fails
+        if (connected && !muted && phase !== "init") {
+          setTimeout(() => {
+            console.log("Restarting recognition after audio play failure")
+            setRecognitionKey((k) => k + 1)
+          }, 500)
+        }
       }
     } catch (error) {
       console.error("TTS error:", error)
       setSpeaking(false)
       setReadyToSpeak(false)
+
+      // Restart recognition even on TTS error
+      if (connected && !muted && phase !== "init") {
+        setTimeout(() => {
+          console.log("Restarting recognition after TTS error")
+          setRecognitionKey((k) => k + 1)
+        }, 500)
+      }
     }
   }
 
@@ -703,20 +1013,121 @@ export default function App() {
                 </div>
               )}
               {userSpeaking && "👂 Listening..."}
-              {!speaking && !userSpeaking && !readyToSpeak && connected && "Ready for your question"}
+              {phase === "documentContext" && "📄 Waiting for document context..."}
+              {!speaking &&
+                !userSpeaking &&
+                !readyToSpeak &&
+                connected &&
+                phase === "normal" &&
+                "Ready for your question"}
               {!connected && "Tap the microphone to start"}
             </div>
           </div>
 
+          {/* Document Analysis Progress Bar */}
+          {(fileLoading || analysisProgress > 0) && (
+            <div
+              style={{
+                background: "rgba(96, 165, 250, 0.1)",
+                backdropFilter: "blur(20px)",
+                borderRadius: "1rem",
+                padding: "1.5rem",
+                border: "1px solid rgba(96, 165, 250, 0.2)",
+                marginBottom: "2rem",
+                boxShadow: "0 8px 32px rgba(96, 165, 250, 0.1)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.75rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                <div
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    border: "3px solid rgba(96, 165, 250, 0.3)",
+                    borderTop: "3px solid #60a5fa",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                  }}
+                />
+                <span
+                  style={{
+                    color: "#60a5fa",
+                    fontWeight: "600",
+                    fontSize: "1rem",
+                  }}
+                >
+                  Analyzing Document
+                </span>
+              </div>
+
+              {/* Progress Bar */}
+              <div
+                style={{
+                  width: "100%",
+                  height: "8px",
+                  background: "rgba(255, 255, 255, 0.1)",
+                  borderRadius: "4px",
+                  overflow: "hidden",
+                  marginBottom: "0.75rem",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${analysisProgress}%`,
+                    height: "100%",
+                    background: "linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%)",
+                    borderRadius: "4px",
+                    transition: "width 0.5s ease-in-out",
+                    boxShadow: "0 0 10px rgba(96, 165, 250, 0.5)",
+                  }}
+                />
+              </div>
+
+              {/* Progress Text */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span
+                  style={{
+                    color: "rgba(255, 255, 255, 0.8)",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {analysisStage || "Processing..."}
+                </span>
+                <span
+                  style={{
+                    color: "#60a5fa",
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                  }}
+                >
+                  {analysisProgress}%
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* File Upload Component */}
           <FileUpload
             onFileSelected={handleFileSelected}
-            onContextSubmit={handleContextSubmit}
             uploadedFile={uploadedFile}
             filePreview={filePreview}
             loading={fileLoading}
-            awaitingContext={awaitingContext}
+            awaitingVoiceContext={awaitingVoiceContext}
             onClearFile={handleClearFile}
+            onStartVoiceContext={handleStartVoiceContext}
           />
 
           {/* Main Microphone */}
@@ -835,8 +1246,15 @@ export default function App() {
 
           {/* Action Text */}
           <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-            {fileLoading ? (
-              <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>Analyzing your document...</p>
+            {fileLoading || analysisProgress > 0 ? (
+              <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>
+                {analysisStage || "Analyzing your document..."}
+              </p>
+            ) : phase === "documentContext" ? (
+              <p style={{ color: "#fbbf24", fontWeight: "500", margin: 0 }}>
+                {/* <FaMicrophone style={{ marginRight: "0.5rem" }} /> */}
+                
+              </p>
             ) : connected ? (
               userSpeaking ? (
                 <p style={{ color: "#f87171", fontWeight: "500", margin: 0 }}>
@@ -1592,7 +2010,7 @@ export default function App() {
                 color: "#2d2d2d",
                 borderRadius: "0.5rem",
                 padding: "0.5rem 1rem",
-                fontWeight: 600,
+                fontWeight: "600",
                 fontSize: "0.9rem",
                 border: "none",
                 cursor: "pointer",
@@ -1663,6 +2081,15 @@ export default function App() {
           }
           50% {
             opacity: 0.5;
+          }
+        }
+
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
           }
         }
       `}</style>

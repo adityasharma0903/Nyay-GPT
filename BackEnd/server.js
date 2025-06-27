@@ -55,13 +55,13 @@ Be empathetic and supportive.`,
 
   telugu: `మీరు న్యాయ GPT, భారతదేశానికి న్యాయ సహాయకుడు. సమాధానం తెలుగు లో ఇవ్వండి.
 ప్రతి సమాధానాన్ని సంక్షిప్తంగా, స్పష్టంగా మరియు సహాయకంగా ఇవ్వండి.
-ప్రశ్న స్పష్టంగా లేకపోతే, మరింత వివరాలను మర్యాదగా అడగండి.
+అگరప్రశ్న స్పష్టంగా లేకపోతే, మరింత వివరాలను మర్యాదగా అడగండి.
 ప్రమాదకరమైన న్యాయ సలహా ఇవ్వకండి—తీవ్ర/అత్యవసర పరిస్థితుల్లో నిపుణులు లేదా పోలీసులను సంప్రదించమని సూచించండి.`,
 
   bengali: `আপনি ন্যায় GPT, ভারতের জন্য আইনি সহকারী। উত্তর বাংলায় দিন।
 প্রত্যেক উত্তর সংক্ষিপ্ত, স্পষ্ট ও সহায়ক করুন।
 প্রশ্ন অস্পষ্ট হলে নম্রভাবে ব্যাখ্যা চান।
-কখনও বিপজ্জনক আইনি পরামর্শ দেবেন না—গুরুতর বা জরুরি পরিস্থিতিতে পেশাদার বা পুলিসের সাথে যোগাযোগ করার পরামর্শ দিন।`,
+কখনও বিপজ্জনক আইনি পরামর্শ দেবেন না—গুরুতর বা জরুরি পরিস্থিতিতে পেশাদার বা পুলিসের সাথে যোগাযোগ করার পরামর্শ দেবেন।`,
 
   kannada: `ನೀವು ನ್ಯಾಯ GPT, ಭಾರತದ ಕಾನೂನು ಸಹಾಯಕ. ಉತ್ತರವನ್ನು ಕನ್ನಡದಲ್ಲಿ ನೀಡಿರಿ.
 ಯಾವುದೇ ಉತ್ತರವನ್ನು ಸಂಕ್ಷಿಪ್ತವಾಗಿ, ಸ್ಪಷ್ಟವಾಗಿ ಮತ್ತು ಸಹಾಯಕವಾಗಿರಿಸಿ.
@@ -76,7 +76,7 @@ Be empathetic and supportive.`,
   gujarati: `તમે ન્યાય GPT છો, ભારત માટેનો કાનૂની સહાયક. જવાબ ગુજરાતી માં આપો.
 હંમેશા જવાબ સંક્ષિપ્ત, સ્પષ્ટ અને ઉપયોગી હોવો જોઈએ.
 પ્રશ્ન અસપષ્ટ હોય તો વિનમ્રતાપૂર્વક વધુ સ્પષ્ટતા માગો.
-ક્યારેય જોખમી કાનૂની સલાહ આપશો નહીં—ગંભીર/એમરજન્સી સ્થિતિમાં નિષ્ણાત અથવા પોલીસનો સંપર્ક કરવાની સલાહ આપો.`,
+ક્યારેય જોખમી કાનૂની સલાહ આપશો નહીં—ગંભીર/એમરજન્સી સ્થિતિમાં નિષ્ણાત અથવા પોલીસનો સંપર્ક કરવાની સલાહ આપશો.`,
 
   urdu: `آپ نیاۓ GPT ہیں، بھارت کے لیے قانونی معاون۔ جواب اردو میں دیں۔
 ہمیشہ جواب کو مختصر، واضح اور مددگار بنائیں۔
@@ -104,7 +104,7 @@ Be empathetic and supportive.`,
   bundeli: `तू न्याय GPT है, भारत खातिर कानूनी सहायक। जवाब बुंदेली म दे।
 हमेशा साफ-साफ, छोटे अउर मददगार जवाब दओ।
 अगर सवाल पूरा ना हो तो तमीज सै और पूछ ले।
-खतरनाक कानूनी सलाह कब्बै न दओ — अगर बात गंभीर हो, त पुलिस या वकील से संपर्क की सलाह दओ।`,
+खतरनाक कानूनी सलाह कब्बै न दओ — अगर बात गंभीर हो, त पुलिस या वकील सै संपर्क की सलाह दओ।`,
 
   haryanvi: `तू न्याय GPT सै, भारत का कानूनी मददगार। जवाब हरियाणवी म दे।
 साफ, छोटे और ढंग सै जवाब दे।
@@ -124,7 +124,7 @@ Be empathetic and supportive.`,
   varhadi: `तू न्याय GPT आहेस, भारतासाठी कायदेशीर सहाय्यक. उत्तर वर्‍हाडीमध्ये दे।
 नेहमी संक्षिप्त, स्पष्ट आणि उपयोगी उत्तर द्यावं।
 प्रश्न अस्पष्ट वाटल्यास विनम्रतेनं विचारावं।
-धोकादायक कायदेशीर सल्ला देऊ नको — गंभीर परिस्थितीत पोलिस किंवा तज्ञांशी संपર्क साधायला सांगावं।`,
+धोकादायक कायदेशीर सल्ला देऊ नको — गंभीर परिस्थितीत पोलिस किंवा तज्ञांशी संपर्क साधायला सांगावं।`,
 
   tulu: `ನೀನು ನ್ಯಾಯ GPT, ಭಾರತದ ಕಾನೂನು ಸಹಾಯಕ. ಉತ್ತರ ತುಳುವಿನಲ್ಲಿ ಕೊಡ್ಲೆ.
 ಸಾಧಾರಣ, ಸ್ಪಷ್ಟ ಮತ್ತು ಸಹಾಯಕ ಉತ್ತರ ಕೊಡು.
@@ -142,8 +142,8 @@ Be empathetic and supportive.`,
 खतरनाक सलाह कदी न दे — संकटकाल च पुलिस या वकील नाल संपर्क करन दी सलाह दे।`,
 
   manipuri: `ꯑꯃ ꯅꯥꯚꯌꯥ ꯃꯌꯥꯊꯨꯡ ꯃꯇꯝ ꯍꯥꯛꯂꯣꯟꯅꯥ ꯈꯨꯝꯖꯤ ꯐꯥꯏꯇꯦꯡ ꯑꯁꯤ ꯑꯅꯣꯏꯔꯤ ꯋꯥꯡ। ꯑꯃꯇ ꯑꯃ ꯂꯩꯕꯥ ꯊꯧꯕꯥ ꯆꯨꯡꯒꯤꯡ ꯍꯧꯅꯥ ꯅꯍꯥꯡ। 
-ꯈꯪꯗꯤ ꯍꯧꯁꯤꯡ ꯊꯣꯛꯇꯔꯥ ꯊꯣꯛꯅꯤ ꯑꯃ ꯂꯩꯕꯥ ꯍꯥꯛꯅꯕ ꯍꯧꯕꯥ ꯊꯣꯛꯨ। 
-ꯇꯧꯕꯤ ꯃꯊꯥꯏꯄ ꯇꯧꯔꯤꯛ ꯁꯤꯇꯤ ꯆꯤꯄ ꯄꯥꯔꯤꯕꯒꯤ ꯄꯨꯂꯤꯁ ꯍꯥꯏꯂꯥ ꯂꯩꯔꯤ।`,
+ꯈꯪꯗꯤ ꯍꯧꯁꯤꯡ ꯊꯣꯛꯇꯔꯥ ꯊꯣꯛꯅꯤ ꯑꯃ ꯂꯩꯕꯥ ꯍꯥꯛꯅ ꯍꯧꯕꯥ ꯊꯣꯛꯨ। 
+ꯇꯧꯕꯤ ꯃꯊꯥꯏꯄ ꯇꯧꯔꯤꯛ ꯁꯤꯇꯤ ꯆꯤꯄ ꯄꯥꯔꯤꯒꯤ ꯄꯨꯂꯤꯁ ꯍꯥꯏꯂꯥ ꯂꯩꯔꯤ।`,
 
   nepali: `तपाईं न्याय GPT हुनुहुन्छ, भारतका लागि कानुनी सहायक। जवाफ नेपालीमा दिनुहोस्।
 सधैं उत्तर छोटो, स्पष्ट र सहयोगी बनाउनुहोस्।
@@ -319,20 +319,18 @@ app.post("/upload-legal-file", upload.single("file"), async (req, res) => {
 
     console.log(`[UPLOAD-LEGAL-FILE] ✅ Text extracted: ${extractedText.length} characters`)
 
-    // If context is empty or too short, ask for more info
-    if (!context || context.length < 5) {
-      console.log("[UPLOAD-LEGAL-FILE] ➡ Requesting context from user")
-      const contextRequest =
-        language === "hindi"
-          ? "धन्यवाद! मैंने आपका दस्तावेज़ पढ़ लिया है। कृपया बताएं कि इस दस्तावेज़ के बारे में आपकी क्या चिंता है या आप क्या जानना चाहते हैं?"
-          : "Thank you! I have read your document. Could you please tell me what specific concerns you have about this document or what you would like to know?"
-
-      return res.json({ reply: contextRequest })
+    // For initial extraction, just return the extracted text
+    if (context === "initial_extraction") {
+      return res.json({
+        extractedText: extractedText,
+        reply: "Document text extracted successfully",
+      })
     }
 
-    // Prepare comprehensive prompt for AI analysis
-    const sysPrompt = systemPrompts[language] || systemPrompts["hindi"]
-    const analysisPrompt = `${sysPrompt}
+    // If context is provided, proceed with analysis
+    if (context && context.length >= 5) {
+      const sysPrompt = systemPrompts[language] || systemPrompts["hindi"]
+      const analysisPrompt = `${sysPrompt}
 
 आपको एक कानूनी दस्तावेज़ का विश्लेषण करना है। उपयोगकर्ता की स्थिति और चिंताओं को समझकर व्यावहारिक सलाह दें।
 
@@ -350,60 +348,71 @@ ${extractedText}
 
 उत्तर स्पष्ट, व्यावहारिक और समझने योग्य भाषा में दें।`
 
-    console.log("[UPLOAD-LEGAL-FILE] ➡ Sending to AI for analysis...")
+      console.log("[UPLOAD-LEGAL-FILE] ➡ Sending to AI for analysis...")
 
-    // Get AI analysis
-    let aiResult
-    try {
-      aiResult = await askGrok(sysPrompt, analysisPrompt)
+      let aiResult
+      try {
+        aiResult = await askGrok(sysPrompt, analysisPrompt)
 
-      if (!aiResult || aiResult.trim().length < 10) {
-        throw new Error("Empty or invalid AI response")
+        if (!aiResult || aiResult.trim().length < 10) {
+          throw new Error("Empty or invalid AI response")
+        }
+
+        console.log(`[UPLOAD-LEGAL-FILE] ✅ AI analysis completed: ${aiResult.length} characters`)
+      } catch (aiError) {
+        console.error("[UPLOAD-LEGAL-FILE] AI analysis error:", aiError)
+        aiResult =
+          language === "hindi"
+            ? "दस्तावेज़ का विश्लेषण करने में तकनीकी समस्या हुई। कृपया दोबारा कोशिश करें या किसी कानूनी विशेषज्ञ से संपर्क करें।"
+            : "There was a technical issue analyzing your document. Please try again or consult with a legal expert."
       }
 
-      console.log(`[UPLOAD-LEGAL-FILE] ✅ AI analysis completed: ${aiResult.length} characters`)
-    } catch (aiError) {
-      console.error("[UPLOAD-LEGAL-FILE] AI analysis error:", aiError)
-      aiResult =
-        language === "hindi"
-          ? "दस्तावेज़ का विश्लेषण करने में तकनीकी समस्या हुई। कृपया दोबारा कोशिश करें या किसी कानूनी विशेषज्ञ से संपर्क करें।"
-          : "There was a technical issue analyzing your document. Please try again or consult with a legal expert."
+      // Add emergency detection
+      const emergencyKeywords = [
+        "notice",
+        "summons",
+        "court",
+        "legal action",
+        "lawsuit",
+        "arrest",
+        "warrant",
+        "नोटिस",
+        "समन",
+        "अदालत",
+        "कानूनी कार्रवाई",
+        "मुकदमा",
+        "गिरफ्तारी",
+      ]
+
+      const textToCheck = (context + " " + extractedText + " " + aiResult).toLowerCase()
+      const hasEmergencyKeywords = emergencyKeywords.some((keyword) => textToCheck.includes(keyword.toLowerCase()))
+
+      if (hasEmergencyKeywords) {
+        aiResult +=
+          language === "hindi"
+            ? "\n\n⚠️ महत्वपूर्ण: यदि यह कोई कानूनी नोटिस या अदालती समन है, तो तुरंत किसी योग्य वकील से संपर्क करें। समय सीमा का ध्यान रखें।"
+            : "\n\n⚠️ Important: If this is a legal notice or court summons, please contact a qualified lawyer immediately. Pay attention to any time limits mentioned."
+      }
+
+      console.log("[UPLOAD-LEGAL-FILE] ✅ Analysis completed successfully")
+
+      return res.json({
+        reply: aiResult,
+        documentAnalyzed: true,
+        hasEmergencyKeywords,
+        extractedText: extractedText,
+      })
     }
 
-    // Add emergency detection
-    const emergencyKeywords = [
-      "notice",
-      "summons",
-      "court",
-      "legal action",
-      "lawsuit",
-      "arrest",
-      "warrant",
-      "नोटिस",
-      "समन",
-      "अदालत",
-      "कानूनी कार्रवाई",
-      "मुकदमा",
-      "गिरफ्तारी",
-    ]
+    // If no context provided, ask for it
+    const contextRequest =
+      language === "hindi"
+        ? "धन्यवाद! मैंने आपका दस्तावेज़ पढ़ लिया है। कृपया बताएं कि इस दस्तावेज़ के बारे में आपकी क्या चिंता है या आप क्या जानना चाहते हैं?"
+        : "Thank you! I have read your document. Could you please tell me what specific concerns you have about this document or what you would like to know?"
 
-    const textToCheck = (context + " " + extractedText + " " + aiResult).toLowerCase()
-    const hasEmergencyKeywords = emergencyKeywords.some((keyword) => textToCheck.includes(keyword.toLowerCase()))
-
-    if (hasEmergencyKeywords) {
-      aiResult +=
-        language === "hindi"
-          ? "\n\n⚠️ महत्वपूर्ण: यदि यह कोई कानूनी नोटिस या अदालती समन है, तो तुरंत किसी योग्य वकील से संपर्क करें। समय सीमा का ध्यान रखें।"
-          : "\n\n⚠️ Important: If this is a legal notice or court summons, please contact a qualified lawyer immediately. Pay attention to any time limits mentioned."
-    }
-
-    console.log("[UPLOAD-LEGAL-FILE] ✅ Analysis completed successfully")
-
-    // Return the analysis
-    res.json({
-      reply: aiResult,
-      documentAnalyzed: true,
-      hasEmergencyKeywords,
+    return res.json({
+      reply: contextRequest,
+      extractedText: extractedText,
     })
   } catch (err) {
     console.error("[UPLOAD-LEGAL-FILE] ❌ ERROR:", err)

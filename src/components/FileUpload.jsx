@@ -1,19 +1,19 @@
 "use client"
 
-import { useRef, useState } from "react"
-import { FaUpload, FaFilePdf, FaImage, FaTimes } from "react-icons/fa"
+import { useRef } from "react"
+import { FaUpload, FaFilePdf, FaImage, FaTimes, FaMicrophone } from "react-icons/fa"
 
 const FileUpload = ({
   onFileSelected,
-  onContextSubmit,
+  onFileAnalyzed,
   uploadedFile,
   filePreview,
   loading,
-  awaitingContext,
   onClearFile,
+  awaitingVoiceContext,
+  onStartVoiceContext,
 }) => {
   const fileInputRef = useRef(null)
-  const [context, setContext] = useState("")
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0]
@@ -33,19 +33,6 @@ const FileUpload = ({
 
       onFileSelected(file)
     }
-  }
-
-  const handleContextSubmit = () => {
-    if (!context.trim()) {
-      alert("Please describe your situation or concern about this document.")
-      return
-    }
-    if (!uploadedFile) {
-      alert("No file selected.")
-      return
-    }
-    onContextSubmit(context.trim(), uploadedFile)
-    setContext("")
   }
 
   const triggerFileInput = () => {
@@ -96,7 +83,7 @@ const FileUpload = ({
             }}
           >
             <FaUpload />
-            {loading ? "Processing..." : "Upload PDF/Photo"}
+            {loading ? "Processing..." : "Upload Legal Document"}
           </button>
 
           <input
@@ -114,7 +101,7 @@ const FileUpload = ({
               marginTop: "0.5rem",
             }}
           >
-            Upload legal documents (PDF, JPG, PNG) - Max 10MB
+           
           </div>
         </div>
       )}
@@ -176,118 +163,43 @@ const FileUpload = ({
               />
             </div>
           )}
-        </div>
-      )}
 
-      {/* Context Input */}
-      {awaitingContext && uploadedFile && (
-        <div
-          style={{
-            background: "rgba(255, 255, 255, 0.05)",
-            backdropFilter: "blur(20px)",
-            borderRadius: "1rem",
-            padding: "1.5rem",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            marginBottom: "1rem",
-          }}
-        >
-          <div
-            style={{
-              color: "#ffffff",
-              fontWeight: "600",
-              marginBottom: "1rem",
-              fontSize: "1rem",
-            }}
-          >
-            📄 Document uploaded successfully!
-          </div>
-
-          <div
-            style={{
-              color: "rgba(255, 255, 255, 0.8)",
-              marginBottom: "1rem",
-              fontSize: "0.875rem",
-              lineHeight: "1.5",
-            }}
-          >
-            Please describe your situation or specific concerns about this document to get the most relevant legal
-            advice:
-          </div>
-
-          <textarea
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            placeholder="Example: I received this legal notice and don't understand what action I need to take..."
-            style={{
-              width: "100%",
-              minHeight: "100px",
-              padding: "0.75rem",
-              background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              borderRadius: "0.75rem",
-              color: "#ffffff",
-              fontSize: "0.875rem",
-              outline: "none",
-              resize: "vertical",
-              fontFamily: "inherit",
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = "rgba(96, 165, 250, 0.5)"
-              e.target.style.background = "rgba(255, 255, 255, 0.15)"
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = "rgba(255, 255, 255, 0.2)"
-              e.target.style.background = "rgba(255, 255, 255, 0.1)"
-            }}
-          />
-
-          <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}>
-            <button
-              onClick={onClearFile}
-              style={{
-                flex: "1",
-                padding: "0.75rem",
-                background: "rgba(255, 255, 255, 0.1)",
-                backdropFilter: "blur(10px)",
-                color: "#ffffff",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                borderRadius: "0.75rem",
-                cursor: "pointer",
-                fontSize: "0.875rem",
-                fontWeight: "500",
-                outline: "none",
-                transition: "all 0.3s ease",
-              }}
-            >
-              Cancel
-            </button>
-
-            <button
-              onClick={handleContextSubmit}
-              disabled={!context.trim() || loading}
-              style={{
-                flex: "2",
-                padding: "0.75rem",
-                background:
-                  !context.trim() || loading
-                    ? "rgba(75, 85, 99, 0.8)"
-                    : "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)",
-                backdropFilter: "blur(10px)",
-                color: "#ffffff",
-                border: "1px solid rgba(16, 185, 129, 0.3)",
-                borderRadius: "0.75rem",
-                cursor: !context.trim() || loading ? "not-allowed" : "pointer",
-                fontSize: "0.875rem",
-                fontWeight: "600",
-                outline: "none",
-                opacity: !context.trim() || loading ? 0.6 : 1,
-                transition: "all 0.3s ease",
-              }}
-            >
-              {loading ? "Analyzing..." : "Get Legal Advice"}
-            </button>
-          </div>
+          {/* Voice Context Collection */}
+          {awaitingVoiceContext && (
+            <div style={{ textAlign: "center", marginTop: "1rem" }}>
+              <button
+                onClick={onStartVoiceContext}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.75rem 1.5rem",
+                  background: "linear-gradient(135deg, rgba(96, 165, 250, 0.8) 0%, rgba(59, 130, 246, 0.9) 100%)",
+                  backdropFilter: "blur(20px)",
+                  color: "#ffffff",
+                  border: "1px solid rgba(96, 165, 250, 0.3)",
+                  borderRadius: "1rem",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  fontWeight: "600",
+                  outline: "none",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 8px 32px rgba(96, 165, 250, 0.3)",
+                }}
+              >
+                <FaMicrophone />
+                Start Voice Analysis
+              </button>
+              <div
+                style={{
+                  fontSize: "0.75rem",
+                  color: "rgba(255, 255, 255, 0.6)",
+                  marginTop: "0.5rem",
+                }}
+              >
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -320,7 +232,7 @@ const FileUpload = ({
               fontSize: "0.875rem",
             }}
           >
-            Please wait while I review your legal document and prepare personalized advice.
+            Please wait while I review your legal document.
           </div>
 
           {/* Loading animation */}
