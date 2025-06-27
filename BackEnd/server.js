@@ -11,7 +11,7 @@ import { TextToSpeechClient } from "@google-cloud/text-to-speech"
 import OpenAI from "openai"
 import fetch from "node-fetch"
 import Tesseract from "tesseract.js"
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs"
 
 // --- NEW IMPORTS FOR CONTEXT QnA ---
 import { Pinecone } from "@pinecone-database/pinecone"
@@ -41,17 +41,17 @@ Be empathetic and supportive.`,
   punjabi: `ਤੁਸੀਂ ਨਿਆਂ GPT ਹੋ, ਭਾਰਤ ਲਈ ਕਾਨੂੰਨੀ ਸਹਾਇਕ। ਜਵਾਬ ਪੰਜਾਬੀ ਵਿੱਚ ਦਿਓ।
 ਹਮੇਸ਼ਾ ਸੰਖੇਪ, ਸਪਸ਼ਟ ਅਤੇ ਸਹਾਇਕ ਜਵਾਬ ਦਿਓ।
 ਜੇਕਰ ਸਵਾਲ ਅਸਪਸ਼ਟ ਹੋਵੇ, ਤਾਂ ਨਮਰਤਾ ਨਾਲ ਵਧੇਰੇ ਜਾਣਕਾਰੀ ਪੂਛੋ।
-ਕਦੇ ਵੀ ਖਤਰਨਾਕ ਕਾਨੂੰਨੀ ਸਲਾਹ ਨਾ ਦਿਓ—ਗੰਭੀਰ ਜਾਂ ਐਮਰਜੈਂਸੀ ਵਿੱਚ ਮੁਲਾਜ਼ਮ ਜਾਂ ਪੁਲੀਸ ਨੂੰ ਸੰਪਰਕ ਕਰਨ ਦੀ ਸਲਾਹ ਦਿਓ।`,
+ਕਦੇ ਵੀ ਦ੍ਰੁਤ ਆਵਸ਼੍ਯਕਤਾ ਵਿੱਚ ਮਧ੍ਯ ਜਣੇ ਦੇ ਵਿਕਾਸ ਨਾਲ ਖਤਰਨਾਕ ਕਾਨੂੰਨੀ ਸਲਾਹ ਨਾ ਦਿਓ—ਗੰਭੀਰ ਜਾਂ ਐਮਰਜੈਂਸੀ ਵਿੱਚ ਮੁਲਾਜ਼ਮ ਜਾਂ ਪੁਲੀਸ ਨੂੰ ਸੰਪਰਕ ਕਰਨ ਦੀ ਸਲਾਹ ਦਿਓ।`,
 
   tamil: `நீங்கள் நியாய GPT, இந்தியாவின் சட்ட உதவியாளர். பதில் தமிழில் கொடு.
 எப்போதும் பதிலை தெளிவாகவும், சுருக்கமாகவும், பயனுள்ளதாகவும் அளிக்கவும்.
 கேள்வி தெளிவற்றதாக இருந்தால், பணிவுடன் விளக்கங்கள் கேளுங்கள்.
-ஆபத்தான சட்ட அறிவுரைகள் வழங்க வேண்டாம்—கட்டாயமான அல்லது அவசர நிலைகளில் தொழில்நுட்ப நிபுணர் அல்லது காவல்துறையை தொடர்புகொள்ளுமாறு பரிந்துரைக்கவும்.`,
+ஆபத்தான சட்ட அறிவுரைகள் வழங்க வேண்டாம்—கட்டாயமான அல்லது அவசர நிலைகளில் தொழில்நுட்ப நிபுணர் அல்லது புலிஸ்து தொடர்புகொள்ளுமாறு பரிந்துரைக்கவும்.`,
 
   marathi: `तुम्ही न्याय GPT आहात, भारतासाठी कायदेशीर सहाय्यक. उत्तर मराठीत द्या.
 नेहमी संक्षिप्त, स्पष्ट व उपयोगी उत्तर द्या.
-प्रश्न अस्पष्ट असल्यास विनम्रतेने अधिक माहिती विचारा.
-कधीही धोकादायक कायदेशीर सल्ला देऊ नका—गंभीर किंवा आपत्कालीन परिस्थितीत तज्ज्ञ किंवा पोलिसांशी संपर्क साधा.`,
+प्रश्न अस्पष्ट असल्यास विनम्रतासँ पुछू।
+कखनहुँ खतरनाक सलाह नै दिअ—आपत स्थिति में विशेषज्ञ वा पुलिस सँ संपर्क करबाक सलाह दिअ।`,
 
   telugu: `మీరు న్యాయ GPT, భారతదేశానికి న్యాయ సహాయకుడు. సమాధానం తెలుగు లో ఇవ్వండి.
 ప్రతి సమాధానాన్ని సంక్షిప్తంగా, స్పష్టంగా మరియు సహాయకంగా ఇవ్వండి.
@@ -61,7 +61,7 @@ Be empathetic and supportive.`,
   bengali: `আপনি ন্যায় GPT, ভারতের জন্য আইনি সহকারী। উত্তর বাংলায় দিন।
 প্রত্যেক উত্তর সংক্ষিপ্ত, স্পষ্ট ও সহায়ক করুন।
 প্রশ্ন অস্পষ্ট হলে নম্রভাবে ব্যাখ্যা চান।
-কখনও বিপজ্জনক আইনি পরামর্শ দেবেন না—গুরুতর বা জরুরি পরিস্থিতিতে পেশাদার বা পুলিশের সাথে যোগাযোগ করার পরামর্শ দিন।`,
+কখনও বিপজ্জনক আইনি পরামর্শ দেবেন না—গুরুতর বা জরুরি পরিস্থিতিতে পেশাদার বা পুলিসের সাথে যোগাযোগ করার পরামর্শ দিন।`,
 
   kannada: `ನೀವು ನ್ಯಾಯ GPT, ಭಾರತದ ಕಾನೂನು ಸಹಾಯಕ. ಉತ್ತರವನ್ನು ಕನ್ನಡದಲ್ಲಿ ನೀಡಿರಿ.
 ಯಾವುದೇ ಉತ್ತರವನ್ನು ಸಂಕ್ಷಿಪ್ತವಾಗಿ, ಸ್ಪಷ್ಟವಾಗಿ ಮತ್ತು ಸಹಾಯಕವಾಗಿರಿಸಿ.
@@ -71,7 +71,7 @@ Be empathetic and supportive.`,
   malayalam: `നിങ്ങൾ ന്യായ GPT ആണ്, ഇന്ത്യയിലെ നിയമ സഹായി. ഉത്തരം മലയാളത്തിൽ നൽകുക.
 എപ്പോഴും ഉത്തരം സംക്ഷിപ്തവും വ്യക്തവും ഉപകാരപ്രദവുമാക്കുക.
 ചോദ്യം അസ്പഷ്ടമാണെങ്കിൽ, വിനയപൂർവ്വം വിശദീകരണം ചോദിക്കുക.
-പോലീസിനോട് അല്ലെങ്കിൽ വിദഗ്ധരോട് ബന്ധപ്പെടാൻ നിർദ്ദേശിക്കുക.`,
+പൊലീസിനോട് അല്ലെങ്കിൽ വിദഗ്ധരോട് ബന്ധപ്പെടാൻ നിർദ്ദേശിക്കുക.`,
 
   gujarati: `તમે ન્યાય GPT છો, ભારત માટેનો કાનૂની સહાયક. જવાબ ગુજરાતી માં આપો.
 હંમેશા જવાબ સંક્ષિપ્ત, સ્પષ્ટ અને ઉપયોગી હોવો જોઈએ.
@@ -86,8 +86,8 @@ Be empathetic and supportive.`,
   odia: `ଆପଣ ନ୍ୟାୟ GPT, ଭାରତ ପାଇଁ ଆଇନି ସହାୟକ। ଉତ୍ତର ଓଡ଼ିଆରେ ଦିଅ।
 ସବୁବେଳେ ଉତ୍ତରକୁ ସଂକ୍ଷିପ୍ତ, ସ୍ପଷ୍ଟ ଏବଂ ସହାୟକ କରନ୍ତୁ।
 ପ୍ରଶ୍ନ ଅସ୍ପଷ୍ଟ ଥିଲେ, ଦୟାକରି ଅଧିକ ସୂଚନା ଚାହାନ୍ତୁ।
-କେବେ ମଧ୍ୟ ଜଣେ ଦ୍ରୁତ ଆବଶ୍ୟକତାରେ ବିପଦଜନକ ଆଇନି ପରାମର୍ଶ ଦିଅନ୍ତୁ ନାହିଁ—ଗମ୍ଭୀର/ଆପାତ୍କାଳୀନ ପରିସ୍ଥିତିରେ ବିଶେଷଜ୍ଞ କିମ୍ବା ପୋଲିସ ସହିତ ଯୋଗାଯୋଗ କରିବାକୁ ପରାମର୍ଶ ଦିଅନ୍ତୁ।`,
-  
+କେବେ ମଧ୍ୟ ଜଣେ ଦ୍ରୁତ ଆବଶ୍ୟକତାରେ ବିପଦଜନକ ଆଇନି ପରାମର୍ଶ ଦିଅନ୍ତୁ ନାହିଁ—ଗମ୍ଭୀର/ଆପାତ୍କାଳୀନ ପରିସ୍ଥିତିରେ ବିଶେଷଜ୍ଞ କିମ୍ବା ପୋଲିସ ସହିତ ଯୋଗାଯୋଗ କରିବାକ ପରାମର୍ଶ ଦିଅନ୍ତୁ।`,
+
   bhojpuri: `रउआ न्याय GPT बानी, भारत खातिर कानूनी सहायिका। जवाब भोजपुरी में दीं।
 सवाल अगर अधूरा या अस्पष्ट हो त विनम्रता से पुछीं।
 खतरनाक सलाह मत दीं — अगर स्थिति गम्भीर बा त पुलिस भा वकील से संपर्क के सलाह दीं।`,
@@ -103,7 +103,7 @@ Be empathetic and supportive.`,
 
   bundeli: `तू न्याय GPT है, भारत खातिर कानूनी सहायक। जवाब बुंदेली म दे।
 हमेशा साफ-साफ, छोटे अउर मददगार जवाब दओ।
-अगर सवाल पूरा ना हो तो विनम्रता से पूछ लओ।
+अगर सवाल पूरा ना हो तो तमीज सै और पूछ ले।
 खतरनाक कानूनी सलाह कब्बै न दओ — अगर बात गंभीर हो, त पुलिस या वकील से संपर्क की सलाह दओ।`,
 
   haryanvi: `तू न्याय GPT सै, भारत का कानूनी मददगार। जवाब हरियाणवी म दे।
@@ -112,7 +112,7 @@ Be empathetic and supportive.`,
 ज्यादा गम्भीर बात हो तो पुलिस या वकील सै संपर्क करन की सलाह दे।`,
 
   chhattisgarhi: `तंय न्याय GPT हस, भारत खातिर कानूनी सहाय। जवाब छत्तीसगढ़ी म दे।
-हमेसा छोट, सपाट अउ मददगार जवाब दे।
+हमेशा छोट, सपाट अउ मददगार जवाब दे।
 अगर सवाल अधूरा लगय, त विनम्रता ले पूछ।
 कभू खतरनाक सलाह झन दे — गंभीर स्थिति म पुलिस या वकील ले संपर्क करइ के कह।`,
 
@@ -124,7 +124,7 @@ Be empathetic and supportive.`,
   varhadi: `तू न्याय GPT आहेस, भारतासाठी कायदेशीर सहाय्यक. उत्तर वर्‍हाडीमध्ये दे।
 नेहमी संक्षिप्त, स्पष्ट आणि उपयोगी उत्तर द्यावं।
 प्रश्न अस्पष्ट वाटल्यास विनम्रतेनं विचारावं।
-धोकादायक कायदेशीर सल्ला देऊ नको — गंभीर परिस्थितीत पोलिस किंवा तज्ञांशी संपर्क साधायला सांगावं।`,
+धोकादायक कायदेशीर सल्ला देऊ नको — गंभीर परिस्थितीत पोलिस किंवा तज्ञांशी संपર्क साधायला सांगावं।`,
 
   tulu: `ನೀನು ನ್ಯಾಯ GPT, ಭಾರತದ ಕಾನೂನು ಸಹಾಯಕ. ಉತ್ತರ ತುಳುವಿನಲ್ಲಿ ಕೊಡ್ಲೆ.
 ಸಾಧಾರಣ, ಸ್ಪಷ್ಟ ಮತ್ತು ಸಹಾಯಕ ಉತ್ತರ ಕೊಡು.
@@ -134,7 +134,7 @@ Be empathetic and supportive.`,
   konkani: `तूं न्याय GPT आसा, भारताचो कायदेचो सहाय्यकार. उत्तर कोकणींत दे.
 उत्तर सदैव थोडको, स्पष्ट आनी उपयोगी आसो.
 जेंव्हां प्रश्न अस्पष्ट आसो, तेव्हां नम्रत्यान सांग.
-कदापी धोकादायक कायदेशीर सल्लो दिओ नाका — गंभीर परिस्थितीत पोलिस वा वकीलाशी संपर्क करात म्हण।`,
+कदापी धोकादायक कायदेशीर सल्लो दिओ नाका — गंभीर परिस्थितीत पोलीस वा वकीलाशी संपर्क करात म्हण।`,
 
   dogri: `तूं न्याय GPT ऐं, भारत दा लीगल सहाय्यक। जवाब डोगरी च दे।
 हमेशा जवाब छोटा, साफ ते मददगार होणा चाहिए।
@@ -142,7 +142,7 @@ Be empathetic and supportive.`,
 खतरनाक सलाह कदी न दे — संकटकाल च पुलिस या वकील नाल संपर्क करन दी सलाह दे।`,
 
   manipuri: `ꯑꯃ ꯅꯥꯚꯌꯥ ꯃꯌꯥꯊꯨꯡ ꯃꯇꯝ ꯍꯥꯛꯂꯣꯟꯅꯥ ꯈꯨꯝꯖꯤ ꯐꯥꯏꯇꯦꯡ ꯑꯁꯤ ꯑꯅꯣꯏꯔꯤ ꯋꯥꯡ। ꯑꯃꯇ ꯑꯃ ꯂꯩꯕꯥ ꯊꯧꯕꯥ ꯆꯨꯡꯒꯤꯡ ꯍꯧꯅꯥ ꯅꯍꯥꯡ। 
-ꯈꯪꯗꯤ ꯍꯧꯁꯤꯡ ꯊꯣꯛꯇꯔꯥ ꯊꯣꯛꯅꯤ ꯑꯃ ꯂꯩꯕꯥ ꯍꯥꯛꯅꯕ ꯍꯧꯕꯥ ꯊꯣꯛꯄꯨ। 
+ꯈꯪꯗꯤ ꯍꯧꯁꯤꯡ ꯊꯣꯛꯇꯔꯥ ꯊꯣꯛꯅꯤ ꯑꯃ ꯂꯩꯕꯥ ꯍꯥꯛꯅꯕ ꯍꯧꯕꯥ ꯊꯣꯛꯨ। 
 ꯇꯧꯕꯤ ꯃꯊꯥꯏꯄ ꯇꯧꯔꯤꯛ ꯁꯤꯇꯤ ꯆꯤꯄ ꯄꯥꯔꯤꯕꯒꯤ ꯄꯨꯂꯤꯁ ꯍꯥꯏꯂꯥ ꯂꯩꯔꯤ।`,
 
   nepali: `तपाईं न्याय GPT हुनुहुन्छ, भारतका लागि कानुनी सहायक। जवाफ नेपालीमा दिनुहोस्।
@@ -198,8 +198,8 @@ Ask gently if question unclear. Never give dangerous legal suggestions—refer t
 Ask softly if confused. Avoid dangerous legal advice—refer to police/expert when emergency comes.`,
 
   kokborok: `You are Nyay GPT for India. Always give short, clear and helpful responses in Kokborok.
-Politely ask for clarification if the query is vague. Never provide risky legal suggestions—suggest expert or police when needed.`
-};
+Politely ask for clarification if the query is vague. Never provide risky legal suggestions—suggest expert or police when needed.`,
+}
 
 // --- EXPRESS APP SETUP ---
 const app = express()
@@ -251,68 +251,183 @@ app.get("/health", (req, res) => {
 
 // --- PDF TEXT EXTRACTION FUNCTION (with pdfjs-dist) ---
 async function extractTextFromPDF(filePath) {
-  const data = new Uint8Array(fs.readFileSync(filePath));
-  const pdf = await pdfjsLib.getDocument({ data }).promise;
-  let fullText = '';
-  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-    const page = await pdf.getPage(pageNum);
-    const content = await page.getTextContent();
-    const pageText = content.items.map(item => item.str).join(' ');
-    fullText += pageText + '\n';
+  try {
+    const data = new Uint8Array(fs.readFileSync(filePath))
+    const pdf = await pdfjsLib.getDocument({ data }).promise
+    let fullText = ""
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum)
+      const content = await page.getTextContent()
+      const pageText = content.items.map((item) => item.str).join(" ")
+      fullText += pageText + "\n"
+    }
+
+    return fullText.trim()
+  } catch (error) {
+    console.error("PDF extraction error:", error)
+    throw new Error("Failed to extract text from PDF")
   }
-  return fullText;
 }
 
-// --- ROUTE: /upload-legal-file ---
+// --- IMPROVED ROUTE: /upload-legal-file ---
 app.post("/upload-legal-file", upload.single("file"), async (req, res) => {
+  console.log("[UPLOAD-LEGAL-FILE] New request received")
+
   try {
-    const file = req.file;
-    const context = req.body.context?.trim() || "";
-    let extractedText = "";
+    const file = req.file
+    const context = req.body.context?.trim() || ""
+    const language = req.body.language || "hindi"
+    let extractedText = ""
 
     if (!file) {
-      return res.status(400).json({ error: "No file uploaded." });
+      console.log("[UPLOAD-LEGAL-FILE] ❌ No file uploaded")
+      return res.status(400).json({ error: "No file uploaded." })
     }
 
+    console.log(`[UPLOAD-LEGAL-FILE] Processing file: ${file.originalname}, Type: ${file.mimetype}`)
+
+    // Extract text based on file type
     if (file.mimetype === "application/pdf") {
-      extractedText = await extractTextFromPDF(file.path);
+      console.log("[UPLOAD-LEGAL-FILE] ➡ Extracting text from PDF...")
+      extractedText = await extractTextFromPDF(file.path)
     } else if (file.mimetype.startsWith("image/")) {
-      const { data: { text } } = await Tesseract.recognize(file.path, "eng");
-      extractedText = text;
+      console.log("[UPLOAD-LEGAL-FILE] ➡ Extracting text from image using OCR...")
+      const {
+        data: { text },
+      } = await Tesseract.recognize(file.path, "eng")
+      extractedText = text
     } else {
-      fs.unlinkSync(file.path);
-      return res.status(400).json({ error: "Unsupported file type." });
+      fs.unlinkSync(file.path)
+      console.log("[UPLOAD-LEGAL-FILE] ❌ Unsupported file type")
+      return res.status(400).json({ error: "Unsupported file type. Please upload PDF, JPG, or PNG files." })
     }
 
-    fs.unlinkSync(file.path); // Clean up
+    // Clean up uploaded file
+    fs.unlinkSync(file.path)
 
-    // If context is empty or < 5 chars, ask for more info
+    // Validate extracted text
+    if (!extractedText || extractedText.trim().length < 10) {
+      console.log("[UPLOAD-LEGAL-FILE] ⚠️ No meaningful text extracted")
+      const noTextMessage =
+        language === "hindi"
+          ? "दस्तावेज़ से पाठ निकालने में समस्या हुई। कृपया स्पष्ट और पढ़ने योग्य दस्तावेज़ अपलोड करें।"
+          : "Unable to extract readable text from the document. Please upload a clear and readable document."
+
+      return res.json({ reply: noTextMessage })
+    }
+
+    console.log(`[UPLOAD-LEGAL-FILE] ✅ Text extracted: ${extractedText.length} characters`)
+
+    // If context is empty or too short, ask for more info
     if (!context || context.length < 5) {
-      return res.json({
-        reply: "Thank you for uploading the document. Could you briefly share your specific concerns or any details about your situation related to this document?"
-      });
+      console.log("[UPLOAD-LEGAL-FILE] ➡ Requesting context from user")
+      const contextRequest =
+        language === "hindi"
+          ? "धन्यवाद! मैंने आपका दस्तावेज़ पढ़ लिया है। कृपया बताएं कि इस दस्तावेज़ के बारे में आपकी क्या चिंता है या आप क्या जानना चाहते हैं?"
+          : "Thank you! I have read your document. Could you please tell me what specific concerns you have about this document or what you would like to know?"
+
+      return res.json({ reply: contextRequest })
     }
 
-    // Combine context and extracted text for LLM
-    const lang = (req.body.language || "hindi").toLowerCase();
-    const sysPrompt = systemPrompts[lang] || systemPrompts["hindi"];
-    const userMsg = `${context}\n\nDocument Content:\n${extractedText}`.trim();
+    // Prepare comprehensive prompt for AI analysis
+    const sysPrompt = systemPrompts[language] || systemPrompts["hindi"]
+    const analysisPrompt = `${sysPrompt}
 
-    // Use your LLM logic here (example with askGrok)
-    const prompt = `${sysPrompt}\nQ: ${userMsg}\nA:`;
-    let aiResult;
+आपको एक कानूनी दस्तावेज़ का विश्लेषण करना है। उपयोगकर्ता की स्थिति और चिंताओं को समझकर व्यावहारिक सलाह दें।
+
+उपयोगकर्ता की स्थिति: ${context}
+
+दस्तावेज़ की सामग्री:
+${extractedText}
+
+कृपया निम्नलिखित बिंदुओं पर ध्यान दें:
+1. दस्तावेज़ का मुख्य उद्देश्य क्या है?
+2. उपयोगकर्ता के लिए महत्वपूर्ण बिंदु कौन से हैं?
+3. क्या कोई तत्काल कार्रवाई की आवश्यकता है?
+4. आगे क्या कदम उठाने चाहिए?
+5. किसी विशेषज्ञ की सलाह की आवश्यकता है या नहीं?
+
+उत्तर स्पष्ट, व्यावहारिक और समझने योग्य भाषा में दें।`
+
+    console.log("[UPLOAD-LEGAL-FILE] ➡ Sending to AI for analysis...")
+
+    // Get AI analysis
+    let aiResult
     try {
-      aiResult = await askGrok(sysPrompt, prompt);
-    } catch (e) {
-      aiResult = "Sorry, there was a problem generating an answer.";
+      aiResult = await askGrok(sysPrompt, analysisPrompt)
+
+      if (!aiResult || aiResult.trim().length < 10) {
+        throw new Error("Empty or invalid AI response")
+      }
+
+      console.log(`[UPLOAD-LEGAL-FILE] ✅ AI analysis completed: ${aiResult.length} characters`)
+    } catch (aiError) {
+      console.error("[UPLOAD-LEGAL-FILE] AI analysis error:", aiError)
+      aiResult =
+        language === "hindi"
+          ? "दस्तावेज़ का विश्लेषण करने में तकनीकी समस्या हुई। कृपया दोबारा कोशिश करें या किसी कानूनी विशेषज्ञ से संपर्क करें।"
+          : "There was a technical issue analyzing your document. Please try again or consult with a legal expert."
     }
 
-    res.json({ reply: aiResult });
+    // Add emergency detection
+    const emergencyKeywords = [
+      "notice",
+      "summons",
+      "court",
+      "legal action",
+      "lawsuit",
+      "arrest",
+      "warrant",
+      "नोटिस",
+      "समन",
+      "अदालत",
+      "कानूनी कार्रवाई",
+      "मुकदमा",
+      "गिरफ्तारी",
+    ]
+
+    const textToCheck = (context + " " + extractedText + " " + aiResult).toLowerCase()
+    const hasEmergencyKeywords = emergencyKeywords.some((keyword) => textToCheck.includes(keyword.toLowerCase()))
+
+    if (hasEmergencyKeywords) {
+      aiResult +=
+        language === "hindi"
+          ? "\n\n⚠️ महत्वपूर्ण: यदि यह कोई कानूनी नोटिस या अदालती समन है, तो तुरंत किसी योग्य वकील से संपर्क करें। समय सीमा का ध्यान रखें।"
+          : "\n\n⚠️ Important: If this is a legal notice or court summons, please contact a qualified lawyer immediately. Pay attention to any time limits mentioned."
+    }
+
+    console.log("[UPLOAD-LEGAL-FILE] ✅ Analysis completed successfully")
+
+    // Return the analysis
+    res.json({
+      reply: aiResult,
+      documentAnalyzed: true,
+      hasEmergencyKeywords,
+    })
   } catch (err) {
-    console.error("[UPLOAD-LEGAL-FILE] ERROR:", err);
-    res.status(500).json({ error: "Failed to process file." });
+    console.error("[UPLOAD-LEGAL-FILE] ❌ ERROR:", err)
+
+    // Clean up file if it still exists
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path)
+      } catch (cleanupError) {
+        console.error("File cleanup error:", cleanupError)
+      }
+    }
+
+    const errorMessage =
+      req.body.language === "hindi"
+        ? "दस्तावेज़ प्रोसेसिंग में त्रुटि हुई। कृपया दोबारा कोशिश करें।"
+        : "Error processing document. Please try again."
+
+    res.status(500).json({
+      error: "Failed to process file.",
+      reply: errorMessage,
+    })
   }
-});
+})
 
 // --- ROUTE: /ask ---
 app.post("/ask", async (req, res) => {
@@ -395,9 +510,21 @@ ${context ? `\n\nसंदर्भ:\n${context}\n` : ""}
 
     // Emergency keyword detection
     const emergencyKeywords = [
-      "violence", "rape", "murder", "emergency", "harassment", "attack",
-      "threat", "injury", "police", "crime", "suicide", "danger",
-      "molestation", "kidnap", "missing",
+      "violence",
+      "rape",
+      "murder",
+      "emergency",
+      "harassment",
+      "attack",
+      "threat",
+      "injury",
+      "police",
+      "crime",
+      "suicide",
+      "danger",
+      "molestation",
+      "kidnap",
+      "missing",
     ]
     const textCheck = (userQuestion + " " + (answer || "")).toLowerCase()
     const found = emergencyKeywords.some((w) => textCheck.includes(w))
@@ -424,7 +551,7 @@ app.post("/speak", async (req, res) => {
     return res.status(400).json({ error: "Text is required" })
   }
 
-  // Voice selection map (same as your original)
+  // Voice selection map
   const voiceMap = {
     hindi: { code: "hi-IN", name: "hi-IN-Standard-E" },
     punjabi: { code: "pa-IN", name: "pa-IN-Wavenet-A" },
@@ -499,34 +626,34 @@ app.post("/speak", async (req, res) => {
 
 // --- ROUTE: /request-call ---
 app.post("/request-call", async (req, res) => {
-  console.log("[REQUEST-CALL] Received request:", req.body);
+  console.log("[REQUEST-CALL] Received request:", req.body)
 
-  const { phone, topic, language } = req.body;
+  const { phone, topic, language } = req.body
 
   if (!phone) {
-    console.log("[REQUEST-CALL] ❌ Missing phone number");
-    return res.status(400).json({ error: "Phone number is required" });
+    console.log("[REQUEST-CALL] ❌ Missing phone number")
+    return res.status(400).json({ error: "Phone number is required" })
   }
 
   if (!process.env.OMNIDIM_API_KEY) {
-    console.log("[REQUEST-CALL] ❌ Missing OMNIDIM_API_KEY");
-    return res.status(500).json({ error: "OmniDimension API key not configured" });
+    console.log("[REQUEST-CALL] ❌ Missing OMNIDIM_API_KEY")
+    return res.status(500).json({ error: "OmniDimension API key not configured" })
   }
 
   try {
-    console.log("[REQUEST-CALL] ➡ Making request to OmniDimension API...");
+    console.log("[REQUEST-CALL] ➡ Making request to OmniDimension API...")
 
     const requestBody = {
-      agent_id: parseInt(process.env.OMNIDIM_AGENT_ID), // Ensure it's a number
+      agent_id: Number.parseInt(process.env.OMNIDIM_AGENT_ID), // Ensure it's a number
       to_number: phone.startsWith("+") ? phone : `+91${phone}`, // Add country code if missing
       call_context: {
         topic: topic || "Legal Help",
         language: language || "hindi",
         source: "NyayGPT Web",
-      }
-    };
+      },
+    }
 
-    console.log("[REQUEST-CALL] Request body:", requestBody);
+    console.log("[REQUEST-CALL] Request body:", requestBody)
 
     const response = await fetch("https://backend.omnidim.io/api/v1/calls/dispatch", {
       method: "POST",
@@ -536,32 +663,32 @@ app.post("/request-call", async (req, res) => {
         Accept: "application/json",
       },
       body: JSON.stringify(requestBody),
-    });
+    })
 
-    const responseText = await response.text();
-    console.log("[REQUEST-CALL] OmniDimension response:", response.status, responseText);
+    const responseText = await response.text()
+    console.log("[REQUEST-CALL] OmniDimension response:", response.status, responseText)
 
     if (!response.ok) {
       return res.status(response.status).json({
         error: "Call dispatch failed",
         details: responseText,
         status: response.status,
-      });
+      })
     }
 
     res.json({
       success: true,
       message: "Call dispatched successfully",
       data: responseText,
-    });
+    })
   } catch (err) {
-    console.error("[REQUEST-CALL] ❌ Server error:", err);
+    console.error("[REQUEST-CALL] ❌ Server error:", err)
     res.status(500).json({
       error: "Internal server error",
       message: err.message,
-    });
+    })
   }
-});
+})
 
 // --- ROUTE: /nearby-police ---
 app.get("/nearby-police", async (req, res) => {
@@ -605,36 +732,37 @@ app.get("/nearby-police", async (req, res) => {
 
 // --- ROUTE: /nearby-advocate ---
 app.get("/nearby-advocate", async (req, res) => {
-  const { lat, lng } = req.query;
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  const { lat, lng } = req.query
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY
 
   if (!lat || !lng) {
-    return res.status(400).json({ error: "Missing lat or lng parameter" });
+    return res.status(400).json({ error: "Missing lat or lng parameter" })
   }
   if (!apiKey) {
-    return res.status(500).json({ error: "Google Maps API key not set in .env" });
+    return res.status(500).json({ error: "Google Maps API key not set in .env" })
   }
 
   try {
     // 1. Get nearby places
-    const nearUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=establishment&keyword=advocate&key=${apiKey}`;
-    const response = await fetch(nearUrl);
-    const data = await response.json();
-    if (!data.results || data.results.length === 0) return res.json({ advocates: [] });
+    const nearUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=establishment&keyword=advocate&key=${apiKey}`
+    const response = await fetch(nearUrl)
+    const data = await response.json()
+    if (!data.results || data.results.length === 0) return res.json({ advocates: [] })
 
     // 2. For each place, fetch details
     const advocates = await Promise.all(
       data.results.slice(0, 10).map(async (place) => {
-        let phone = "Not available";
-        let placeUrl = `https://www.google.com/maps/place/?q=place_id:${place.place_id}`;
+        let phone = "Not available"
+        const placeUrl = `https://www.google.com/maps/place/?q=place_id:${place.place_id}`
         try {
-          const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_phone_number,international_phone_number,geometry,vicinity,website&key=${apiKey}`;
-          const detailRes = await fetch(detailUrl);
-          const detailData = await detailRes.json();
+          const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_phone_number,international_phone_number,geometry,vicinity,website&key=${apiKey}`
+          const detailRes = await fetch(detailUrl)
+          const detailData = await detailRes.json()
           if (detailData.result) {
-            phone = detailData.result.formatted_phone_number ||
-                    detailData.result.international_phone_number ||
-                    "Not available";
+            phone =
+              detailData.result.formatted_phone_number ||
+              detailData.result.international_phone_number ||
+              "Not available"
           }
         } catch (err) {
           // ignore
@@ -645,16 +773,16 @@ app.get("/nearby-advocate", async (req, res) => {
           lat: place.geometry.location.lat,
           lng: place.geometry.location.lng,
           phone,
-          placeUrl
-        };
-      })
-    );
+          placeUrl,
+        }
+      }),
+    )
 
-    res.json({ advocates });
+    res.json({ advocates })
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch advocates." });
+    res.status(500).json({ error: "Failed to fetch advocates." })
   }
-});
+})
 
 // --- ROUTE: /stt (Speech to Text) ---
 app.post("/stt", upload.single("audio"), async (req, res) => {

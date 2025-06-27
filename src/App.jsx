@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { FaMicrophone, FaMicrophoneSlash, FaMapMarkerAlt, FaPhone, FaTimes, FaVolumeUp } from "react-icons/fa"
-import FileUpload from "./components/FileUpload"; // <-- add this at the top ( for file uplaod folder )
+import FileUpload from "./components/FileUpload"
 
 const backendBaseUrl =
   window.location.hostname === "localhost" ? "http://localhost:3000" : "https://nyay-gpt.onrender.com"
@@ -16,54 +16,6 @@ const languages = {
   hindi: {
     code: "hi-IN",
     greeting: "नमस्ते! मैं न्याय GPT हूँ। आप मुझसे कोई भी कानूनी सवाल पूछ सकते हैं।",
-  },
-  bhojpuri: {
-    code: "hi-IN",
-    greeting: "नमस्कार! हम न्याय GPT बानी। रउआ मुझसे कवनो कानून से जुड़ल सवाल पूछ सकत बानी।",
-  },
-  awadhi: {
-    code: "hi-IN",
-    greeting: "नमस्कार! हम न्याय GPT हई। तोहसे कउनो कानून संबंधी सवाल पूछ सकत हउ।",
-  },
-  maithili: {
-    code: "hi-IN",
-    greeting: "नमस्कार! हम न्याय GPT छी। अहाँ हमरा सँ कोनो कानूनी प्रश्न पुछि सकै छी।",
-  },
-  marwari: {
-    code: "hi-IN",
-    greeting: "राम राम! म्हूं न्याय GPT हूं। थां मने काई भी कानून री बात पूछ सको हो।",
-  },
-  chhattisgarhi: {
-    code: "hi-IN",
-    greeting: "जुहार! में न्याय GPT अंव। तंय मोला कऊनो कानूनी बात पूछ सके हस।",
-  },
-  haryanvi: {
-    code: "hi-IN",
-    greeting: "राम राम! मैं न्याय GPT सूं। तू मन्ने कोई भी कानून का सवाल पूछ सके है।",
-  },
-  bundeli: {
-    code: "hi-IN",
-    greeting: "नमस्ते! हम न्याय GPT हौं। तुम हमसे कोई भी कानूनी सवाल पूछ सकत हौ।",
-  },
-  varhadi: {
-    code: "mr-IN",
-    greeting: "नमस्कार! मी न्याय GPT आहे. तुम्ही मला कुठलाही कायद्याचा प्रश्न विचारू शकता.",
-  },
-  tulu: {
-    code: "kn-IN",
-    greeting: "ನಮಸ್ಕಾರ! ನಾನು ನ್ಯಾಯ GPT. ನೀವು ನನಗೆ ಯಾವುದೇ ಕಾನೂನು ಪ್ರಶ್ನೆ ಕೇಳಬಹುದು.",
-  },
-  konkani: {
-    code: "hi-IN",
-    greeting: "नमस्कार! हांव न्याय GPT. तुमका कितेही कायद्यातले प्रश्न असां विचारू येता.",
-  },
-  santali: {
-    code: "hi-IN",
-    greeting: "Johar! Ena justice GPT ache. On law r related question puthe paraye.",
-  },
-  sindhi: {
-    code: "hi-IN",
-    greeting: "سلام! مان نياي GPT آھيان. اوھان مونکان ڪوبه قانوني سوال پڇي سگھو ٿا.",
   },
   punjabi: {
     code: "pa-IN",
@@ -105,73 +57,8 @@ const languages = {
     code: "or-IN",
     greeting: "ନମସ୍କାର! ମୁଁ ନ୍ୟାୟ GPT। ଆପଣ ମୋତେ କୌଣସି ଆଇନିକ ପ୍ରଶ୍ନ ପଚାରିପାରିବେ।",
   },
-  dogri: {
-    code: "hi-IN",
-    greeting: "नमस्ते! मै न्याय GPT हां। तुसीं मैनूं कोई वी कानूनी सवाल पुछ सकदे हो।",
-  },
-  manipuri: {
-    code: "hi-IN",
-    greeting: "ꯊꯥꯔꯦꯝ! ꯑꯃ ꯅꯌꯥꯌ GPT ꯑꯃꯁꯤ. ꯑꯃꯅꯤ ꯁꯦꯠꯇꯨ ꯀꯥꯅꯨꯟ ꯄ꯭ꯔꯦꯁꯟ ꯁꯪꯗꯦꯜ ꯀꯨꯠ ꯇꯨꯡ.",
-  },
-  nepali: {
-    code: "hi-IN",
-    greeting: "नमस्कार! म न्याय GPT हुँ। तपाईं मलाई कुनै पनि कानुनी प्रश्न सोध्न सक्नुहुन्छ।",
-  },
-  assamese: {
-    code: "hi-IN",
-    greeting: "নমস্কাৰ! মই ন্যায় GPT। আপুনি মোক যিকোনো আইনী প্ৰশ্ন কৰিব পাৰে।",
-  },
-  santhali: {
-    code: "hi-IN",
-    greeting: "Johar! Ena justice GPT ache. On law r related question puthe paraye.",
-  },
-  bodo: {
-    code: "hi-IN",
-    greeting: "नमस्कार! मैं नव्या, चाणक्य एआई से आपकी कानूनी सहायिका। कृपया बताएं, आपको कैसी मदद चाहिए?",
-  },
-  kashmiri: {
-    code: "ur-IN",
-    greeting: "السلام علیکم! میں نویا، چانکیہ اے آئی سے آپ کی قانونی ایجنٹ۔ بتائیں آپ کو کس قسم کی مدد چاہیے؟",
-  },
-  ladakhi: {
-    code: "hi-IN",
-    greeting: "नमस्ते! मैं नव्या, चाणक्य एआई से आपकी लीगल सहायिका। कृपया बताएं, क्या आपको इमरजेंसी है या सामान्य सहायता?",
-  },
-  lepcha: {
-    code: "hi-IN",
-    greeting: "Hello, I am Navya, your legal agent from Chanakya AI. Please tell me your query or legal help needed.",
-  },
-  mizo: {
-    code: "bn-IN",
-    greeting: "Hello! I am Navya from Chanakya AI. Can you tell me what legal help you need or if it’s an emergency?",
-  },
-  mundari: {
-    code: "hi-IN",
-    greeting: "Johar! Main Navya, Chanakya AI se aapki legal assistant hoon. Batayen aapko kis prakaar ki madad chahiye?",
-  },
-  bhili: {
-    code: "hi-IN",
-    greeting: "Ram Ram! Main Navya, Chanakya AI se aapki legal assistant hoon. Aapko kya madad chahiye?",
-  },
-  garo: {
-    code: "bn-IN",
-    greeting: "Hi! I'm Navya from Chanakya AI. Please tell me how I can help you legally.",
-  },
-  khasi: {
-    code: "bn-IN",
-    greeting: "Khublei! Nga dei Navya na Chanakya AI. Sngewbha aiu, phang aiu kano ka jingiarap hukum?",
-  },
-  nagamese: {
-    code: "hi-IN",
-    greeting: "Namaskar! Moi Navya Chanakya AI pora ahise. Aapuni ki dhoronor legal help lage?",
-  },
-  kokborok: {
-    code: "bn-IN",
-    greeting: "Kwlwrwi! Ang Navya, Chanakya AI borok. Ang boi borok kobor dokai?",
-  },
-
-};
-
+  // Add other languages as needed...
+}
 
 const languageKeywords = {
   english: ["english", "इंग्लिश", "अंग्रेजी"],
@@ -186,124 +73,21 @@ const languageKeywords = {
   gujarati: ["gujarati", "ગુજરાતી", "गुजराती"],
   urdu: ["urdu", "اردو", "उर्दू"],
   odia: ["odia", "odiya", "ଓଡ଼ିଆ", "ओड़िया"],
-
-  bhojpuri: ["bhojpuri", "भोजपुरी", "भोजपुरिया"],
-  maithili: ["maithili", "मैथिली"],
-  awadhi: ["awadhi", "अवधी"],
-  bundeli: ["bundeli", "बुंदेली"],
-  haryanvi: ["haryanvi", "हरियाणवी"],
-  chhattisgarhi: ["chhattisgarhi", "छत्तीसगढ़ी"],
-  marwari: ["marwari", "मारवाड़ी"],
-  varhadi: ["varhadi", "वऱ्हाडी"],
-  tulu: ["tulu", "ತುಳು", "तुलु"],
-  konkani: ["konkani", "कोंकणी"],
-  dogri: ["dogri", "डोगरी"],
-  manipuri: ["manipuri", "মণিপুরী", "মণিপুরি", "মণিপুর", "মনিপুরি", "মণিপুরি ভাষা"],
-  nepali: ["nepali", "नेपाली"],
-  kashmiri: ["kashmiri", "कश्मीरी", "کشمیری"],
-  assamese: ["assamese", "অসমীয়া", "असमिया"],
-  santali: ["santali", "संथाली", "ᱥᱟᱱᱛᱟᱞᱤ"],
-  sindhi: ["sindhi", "सिंधी", "سنڌي", "sindi"],
-  bodo: ["bodo", "बोडो", "बर'"],
-  // kashmiri: ["kashmiri", "कश्मीरी", "کشمیری"],
-  ladakhi: ["ladakhi", "लद्दाखी"],
-  lepcha: ["lepcha", "लेपचा"],
-  mizo: ["mizo", "मिज़ो", "Mizo ṭawng"],
-  mundari: ["mundari", "मुंडारी", "ᱢᱩᱱᱫᱟᱹᱨᱤ"],
-  bhili: ["bhili", "भीली"],
-  garo: ["garo", "गारो"],
-  khasi: ["khasi", "खासी"],
-  nagamese: ["nagamese", "नगामीज़", "নাগামীজ"],
-  kokborok: ["kokborok", "कोकबोरोक", "কোকবোরোক"]
-
-};
-
+  // Add other language keywords as needed...
+}
 
 const initialGreeting =
-  "आप कानूनी सहायता तक पहुँच चुके हैं। आपकी बेहतर मदद के लिए कृपया बताएं आपकी पसंदीदा भाषा क्या है? For example: Hindi, English, Gujrati.       You have accessed legal aid , for your better help , please tell us your preferred language for example english , hindi , gujrati"
+  "आप कानूनी सहायता तक पहुँच चुके हैं। आपकी बेहतर मदद के लिए कृपया बताएं आपकी पसंदीदा भाषा क्या है? For example: Hindi, English, Gujarati."
 
 const languageGreetings = {
-  english: "Hello! I am Navya, your legal agent from Chanakya AI. For better assistance, can you tell me what help you need or if you are in an emergency?",
-
-  hindi: "नमस्ते जी, मैं नव्या, चाणक्य एआई से आपकी लीगल एजेंट। आपकी बेहतर सहायता के लिए, क्या आप बता सकते हैं आपको किस प्रकार की कानूनी सहायता चाहिए या क्या आप इमरजेंसी में हैं?",
-
-  punjabi: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ਮੈਂ ਨਵਿਆ, ਚਾਣਕਯ ਏਆਈ ਤੋਂ ਤੁਹਾਡੀ ਲੀਗਲ ਏਜੰਟ ਹਾਂ। ਤੁਹਾਡੀ ਬਿਹਤਰ ਮਦਦ ਲਈ, ਕੀ ਤੁਸੀਂ ਦੱਸ ਸਕਦੇ ਹੋ ਕਿ ਤੁਹਾਨੂੰ ਕਿਸ ਕਿਸਮ ਦੀ ਕਾਨੂੰਨੀ ਮਦਦ ਚਾਹੀਦੀ ਹੈ ਜਾਂ ਤੁਸੀਂ ਐਮਰਜੈਂਸੀ ਵਿੱਚ ਹੋ?",
-
-  tamil: "வணக்கம், நான் நவ்யா, சாணக்யா ஏஐயில் இருந்து உங்கள் சட்ட உதவியாளர். சிறந்த உதவிக்காக, நீங்கள் என்ன உதவி தேவை என்று அல்லது அவசர நிலைமையில் உள்ளீர்களா என்று சொல்ல முடியுமா?",
-
-  marathi: "नमस्कार, मी नव्या, चाणक्य एआयमधून तुमची लीगल एजंट. तुमच्या उत्तम मदतीसाठी, कृपया सांगा तुम्हाला कोणत्या प्रकारची कायदेशीर मदत हवी आहे किंवा तुम्ही आणीबाणी स्थितीत आहात का?",
-
-  telugu: "నమస్తే, నేను నవ్యా, చాణక్య ఎఐ నుండి మీ లీగల్ ఏజెంట్. మీకు మెరుగైన సహాయం అందించేందుకు, మీరు ఏ విధమైన చట్ట సహాయం కావాలో లేదా మీరు ఎమర్జెన్సీలో ఉన్నారా అని చెప్పగలరా?",
-
-  bengali: "নমস্কার, আমি নব্যা, চাণক্য এআই থেকে আপনার লিগ্যাল এজেন্ট। আপনার আরও ভাল সহায়তার জন্য, দয়া করে বলুন আপনি কী ধরনের আইনি সহায়তা চান বা আপনি জরুরি অবস্থায় রয়েছেন কিনা।",
-
-  kannada: "ನಮಸ್ಕಾರ, ನಾನು ನವ್ಯಾ, ಚಾಣಕ್ಯ ಎಐ ಯಿಂದ ನಿಮ್ಮ ಲೀಗಲ್ ಏಜೆಂಟ್. ಉತ್ತಮ ಸಹಾಯಕ್ಕಾಗಿ, ನಿಮಗೆ ಯಾವ ರೀತಿಯ ಕಾನೂನು ಸಹಾಯ ಬೇಕು ಅಥವಾ ನೀವು ತುರ್ತು ಪರಿಸ್ಥಿತಿಯಲ್ಲಿ ಇದ್ದೀರಾ ಎಂಬುದನ್ನು ಹೇಳಿ.",
-
-  malayalam: "നമസ്കാരം, ഞാൻ നവ്യ, ചാണക്യ എഐയിൽ നിന്നുള്ള നിങ്ങളുടെ ലീഗൽ ഏജന്റ്. മികച്ച സഹായത്തിനായി, നിങ്ങൾക്ക് എന്ത് തരത്തിലുള്ള നിയമ സഹായം വേണമെന്ന് അല്ലെങ്കിൽ നിങ്ങൾ അടിയന്തരാവസ്ഥയിലാണോ എന്ന് പറയാമോ?",
-
-  gujarati: "નમસ્તે, હું નવ્યા, ચાણક્ય એઆઈ તરફથી તમારી લીગલ એજન્ટ છું. તમારી વધુ સારી મદદ માટે, કૃપા કરીને કહો તમને કઈ પ્રકારની કાનૂની મદદ જોઈએ છે અથવા તમે ઇમરજન્સી માં છો?",
-
-  urdu: "السلام علیکم، میں نویا، چانکیہ اے آئی سے آپ کی قانونی ایجنٹ ہوں۔ آپ کی بہتر مدد کے لیے، کیا آپ بتا سکتے ہیں آپ کو کس چیز کی قانونی مدد چاہیے یا آپ ایمرجینسی میں ہیں؟",
-
-  odia: "ନମସ୍କାର, ମୁଁ ନବ୍ୟା, ଚାଣକ୍ୟ ଏଆଇ ରୁ ଆପଣଙ୍କର ଲିଗାଲ୍ ଏଜେଣ୍ଟ। ଆପଣଙ୍କୁ ଭଲ ସହଯୋଗ ଦେବା ପାଇଁ, ଦୟାକରି କହନ୍ତୁ ଆପଣ କେଉଁ ପ୍ରକାରର ଆଇନିକ ସହଯୋଗ ଚାହାଁନ୍ତି କିମ୍ବା ଆପଣ ଆପାତ୍କାଳୀନ ସ୍ଥିତିରେ ଅଛନ୍ତି କି?",
-
-  bhojpuri: "नमस्कार, हम नव्या हईं, चाणक्य एआई से आपके लीगल एजेंट. कृपया बताईं आपको किस तरह के कानूनी सहायता के ज़रूरत बा या आप इमरजेंसी में बानी?",
-
-  maithili: "नमस्कार, हम नव्या छी, चाणक्य एआई से अपने लीगल एजेंट. बेहतर सहायता हेतु, कृपया बताउ की अहाँ के कत्तिक कानूनी सहायता के आवश्यकता छै?",
-
-  awadhi: "नमस्ते, हम नव्या हई, चाणक्य एआई से आपके लीगल एजेंट. कृपया बताईं कि आपको कइसन कानूनी मदद चाही?",
-
-  bundeli: "राम राम, हम नव्या, चाणक्य एआई से आपकी लीगल एजेंट. बताइए, कैसी मदद चाही या आप संकट में हैं?",
-
-  haryanvi: "राम राम जी, मैं नव्या, चाणक्य एआई से आपकी लीगल एजेंट. बता दो जी, कसम की मदद चाही या कोई अर्जेंसी है?",
-
-  chhattisgarhi: "नमस्कार, मैं नव्या, चाणक्य एआई ले आए हवंव. बतावव, कइसन मदद चाही?",
-
-  marwari: "राम राम सा, हूं नव्या, चाणक्य एआई सूं थारी लीगल एजेंट. के बतावो थांने काईंसी मदद जोईए?",
-
-  varhadi: "नमस्कार, मी नव्या, चाणक्य एआय मधून तुमचं लीगल एजंट आहे. सांगा, तुमचं काय सहाय्य हवं आहे का?",
-
-  tulu: "ನಮಸ್ಕಾರ, ನಾನ್ ನವ್ಯಾ, ಚಾಣಕ್ಯ ಎಐ ಇಂದ ಬಾಂಡಿಗಾ ಲೀಗಲ್ ಏಜೆಂಟ್. ಸಹಾಯ ಬಯಸುತ್ತೀರಾ ಎ೦ದು ತಿಳಿಸಿ.",
-
-  konkani: "नमस्कार, हांव नव्या, चाणक्य एआय खातीर तुजो कायदेचो सहाय्यकार. कितें तुमका मदत जाय, सांग?",
-
-  dogri: "नमस्कार, मैं नव्या, चाणक्य एआई तोहाडे लीगल एजेंट। कृपया दसो, तुहानूं किहड़ी लीगल मदद चाहीदी ऐ?",
-
-  manipuri: "ꯊꯧꯔꯤ ꯂꯥꯟꯅꯥꯔꯤ, ꯑꯃ ꯅꯥꯚꯌꯥ, ꯆꯥꯅꯛꯌ ꯑꯩ ꯍꯥꯛꯂꯣꯟꯅꯥ ꯑꯁꯤ ꯑꯅꯣꯏꯔꯤ ꯋꯥꯡ. ꯑꯃ ꯍꯥꯛꯂꯣꯟꯅꯥ ꯈꯪꯂꯦꯡ ꯍꯧꯕꯥ ꯊꯣꯛꯂꯤꯡ ꯍꯧꯅꯥ ꯅꯍꯥꯡ?",
-
-  nepali: "नमस्कार, म नव्या, चाणक्य एआईबाट तपाईंको कानूनी सहायक। तपाईंलाई कस्तो सहायता चाहिएको हो वा तपाईं आपतकालीन स्थितिमा हुनुहुन्छ?",
-
-  assamese: "নমস্কাৰ, মই নব্যা, চাণক্য AI ৰ পৰা আপোনাৰ লিগেল এজেন্ট। আপোনাক ভালকৈ সহায় কৰিবলৈ, অনুগ্ৰহ কৰি ক'ব পাৰিবনে আপোনাৰ কিদৰে সহায়ৰ প্ৰয়োজন?",
-
-  santali: "Johar! Ing navya kana chaanakya AI re legal agent do. Enge eda kana menak’ sagaw kana kanaen do?",
-
-  sindhi: "سلام، مان ناويا آهيان، چانڪيا اي آءِ مان توهانجي قانوني ايجنٽ. مهرباني ڪري ٻڌايو ته توهان کي ڪهڙي قانوني مدد گهرجي يا توهان ايمرجنسي ۾ آهيو؟",
-
-  bodo: "नमस्कार, हाउ नव्या, चाणक्य एआई ब्रा बोरो लिगाल हेल्पर। हांखो किफां कानूनी मदद जरुर आसे?",
-
-  kashmiri: "السلام علیکم، میں نویا، چانکیہ اے آئی سے آپ کی قانونی ایجنٹ ہوں۔ کیا آپ بتا سکتے ہیں آپ کو کس طرح کی قانونی مدد چاہیے یا کیا آپ ایمرجنسی میں ہیں؟",
-
-  ladakhi: "जूलय! में नव्या यिन, चाणक्य एआई ले थुगे लीगल एजेंट यिन। थुगे हेनान कानूनी मदद हक्पा यिन ना?",
-
-  lepcha: "Namaste, I am Navya from Chanakya AI. I’m your legal assistant. Could you tell me if you need legal help or if it’s an emergency?",
-
-  mizo: "Chibai! Ka hming Navya, Chanakya AI atangin. Lawmin chhiar ang che, eng kinda tihchhiar ngai ang che?",
-
-  mundari: "Johar! Ang Navya kana, Chanakya AI se legal madad deta. Tum do kana kanoon ro sahay lagena?",
-
-  bhili: "राम राम! में नव्या, चाणक्य एआई से आपरी लीगल सहायिका हूं। आप काईसी मदद चावो?",
-
-  garo: "Khublei! Nga la Navya, Chanakya AI na legal agent. Nangno dakani aidokani ma?",
-
-  khasi: "Khublei, nga dei Navya na Chanakya AI. Sngewbha ong kumno nga lah iarap ha ka bynta jong ka ain?",
-
-  nagamese: "Namaskar! Moi Navya ase Chanakya AI pora. Aapuni ki dhoronar legal help lage nai?",
-
-  kokborok: "Kwlwrwi! Ang Navya, Chanakya AI borok a. Ang baijani nai: borok kobor dokai nai?"
-
-};
-
-
+  english:
+    "Hello! I am Navya, your legal agent from Chanakya AI. For better assistance, can you tell me what help you need or if you are in an emergency?",
+  hindi:
+    "नमस्ते जी, मैं नव्या, चाणक्य एआई से आपकी लीगल एजेंट। आपकी बेहतर सहायता के लिए, क्या आप बता सकते हैं आपको किस प्रकार की कानूनी सहायता चाहिए या क्या आप इमरजेंसी में हैं?",
+  punjabi:
+    "ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਜੀ, ਮੈਂ ਨਵਿਆ, ਚਾਣਕਯ ਏਆਈ ਤੋਂ ਤੁਹਾਡੀ ਲੀਗਲ ਏਜੰਟ ਹਾਂ। ਤੁਹਾਡੀ ਬਿਹਤਰ ਮਦਦ ਲਈ, ਕੀ ਤੁਸੀਂ ਦੱਸ ਸਕਦੇ ਹੋ ਕਿ ਤੁਹਾਨੂੰ ਕਿਸ ਕਿਸਮ ਦੀ ਕਾਨੂੰਨੀ ਮਦਦ ਚਾਹੀਦੀ ਹੈ ਜਾਂ ਤੁਸੀਂ ਐਮਰਜੈਂਸੀ ਵਿੱਚ ਹੋ?",
+  // Add other language greetings as needed...
+}
 
 export default function App() {
   const recognitionRef = useRef(null)
@@ -312,13 +96,13 @@ export default function App() {
   const timerRef = useRef(null)
   const utteranceIdRef = useRef(0)
 
-const [filePreview, setFilePreview] = useState("");
-const [uploadedFile, setUploadedFile] = useState(null);
-const [loading, setLoading] = useState(false);
-const [problem, setProblem] = useState("");
-const [options, setOptions] = useState([]);
-const [speakPrompt, setSpeakPrompt] = useState("");
+  // File upload states
+  const [uploadedFile, setUploadedFile] = useState(null)
+  const [filePreview, setFilePreview] = useState("")
+  const [awaitingContext, setAwaitingContext] = useState(false)
+  const [fileLoading, setFileLoading] = useState(false)
 
+  // Existing states
   const [connected, setConnected] = useState(false)
   const [muted, setMuted] = useState(false)
   const [speaking, setSpeaking] = useState(false)
@@ -337,9 +121,10 @@ const [speakPrompt, setSpeakPrompt] = useState("");
   const [callRequestLoading, setCallRequestLoading] = useState(false)
   const [showPhoneModal, setShowPhoneModal] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState("")
-  const [advocates, setAdvocates] = useState([]);
-  const [showAdvocates, setShowAdvocates] = useState(false);
-  const [selectedAdvocate, setSelectedAdvocate] = useState(null);
+  const [advocates, setAdvocates] = useState([])
+  const [showAdvocates, setShowAdvocates] = useState(false)
+  const [selectedAdvocate, setSelectedAdvocate] = useState(null)
+
   const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
   // Audio unlock for mobile devices
@@ -375,6 +160,7 @@ const [speakPrompt, setSpeakPrompt] = useState("");
       alert("Speech recognition not supported in this browser. Use the latest Chrome.")
       return
     }
+
     const langToUse = currentLang && languages[currentLang] ? languages[currentLang].code : "hi-IN"
     const recognition = new SpeechRecognition()
     recognition.lang = langToUse
@@ -484,6 +270,74 @@ const [speakPrompt, setSpeakPrompt] = useState("");
     return () => clearInterval(timerRef.current)
   }, [connected])
 
+  // File upload handlers
+  const handleFileSelected = (file) => {
+    setUploadedFile(file)
+    if (file.type.startsWith("image/")) {
+      setFilePreview(URL.createObjectURL(file))
+    } else {
+      setFilePreview(file.name)
+    }
+    setAwaitingContext(true)
+  }
+
+  const handleContextSubmit = async (contextText, file) => {
+    setFileLoading(true)
+    setAwaitingContext(false)
+
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("context", contextText)
+      formData.append("language", currentLang || "hindi")
+
+      const res = await fetch(`${backendBaseUrl}/upload-legal-file`, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!res.ok) {
+        throw new Error(`Upload failed: ${res.status}`)
+      }
+
+      const data = await res.json()
+
+      if (data.reply) {
+        // Add to chat history
+        const newHistory = [
+          ...history,
+          { role: "user", content: `Document uploaded: ${file.name}\nContext: ${contextText}` },
+          { role: "assistant", content: data.reply },
+        ]
+        setHistory(newHistory)
+
+        // Speak the response using TTS
+        await speakText(data.reply, currentLang || "hindi")
+      } else {
+        throw new Error("No response received from server")
+      }
+    } catch (error) {
+      console.error("File upload error:", error)
+      const errorMessage =
+        currentLang === "hindi"
+          ? "दस्तावेज़ का विश्लेषण करने में समस्या हुई। कृपया दोबारा कोशिश करें।"
+          : "There was an error analyzing your document. Please try again."
+
+      setHistory((prev) => [...prev, { role: "assistant", content: errorMessage }])
+      await speakText(errorMessage, currentLang || "hindi")
+    } finally {
+      setFileLoading(false)
+      handleClearFile()
+    }
+  }
+
+  const handleClearFile = () => {
+    setUploadedFile(null)
+    setFilePreview("")
+    setAwaitingContext(false)
+    setFileLoading(false)
+  }
+
   const handleMute = () => {
     setMuted((m) => !m)
     if (!muted) {
@@ -512,6 +366,7 @@ const [speakPrompt, setSpeakPrompt] = useState("");
     setPhase("init")
     setCallRequestLoading(false)
     setReadyToSpeak(false)
+    handleClearFile() // Clear file upload state
     recognitionRef.current?.stop()
     if (audioRef.current) {
       audioRef.current.pause()
@@ -588,6 +443,7 @@ const [speakPrompt, setSpeakPrompt] = useState("");
     setUserPos(null)
     setSelectedStation(null)
     setPhase("askLang")
+    handleClearFile() // Clear any existing file upload state
     await speakText(initialGreeting, "hindi")
     setRecognitionKey((k) => k + 1)
   }
@@ -622,35 +478,34 @@ const [speakPrompt, setSpeakPrompt] = useState("");
     )
   }
 
-
   const handleNearbyAdvocate = () => {
-  if (!navigator.geolocation) {
-    alert("Geolocation is not supported by your browser")
-    return
-  }
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const { latitude, longitude } = pos.coords
-      try {
-        const res = await fetch(`${backendBaseUrl}/nearby-advocate?lat=${latitude}&lng=${longitude}`)
-        if (!res.ok) {
-          throw new Error(`Failed to fetch advocates: ${res.status}`)
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser")
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords
+        try {
+          const res = await fetch(`${backendBaseUrl}/nearby-advocate?lat=${latitude}&lng=${longitude}`)
+          if (!res.ok) {
+            throw new Error(`Failed to fetch advocates: ${res.status}`)
+          }
+          const data = await res.json()
+          setAdvocates(data.advocates || [])
+          setShowAdvocates(true)
+          setSelectedAdvocate(null)
+        } catch (e) {
+          console.error("Advocates fetch error:", e)
+          alert("Failed to fetch advocates. Please try again.")
         }
-        const data = await res.json()
-        setAdvocates(data.advocates || [])
-        setShowAdvocates(true)
-        setSelectedAdvocate(null)
-      } catch (e) {
-        console.error("Advocates fetch error:", e)
-        alert("Failed to fetch advocates. Please try again.")
-      }
-    },
-    (err) => {
-      console.error("Geolocation error:", err)
-      alert("Location permission denied or unavailable")
-    },
-  )
-}
+      },
+      (err) => {
+        console.error("Geolocation error:", err)
+        alert("Location permission denied or unavailable")
+      },
+    )
+  }
 
   const handleRequestCall = () => {
     const savedPhone = localStorage.getItem("nyaygpt_user_phone")
@@ -710,37 +565,7 @@ const [speakPrompt, setSpeakPrompt] = useState("");
       setCallRequestLoading(false)
     }
   }
-// Call this when file is chosen
-const handleFileSelected = (file) => {
-  setUploadedFile(file);
-  // For images, show a preview; for PDFs, just show file name
-  if (file.type.startsWith("image/")) {
-    setFilePreview(URL.createObjectURL(file));
-  } else {
-    setFilePreview(file.name);
-  }
-  setAwaitingContext(true); // ask for context after upload
-};
 
-const handleUserContext = async (contextText) => {
-  // Upload file and context to backend
-  const formData = new FormData();
-  formData.append("file", uploadedFile);
-  formData.append("context", contextText);
-
-  const res = await fetch(`${backendBaseUrl}/upload-legal-file`, {
-    method: "POST",
-    body: formData,
-  });
-  const data = await res.json();
-  if (data.reply) setHistory((h) => [...h, { role: "assistant", content: data.reply }]);
-  if (data.summary) setSummary(data.summary);
-  setAwaitingContext(false);
-  setUploadedFile(null);
-  setFilePreview("");
-  // Speak the reply automatically with your existing TTS
-  if (data.reply) await speakText(data.reply, currentLang);
-};
   const formatTime = (sec) => `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`
 
   return (
@@ -790,34 +615,39 @@ const handleUserContext = async (contextText) => {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", height: "3rem" }}>
-  <div
-    style={{
-      width: "3rem",
-      height: "3rem",
-      borderRadius: "0.5rem",
-      overflow: "hidden",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "#000000", // optional
-      // boxShadow: "0 4px 16px rgba(255, 255, 255, 0.1)",
-    }}
-  >
-    <img
-      src="/image.png"
-      alt="Logo"
-      style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "contain", // ensures full image visible
-      }}
-    />
-  </div>
-  <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)", color: "#fff" }}>
-    Chanakya AI
-  </h1>
-</div>
-
+            <div
+              style={{
+                width: "3rem",
+                height: "3rem",
+                borderRadius: "0.5rem",
+                overflow: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#000000",
+              }}
+            >
+              <img
+                src="/placeholder.svg?height=48&width=48"
+                alt="Logo"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            </div>
+            <h1
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+                color: "#fff",
+              }}
+            >
+              Chanakya AI
+            </h1>
+          </div>
 
           <div
             style={{
@@ -853,7 +683,7 @@ const handleUserContext = async (contextText) => {
           <div
             style={{
               textAlign: "center",
-              marginBottom: "4.5rem",
+              marginBottom: "2rem",
               background: "rgba(255, 255, 255, 0.05)",
               backdropFilter: "blur(20px)",
               borderRadius: "1.5rem",
@@ -878,100 +708,24 @@ const handleUserContext = async (contextText) => {
             </div>
           </div>
 
-{/* ---- Add this just above your microphone/chat area ---- */}
-<FileUpload onFileSelected={handleFileSelected} />
+          {/* File Upload Component */}
+          <FileUpload
+            onFileSelected={handleFileSelected}
+            onContextSubmit={handleContextSubmit}
+            uploadedFile={uploadedFile}
+            filePreview={filePreview}
+            loading={fileLoading}
+            awaitingContext={awaitingContext}
+            onClearFile={handleClearFile}
+          />
 
-{filePreview && (
-  <div style={{ margin: "0.5rem 0", textAlign: "center" }}>
-    {uploadedFile?.type?.startsWith("image/") ? (
-      <img src={filePreview} alt="preview" style={{ width: 80, borderRadius: 8 }} />
-    ) : (
-      <span style={{ color: "#10b981" }}>{filePreview}</span>
-    )}
-  </div>
-)}
-
-{/* Show spinner/loader when analyzing */}
-{loading && (
-  <div style={{
-    margin: "1rem 0",
-    background: "#F0FFF4",
-    color: "#222",
-    padding: 12,
-    borderRadius: 8,
-    textAlign: "center",
-    fontWeight: 500
-  }}>
-    <span>Analyzing document...</span>
-    {/* You can add a spinner here */}
-  </div>
-)}
-
-{/* Show problem summary after analysis */}
-{problem && (
-  <div style={{
-    margin: "1.5rem 0",
-    background: "#ECFDF5",
-    color: "#064E3B",
-    padding: "1rem",
-    borderRadius: "1rem",
-    border: "1px solid #A7F3D0",
-    textAlign: "left",
-    fontWeight: 500,
-  }}>
-    <strong>यह आपकी समस्या है:</strong>
-    <div style={{ marginTop: 8 }}>{problem}</div>
-  </div>
-)}
-
-{/* Show options as buttons */}
-{options && options.length > 0 && (
-  <div style={{
-    margin: "1rem 0",
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "0.5rem"
-  }}>
-    {options.map((opt, idx) => (
-      <button
-        key={idx}
-        onClick={() => handleOptionClick(opt)}
-        style={{
-          padding: "0.75rem 1.5rem",
-          background: "#10b981",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          fontWeight: 600,
-          cursor: "pointer"
-        }}
-      >
-        {opt}
-      </button>
-    ))}
-  </div>
-)}
-
-{/* Show the follow-up speakPrompt */}
-{speakPrompt && (
-  <div style={{
-    margin: "1rem 0",
-    background: "#F0FFF4",
-    color: "#222",
-    padding: 12,
-    borderRadius: 8,
-    textAlign: "center",
-    fontWeight: 500
-  }}>
-    {speakPrompt}
-  </div>
-)}
           {/* Main Microphone */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "3rem" }}>
             <div style={{ position: "relative" }}>
               {/* Microphone Button */}
               <button
                 onClick={connected ? handleEnd : handleConnect}
+                disabled={fileLoading}
                 style={{
                   width: "8rem",
                   height: "8rem",
@@ -985,23 +739,12 @@ const handleUserContext = async (contextText) => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  cursor: "pointer",
+                  cursor: fileLoading ? "not-allowed" : "pointer",
                   outline: "none",
+                  opacity: fileLoading ? 0.6 : 1,
                   boxShadow: readyToSpeak
                     ? "0 0 40px rgba(248, 113, 113, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)"
                     : "0 8px 32px rgba(0, 0, 0, 0.3)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!readyToSpeak) {
-                    e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                    e.target.style.transform = "scale(1.05)"
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!readyToSpeak) {
-                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                    e.target.style.transform = "scale(1)"
-                  }
                 }}
               >
                 {connected ? (
@@ -1092,17 +835,16 @@ const handleUserContext = async (contextText) => {
 
           {/* Action Text */}
           <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-            {connected ? (
+            {fileLoading ? (
+              <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>Analyzing your document...</p>
+            ) : connected ? (
               userSpeaking ? (
                 <p style={{ color: "#f87171", fontWeight: "500", margin: 0 }}>
                   <FaMicrophone style={{ marginRight: "0.5rem" }} />
                   Speak now...
                 </p>
               ) : speaking ? (
-                <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>
-                  {/* <FaVolumeUp style={{ marginRight: "0.5rem" }} /> */}
-                  Chanakya AI is speaking...
-                </p>
+                <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>Chanakya AI is speaking...</p>
               ) : readyToSpeak ? (
                 <p
                   style={{
@@ -1128,9 +870,9 @@ const handleUserContext = async (contextText) => {
             )}
           </div>
 
-          {/* Glassmorphism Control Buttons */}
+          {/* Control Buttons */}
           {!connected ? (
-            <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", flexWrap: "wrap" }}>
               <button
                 onClick={handleNearbyPolice}
                 style={{
@@ -1147,16 +889,6 @@ const handleUserContext = async (contextText) => {
                   cursor: "pointer",
                   outline: "none",
                   boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
                 }}
               >
                 <FaMapMarkerAlt
@@ -1189,16 +921,6 @@ const handleUserContext = async (contextText) => {
                   outline: "none",
                   boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
-                }}
               >
                 <FaPhone
                   style={{
@@ -1214,35 +936,35 @@ const handleUserContext = async (contextText) => {
               </button>
 
               <button
-  onClick={handleNearbyAdvocate}
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "0.5rem",
-    padding: "1rem",
-    background: "rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(20px)",
-    borderRadius: "1rem",
-    transition: "all 0.3s ease",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    cursor: "pointer",
-    outline: "none",
-    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-  }}
->
-  <FaMapMarkerAlt
-    style={{
-      width: "1.5rem",
-      height: "1.5rem",
-      color: "#fbbf24", // use a different color to distinguish
-      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-    }}
-  />
-  <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
-    Nearby Advocate
-  </span>
-</button>
+                onClick={handleNearbyAdvocate}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "1rem",
+                  background: "rgba(255, 255, 255, 0.1)",
+                  backdropFilter: "blur(20px)",
+                  borderRadius: "1rem",
+                  transition: "all 0.3s ease",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  cursor: "pointer",
+                  outline: "none",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                }}
+              >
+                <FaMapMarkerAlt
+                  style={{
+                    width: "1.5rem",
+                    height: "1.5rem",
+                    color: "#fbbf24",
+                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                  }}
+                />
+                <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
+                  Nearby Advocate
+                </span>
+              </button>
             </div>
           ) : (
             <div style={{ display: "flex", justifyContent: "center", gap: "2rem" }}>
@@ -1264,14 +986,6 @@ const handleUserContext = async (contextText) => {
                   cursor: "pointer",
                   outline: "none",
                   boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
                 }}
               >
                 {muted ? (
@@ -1315,16 +1029,6 @@ const handleUserContext = async (contextText) => {
                   outline: "none",
                   boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
-                }}
               >
                 <FaMapMarkerAlt
                   style={{
@@ -1353,18 +1057,6 @@ const handleUserContext = async (contextText) => {
                   cursor: "pointer",
                   outline: "none",
                   boxShadow: "0 8px 32px rgba(220, 38, 38, 0.3)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgba(185, 28, 28, 0.9) 0%, rgba(220, 38, 38, 0.7) 100%)"
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(220, 38, 38, 0.4)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(220, 38, 38, 0.3)"
                 }}
               >
                 <FaPhone
@@ -1431,14 +1123,6 @@ const handleUserContext = async (contextText) => {
                   borderRadius: "0.5rem",
                   transition: "all 0.3s ease",
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = "#ffffff"
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = "rgba(255, 255, 255, 0.6)"
-                  e.target.style.background = "transparent"
-                }}
               >
                 <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
               </button>
@@ -1500,14 +1184,6 @@ const handleUserContext = async (contextText) => {
                   outline: "none",
                   transition: "all 0.3s ease",
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                  e.target.style.transform = "translateY(-1px)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                  e.target.style.transform = "translateY(0)"
-                }}
               >
                 Cancel
               </button>
@@ -1530,20 +1206,6 @@ const handleUserContext = async (contextText) => {
                   outline: "none",
                   opacity: callRequestLoading ? 0.6 : 1,
                   transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  if (!callRequestLoading) {
-                    e.target.style.background =
-                      "linear-gradient(135deg, rgba(5, 150, 105, 0.9) 0%, rgba(4, 120, 87, 1) 100%)"
-                    e.target.style.transform = "translateY(-1px)"
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!callRequestLoading) {
-                    e.target.style.background =
-                      "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)"
-                    e.target.style.transform = "translateY(0)"
-                  }
                 }}
               >
                 {callRequestLoading ? "Requesting..." : "Request Call"}
@@ -1608,14 +1270,6 @@ const handleUserContext = async (contextText) => {
                   borderRadius: "0.5rem",
                   transition: "all 0.3s ease",
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = "#ffffff"
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = "rgba(255, 255, 255, 0.6)"
-                  e.target.style.background = "transparent"
-                }}
               >
                 <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
               </button>
@@ -1638,14 +1292,6 @@ const handleUserContext = async (contextText) => {
                       border: "1px solid rgba(255, 255, 255, 0.1)",
                       cursor: "pointer",
                       outline: "none",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                      e.target.style.transform = "translateY(-1px)"
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = "rgba(255, 255, 255, 0.05)"
-                      e.target.style.transform = "translateY(0)"
                     }}
                   >
                     <div style={{ fontWeight: "500", color: "#ffffff", marginBottom: "0.25rem" }}>{station.name}</div>
@@ -1712,14 +1358,6 @@ const handleUserContext = async (contextText) => {
                   borderRadius: "0.5rem",
                   transition: "all 0.3s ease",
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = "#ffffff"
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = "rgba(255, 255, 255, 0.6)"
-                  e.target.style.background = "transparent"
-                }}
               >
                 <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
               </button>
@@ -1754,11 +1392,8 @@ const handleUserContext = async (contextText) => {
         </div>
       )}
 
-      <div>
-
-
       {/* Glassmorphism Advocates Modal */}
-{showAdvocates && (
+      {showAdvocates && (
         <div
           style={{
             position: "fixed",
@@ -1783,12 +1418,14 @@ const handleUserContext = async (contextText) => {
               overflowY: "auto",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+            <div
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}
+            >
               <h3 style={{ margin: 0, color: "#fff" }}>Nearby Advocates</h3>
               <button
                 onClick={() => {
-                  setShowAdvocates(false);
-                  setSelectedAdvocate(null);
+                  setShowAdvocates(false)
+                  setSelectedAdvocate(null)
                 }}
                 style={{
                   background: "transparent",
@@ -1816,25 +1453,26 @@ const handleUserContext = async (contextText) => {
                       if (userPos && advocate.lat && advocate.lng) {
                         window.open(
                           `https://www.google.com/maps/dir/?api=1&origin=${userPos.lat},${userPos.lng}&destination=${advocate.lat},${advocate.lng}&travelmode=driving`,
-                          "_blank"
-                        );
+                          "_blank",
+                        )
                       }
                     }}
                   >
                     <div style={{ fontWeight: "500", color: "#fff" }}>{advocate.name}</div>
                     <div style={{ fontSize: "0.875rem", color: "#ccc" }}>{advocate.vicinity}</div>
                     <div style={{ fontSize: "0.85rem", color: "#a7f3d0" }}>
-                      📞 {advocate.phone && advocate.phone !== "Not available"
-                        ? (
-                          <a
-                            href={`tel:${advocate.phone.replace(/[^0-9+]/g, '')}`}
-                            style={{ color: "#34d399", textDecoration: "underline", fontWeight: 600 }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {advocate.phone}
-                          </a>
-                        )
-                        : "Not available"}
+                      📞{" "}
+                      {advocate.phone && advocate.phone !== "Not available" ? (
+                        <a
+                          href={`tel:${advocate.phone.replace(/[^0-9+]/g, "")}`}
+                          style={{ color: "#34d399", textDecoration: "underline", fontWeight: 600 }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {advocate.phone}
+                        </a>
+                      ) : (
+                        "Not available"
+                      )}
                     </div>
                     <div style={{ marginTop: "0.5rem" }}>
                       <button
@@ -1846,11 +1484,11 @@ const handleUserContext = async (contextText) => {
                           fontWeight: 600,
                           fontSize: "0.9rem",
                           border: "none",
-                          cursor: "pointer"
+                          cursor: "pointer",
                         }}
                         onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedAdvocate(advocate);
+                          e.stopPropagation()
+                          setSelectedAdvocate(advocate)
                         }}
                       >
                         Tap for Details
@@ -1860,9 +1498,7 @@ const handleUserContext = async (contextText) => {
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: "center", color: "#aaa", padding: "2rem 0" }}>
-                No nearby advocates found.
-              </div>
+              <div style={{ textAlign: "center", color: "#aaa", padding: "2rem 0" }}>No nearby advocates found.</div>
             )}
           </div>
         </div>
@@ -1894,7 +1530,9 @@ const handleUserContext = async (contextText) => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+            <div
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}
+            >
               <h4 style={{ margin: 0 }}>{selectedAdvocate.name}</h4>
               <button
                 onClick={() => setSelectedAdvocate(null)}
@@ -1904,7 +1542,7 @@ const handleUserContext = async (contextText) => {
                   color: "#9ca3af",
                   cursor: "pointer",
                   fontSize: "1.25rem",
-                  paddinf: "0.5rem"
+                  padding: "0.5rem",
                 }}
               >
                 <FaTimes />
@@ -1914,27 +1552,26 @@ const handleUserContext = async (contextText) => {
               📍 <strong>Address:</strong> {selectedAdvocate.vicinity}
             </p>
             <p style={{ margin: "0 0 1rem" }}>
-  📞 <strong>Phone:</strong>{" "}
-  {selectedAdvocate.phone && selectedAdvocate.phone !== "Not available"
-    ? (
-      <a
-        href={`tel:${selectedAdvocate.phone.replace(/[^0-9+]/g, '')}`}
-        style={{
-          color: "#34d399",
-          textDecoration: "underline",
-          fontWeight: "600",
-          cursor: "pointer",
-        }}
-        onClick={(e) => {
-          e.stopPropagation(); // prevent closing modal
-        }}
-      >
-        {selectedAdvocate.phone}
-      </a>
-    )
-    : "Not available"}
-</p>
-
+              📞 <strong>Phone:</strong>{" "}
+              {selectedAdvocate.phone && selectedAdvocate.phone !== "Not available" ? (
+                <a
+                  href={`tel:${selectedAdvocate.phone.replace(/[^0-9+]/g, "")}`}
+                  style={{
+                    color: "#34d399",
+                    textDecoration: "underline",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                  }}
+                >
+                  {selectedAdvocate.phone}
+                </a>
+              ) : (
+                "Not available"
+              )}
+            </p>
 
             {MAPS_EMBED_API_KEY && (
               <img
@@ -1944,7 +1581,7 @@ const handleUserContext = async (contextText) => {
                   borderRadius: "0.5rem",
                   width: "100%",
                   marginBottom: "1rem",
-                  display: "block"
+                  display: "block",
                 }}
               />
             )}
@@ -1963,7 +1600,10 @@ const handleUserContext = async (contextText) => {
               }}
               onClick={() => {
                 if (selectedAdvocate.lat && selectedAdvocate.lng) {
-                  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedAdvocate.name + ', ' + selectedAdvocate.vicinity)}`, '_blank');
+                  window.open(
+                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedAdvocate.name + ", " + selectedAdvocate.vicinity)}`,
+                    "_blank",
+                  )
                 }
               }}
             >
@@ -1972,6 +1612,7 @@ const handleUserContext = async (contextText) => {
           </div>
         </div>
       )}
+
       {/* Fixed WhatsApp Button */}
       <div
         style={{
@@ -1999,71 +1640,13 @@ const handleUserContext = async (contextText) => {
               textDecoration: "none",
               cursor: "pointer",
             }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = "scale(1.1)"
-              e.target.style.boxShadow = "0 6px 25px rgba(37, 211, 102, 0.6), 0 12px 40px rgba(0, 0, 0, 0.4)"
-              // Show tooltip
-              const tooltip = e.target.nextElementSibling
-              if (tooltip) {
-                tooltip.style.opacity = "1"
-                tooltip.style.visibility = "visible"
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = "scale(1)"
-              e.target.style.boxShadow = "0 4px 20px rgba(37, 211, 102, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)"
-              // Hide tooltip
-              const tooltip = e.target.nextElementSibling
-              if (tooltip) {
-                tooltip.style.opacity = "0"
-                tooltip.style.visibility = "hidden"
-              }
-            }}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.893 3.106" />
             </svg>
           </a>
-
-          {/* Tooltip */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: "4rem",
-              right: "0",
-              backgroundColor: "rgba(17, 24, 39, 0.95)",
-              backdropFilter: "blur(20px)",
-              color: "white",
-              padding: "0.75rem 1rem",
-              borderRadius: "0.75rem",
-              fontSize: "0.875rem",
-              fontWeight: "500",
-              whiteSpace: "nowrap",
-              opacity: "0",
-              visibility: "hidden",
-              transition: "all 0.3s ease",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-              zIndex: "70",
-            }}
-          >
-            Ask your legal query on WhatsApp
-            <div
-              style={{
-                position: "absolute",
-                top: "100%",
-                right: "1rem",
-                width: "0",
-                height: "0",
-                borderLeft: "6px solid transparent",
-                borderRight: "6px solid transparent",
-                borderTop: "6px solid rgba(17, 24, 39, 0.95)",
-              }}
-            />
-          </div>
         </div>
       </div>
-    </div>
 
       {/* CSS Animations */}
       <style>{`
