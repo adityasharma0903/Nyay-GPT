@@ -116,10 +116,6 @@ const languages = {
     code: "hi-IN",
     greeting: "नमस्कार! म न्याय GPT हुँ। तपाईं मलाई कुनै पनि कानुनी प्रश्न सोध्न सक्नुहुन्छ।",
   },
-  kashmiri: {
-    code: "ur-IN",
-    greeting: "آداب! بیہ نیاے GPT چھم، تہہ تس منہ ہند کوئی قانونی سوال پُرسو۔",
-  },
   assamese: {
     code: "hi-IN",
     greeting: "নমস্কাৰ! মই ন্যায় GPT। আপুনি মোক যিকোনো আইনী প্ৰশ্ন কৰিব পাৰে।",
@@ -208,7 +204,7 @@ const languageKeywords = {
   santali: ["santali", "संथाली", "ᱥᱟᱱᱛᱟᱞᱤ"],
   sindhi: ["sindhi", "सिंधी", "سنڌي", "sindi"],
   bodo: ["bodo", "बोडो", "बर'"],
-  kashmiri: ["kashmiri", "कश्मीरी", "کشمیری"],
+  // kashmiri: ["kashmiri", "कश्मीरी", "کشمیری"],
   ladakhi: ["ladakhi", "लद्दाखी"],
   lepcha: ["lepcha", "लेपचा"],
   mizo: ["mizo", "मिज़ो", "Mizo ṭawng"],
@@ -333,7 +329,9 @@ export default function App() {
   const [callRequestLoading, setCallRequestLoading] = useState(false)
   const [showPhoneModal, setShowPhoneModal] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState("")
-
+  const [advocates, setAdvocates] = useState([]);
+  const [showAdvocates, setShowAdvocates] = useState(false);
+  const [selectedAdvocate, setSelectedAdvocate] = useState(null);
   const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
   // Audio unlock for mobile devices
@@ -615,6 +613,36 @@ export default function App() {
       },
     )
   }
+
+
+  const handleNearbyAdvocate = () => {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser")
+    return
+  }
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude, longitude } = pos.coords
+      try {
+        const res = await fetch(`${backendBaseUrl}/nearby-advocate?lat=${latitude}&lng=${longitude}`)
+        if (!res.ok) {
+          throw new Error(`Failed to fetch advocates: ${res.status}`)
+        }
+        const data = await res.json()
+        setAdvocates(data.advocates || [])
+        setShowAdvocates(true)
+        setSelectedAdvocate(null)
+      } catch (e) {
+        console.error("Advocates fetch error:", e)
+        alert("Failed to fetch advocates. Please try again.")
+      }
+    },
+    (err) => {
+      console.error("Geolocation error:", err)
+      alert("Location permission denied or unavailable")
+    },
+  )
+}
 
   const handleRequestCall = () => {
     const savedPhone = localStorage.getItem("nyaygpt_user_phone")
@@ -1058,6 +1086,37 @@ export default function App() {
                   Request Call
                 </span>
               </button>
+
+              <button
+  onClick={handleNearbyAdvocate}
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "0.5rem",
+    padding: "1rem",
+    background: "rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(20px)",
+    borderRadius: "1rem",
+    transition: "all 0.3s ease",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    cursor: "pointer",
+    outline: "none",
+    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+  }}
+>
+  <FaMapMarkerAlt
+    style={{
+      width: "1.5rem",
+      height: "1.5rem",
+      color: "#fbbf24", // use a different color to distinguish
+      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+    }}
+  />
+  <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
+    Nearby Advocate
+  </span>
+</button>
             </div>
           ) : (
             <div style={{ display: "flex", justifyContent: "center", gap: "2rem" }}>
@@ -1570,6 +1629,214 @@ export default function App() {
       )}
 
       <div>
+
+
+      {/* Glassmorphism Advocates Modal */}
+{showAdvocates && (
+        <div
+          style={{
+            position: "fixed",
+            inset: "0",
+            background: "rgba(0,0,0,0.8)",
+            backdropFilter: "blur(10px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+            zIndex: "50",
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(17,24,39,0.9)",
+              borderRadius: "1.5rem",
+              padding: "1.5rem",
+              width: "100%",
+              maxWidth: "28rem",
+              maxHeight: "24rem",
+              overflowY: "auto",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h3 style={{ margin: 0, color: "#fff" }}>Nearby Advocates</h3>
+              <button
+                onClick={() => {
+                  setShowAdvocates(false);
+                  setSelectedAdvocate(null);
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#9ca3af",
+                  cursor: "pointer",
+                  fontSize: "1.25rem",
+                }}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            {advocates.length ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                {advocates.map((advocate, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      borderRadius: "0.75rem",
+                      padding: "0.75rem",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      if (userPos && advocate.lat && advocate.lng) {
+                        window.open(
+                          `https://www.google.com/maps/dir/?api=1&origin=${userPos.lat},${userPos.lng}&destination=${advocate.lat},${advocate.lng}&travelmode=driving`,
+                          "_blank"
+                        );
+                      }
+                    }}
+                  >
+                    <div style={{ fontWeight: "500", color: "#fff" }}>{advocate.name}</div>
+                    <div style={{ fontSize: "0.875rem", color: "#ccc" }}>{advocate.vicinity}</div>
+                    <div style={{ fontSize: "0.85rem", color: "#a7f3d0" }}>
+                      📞 {advocate.phone && advocate.phone !== "Not available"
+                        ? (
+                          <a
+                            href={`tel:${advocate.phone.replace(/[^0-9+]/g, '')}`}
+                            style={{ color: "#34d399", textDecoration: "underline", fontWeight: 600 }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {advocate.phone}
+                          </a>
+                        )
+                        : "Not available"}
+                    </div>
+                    <div style={{ marginTop: "0.5rem" }}>
+                      <button
+                        style={{
+                          background: "#fbbf24",
+                          color: "#2d2d2d",
+                          borderRadius: "0.5rem",
+                          padding: "0.25rem 0.75rem",
+                          fontWeight: 600,
+                          fontSize: "0.9rem",
+                          border: "none",
+                          cursor: "pointer"
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAdvocate(advocate);
+                        }}
+                      >
+                        Tap for Details
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", color: "#aaa", padding: "2rem 0" }}>
+                No nearby advocates found.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {selectedAdvocate && (
+        <div
+          style={{
+            position: "fixed",
+            inset: "0",
+            background: "rgba(0,0,0,0.75)",
+            backdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: "60",
+          }}
+          onClick={() => setSelectedAdvocate(null)}
+        >
+          <div
+            style={{
+              background: "#1f2937",
+              borderRadius: "1rem",
+              padding: "1.5rem",
+              width: "98%",
+              maxWidth: "500px",
+              color: "#fff",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h4 style={{ margin: 0 }}>{selectedAdvocate.name}</h4>
+              <button
+                onClick={() => setSelectedAdvocate(null)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#9ca3af",
+                  cursor: "pointer",
+                  fontSize: "1.25rem",
+                  paddinf: "0.5rem"
+                }}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <p style={{ margin: "0 0 0.5rem" }}>
+              📍 <strong>Address:</strong> {selectedAdvocate.vicinity}
+            </p>
+            <p style={{ margin: "0 0 1rem" }}>
+              📞 <strong>Phone:</strong>{" "}
+              {selectedAdvocate.phone && selectedAdvocate.phone !== "Not available"
+                ? (
+                  <a
+                    href={`tel:${selectedAdvocate.phone.replace(/[^0-9+]/g, '')}`}
+                    style={{ color: "#34d399", textDecoration: "underline" }}
+                  >
+                    {selectedAdvocate.phone}
+                  </a>
+                )
+                : "Not available"}
+            </p>
+
+            {MAPS_EMBED_API_KEY && (
+              <img
+                src={`https://maps.googleapis.com/maps/api/staticmap?center=${selectedAdvocate.lat},${selectedAdvocate.lng}&zoom=17&size=1000x700&markers=color:red%7C${selectedAdvocate.lat},${selectedAdvocate.lng}&key=${MAPS_EMBED_API_KEY}`}
+                alt="Map preview"
+                style={{
+                  borderRadius: "0.5rem",
+                  width: "100%",
+                  marginBottom: "1rem",
+                  display: "block"
+                }}
+              />
+            )}
+
+            <button
+              style={{
+                background: "#fbbf24",
+                color: "#2d2d2d",
+                borderRadius: "0.5rem",
+                padding: "0.5rem 1rem",
+                fontWeight: 600,
+                fontSize: "0.9rem",
+                border: "none",
+                cursor: "pointer",
+                width: "100%",
+              }}
+              onClick={() => {
+                if (selectedAdvocate.lat && selectedAdvocate.lng) {
+                  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedAdvocate.name + ', ' + selectedAdvocate.vicinity)}`, '_blank');
+                }
+              }}
+            >
+              Open Directions in Google Maps
+            </button>
+          </div>
+        </div>
+      )}
       {/* Fixed WhatsApp Button */}
       <div
         style={{
@@ -1664,7 +1931,7 @@ export default function App() {
     </div>
 
       {/* CSS Animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes ping {
           75%, 100% {
             transform: scale(2);

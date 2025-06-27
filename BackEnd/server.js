@@ -550,6 +550,63 @@ app.get("/nearby-police", async (req, res) => {
   }
 })
 
+
+// --- ROUTE: /nearby-advocate ---
+// --- ROUTE: /nearby-advocate ---
+app.get("/nearby-advocate", async (req, res) => {
+  const { lat, lng } = req.query;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+
+  if (!lat || !lng) {
+    return res.status(400).json({ error: "Missing lat or lng parameter" });
+  }
+  if (!apiKey) {
+    return res.status(500).json({ error: "Google Maps API key not set in .env" });
+  }
+
+  try {
+    // 1. Get nearby places
+    const nearUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=establishment&keyword=advocate&key=${apiKey}`;
+    const response = await fetch(nearUrl);
+    const data = await response.json();
+    if (!data.results || data.results.length === 0) return res.json({ advocates: [] });
+
+    // 2. For each place, fetch details
+    const advocates = await Promise.all(
+      data.results.slice(0, 10).map(async (place) => {
+        let phone = "Not available";
+        let placeUrl = `https://www.google.com/maps/place/?q=place_id:${place.place_id}`;
+        try {
+          const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_phone_number,international_phone_number,geometry,vicinity,website&key=${apiKey}`;
+          const detailRes = await fetch(detailUrl);
+          const detailData = await detailRes.json();
+          if (detailData.result) {
+            phone = detailData.result.formatted_phone_number ||
+                    detailData.result.international_phone_number ||
+                    "Not available";
+          }
+        } catch (err) {
+          // ignore
+        }
+        return {
+          name: place.name,
+          vicinity: place.vicinity,
+          lat: place.geometry.location.lat,
+          lng: place.geometry.location.lng,
+          phone,
+          placeUrl
+          
+        };
+      })
+    );
+
+    res.json({ advocates });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch advocates." });
+  }
+});
+
+
 // --- ROUTE: /stt (Speech to Text) ---
 app.post("/stt", upload.single("audio"), async (req, res) => {
   if (!req.file) {
