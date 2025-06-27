@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { FaMicrophone, FaMicrophoneSlash, FaMapMarkerAlt, FaPhone, FaTimes, FaVolumeUp } from "react-icons/fa"
+import FileUpload from "./components/FileUpload"; // <-- add this at the top ( for file uplaod folder )
 
 const backendBaseUrl =
   window.location.hostname === "localhost" ? "http://localhost:3000" : "https://nyay-gpt.onrender.com"
@@ -310,6 +311,13 @@ export default function App() {
   const apiCallInProgressRef = useRef(false)
   const timerRef = useRef(null)
   const utteranceIdRef = useRef(0)
+
+const [filePreview, setFilePreview] = useState("");
+const [uploadedFile, setUploadedFile] = useState(null);
+const [loading, setLoading] = useState(false);
+const [problem, setProblem] = useState("");
+const [options, setOptions] = useState([]);
+const [speakPrompt, setSpeakPrompt] = useState("");
 
   const [connected, setConnected] = useState(false)
   const [muted, setMuted] = useState(false)
@@ -702,7 +710,37 @@ export default function App() {
       setCallRequestLoading(false)
     }
   }
+// Call this when file is chosen
+const handleFileSelected = (file) => {
+  setUploadedFile(file);
+  // For images, show a preview; for PDFs, just show file name
+  if (file.type.startsWith("image/")) {
+    setFilePreview(URL.createObjectURL(file));
+  } else {
+    setFilePreview(file.name);
+  }
+  setAwaitingContext(true); // ask for context after upload
+};
 
+const handleUserContext = async (contextText) => {
+  // Upload file and context to backend
+  const formData = new FormData();
+  formData.append("file", uploadedFile);
+  formData.append("context", contextText);
+
+  const res = await fetch(`${backendBaseUrl}/upload-legal-file`, {
+    method: "POST",
+    body: formData,
+  });
+  const data = await res.json();
+  if (data.reply) setHistory((h) => [...h, { role: "assistant", content: data.reply }]);
+  if (data.summary) setSummary(data.summary);
+  setAwaitingContext(false);
+  setUploadedFile(null);
+  setFilePreview("");
+  // Speak the reply automatically with your existing TTS
+  if (data.reply) await speakText(data.reply, currentLang);
+};
   const formatTime = (sec) => `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`
 
   return (
@@ -840,6 +878,94 @@ export default function App() {
             </div>
           </div>
 
+{/* ---- Add this just above your microphone/chat area ---- */}
+<FileUpload onFileSelected={handleFileSelected} />
+
+{filePreview && (
+  <div style={{ margin: "0.5rem 0", textAlign: "center" }}>
+    {uploadedFile?.type?.startsWith("image/") ? (
+      <img src={filePreview} alt="preview" style={{ width: 80, borderRadius: 8 }} />
+    ) : (
+      <span style={{ color: "#10b981" }}>{filePreview}</span>
+    )}
+  </div>
+)}
+
+{/* Show spinner/loader when analyzing */}
+{loading && (
+  <div style={{
+    margin: "1rem 0",
+    background: "#F0FFF4",
+    color: "#222",
+    padding: 12,
+    borderRadius: 8,
+    textAlign: "center",
+    fontWeight: 500
+  }}>
+    <span>Analyzing document...</span>
+    {/* You can add a spinner here */}
+  </div>
+)}
+
+{/* Show problem summary after analysis */}
+{problem && (
+  <div style={{
+    margin: "1.5rem 0",
+    background: "#ECFDF5",
+    color: "#064E3B",
+    padding: "1rem",
+    borderRadius: "1rem",
+    border: "1px solid #A7F3D0",
+    textAlign: "left",
+    fontWeight: 500,
+  }}>
+    <strong>यह आपकी समस्या है:</strong>
+    <div style={{ marginTop: 8 }}>{problem}</div>
+  </div>
+)}
+
+{/* Show options as buttons */}
+{options && options.length > 0 && (
+  <div style={{
+    margin: "1rem 0",
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "0.5rem"
+  }}>
+    {options.map((opt, idx) => (
+      <button
+        key={idx}
+        onClick={() => handleOptionClick(opt)}
+        style={{
+          padding: "0.75rem 1.5rem",
+          background: "#10b981",
+          color: "#fff",
+          border: "none",
+          borderRadius: "8px",
+          fontWeight: 600,
+          cursor: "pointer"
+        }}
+      >
+        {opt}
+      </button>
+    ))}
+  </div>
+)}
+
+{/* Show the follow-up speakPrompt */}
+{speakPrompt && (
+  <div style={{
+    margin: "1rem 0",
+    background: "#F0FFF4",
+    color: "#222",
+    padding: 12,
+    borderRadius: 8,
+    textAlign: "center",
+    fontWeight: 500
+  }}>
+    {speakPrompt}
+  </div>
+)}
           {/* Main Microphone */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "3rem" }}>
             <div style={{ position: "relative" }}>

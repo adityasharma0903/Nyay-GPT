@@ -104,9 +104,8 @@ MIT License.
 
 ## Credits
 
-- Built by [Aditya Sharma](https://github.com/adityasharma0903) and contributors.
+- Built by [Aditya Sharma , Lakshya Chauhan , Vaibhav Katyal , Vaibhav Pandey](https://github.com/adityasharma0903) and contributors.
 - Powered by OpenAI, Google Cloud, and Firebase.
-
 ---
 
 ## Disclaimer

@@ -10,6 +10,8 @@ import { ChatPromptTemplate } from "@langchain/core/prompts"
 import { TextToSpeechClient } from "@google-cloud/text-to-speech"
 import OpenAI from "openai"
 import fetch from "node-fetch"
+import Tesseract from "tesseract.js"
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 // --- NEW IMPORTS FOR CONTEXT QnA ---
 import { Pinecone } from "@pinecone-database/pinecone"
@@ -199,7 +201,6 @@ Ask softly if confused. Avoid dangerous legal advice—refer to police/expert wh
 Politely ask for clarification if the query is vague. Never provide risky legal suggestions—suggest expert or police when needed.`
 };
 
-
 // --- EXPRESS APP SETUP ---
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -247,6 +248,71 @@ app.use((err, req, res, next) => {
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() })
 })
+
+// --- PDF TEXT EXTRACTION FUNCTION (with pdfjs-dist) ---
+async function extractTextFromPDF(filePath) {
+  const data = new Uint8Array(fs.readFileSync(filePath));
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  let fullText = '';
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += pageText + '\n';
+  }
+  return fullText;
+}
+
+// --- ROUTE: /upload-legal-file ---
+app.post("/upload-legal-file", upload.single("file"), async (req, res) => {
+  try {
+    const file = req.file;
+    const context = req.body.context?.trim() || "";
+    let extractedText = "";
+
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded." });
+    }
+
+    if (file.mimetype === "application/pdf") {
+      extractedText = await extractTextFromPDF(file.path);
+    } else if (file.mimetype.startsWith("image/")) {
+      const { data: { text } } = await Tesseract.recognize(file.path, "eng");
+      extractedText = text;
+    } else {
+      fs.unlinkSync(file.path);
+      return res.status(400).json({ error: "Unsupported file type." });
+    }
+
+    fs.unlinkSync(file.path); // Clean up
+
+    // If context is empty or < 5 chars, ask for more info
+    if (!context || context.length < 5) {
+      return res.json({
+        reply: "Thank you for uploading the document. Could you briefly share your specific concerns or any details about your situation related to this document?"
+      });
+    }
+
+    // Combine context and extracted text for LLM
+    const lang = (req.body.language || "hindi").toLowerCase();
+    const sysPrompt = systemPrompts[lang] || systemPrompts["hindi"];
+    const userMsg = `${context}\n\nDocument Content:\n${extractedText}`.trim();
+
+    // Use your LLM logic here (example with askGrok)
+    const prompt = `${sysPrompt}\nQ: ${userMsg}\nA:`;
+    let aiResult;
+    try {
+      aiResult = await askGrok(sysPrompt, prompt);
+    } catch (e) {
+      aiResult = "Sorry, there was a problem generating an answer.";
+    }
+
+    res.json({ reply: aiResult });
+  } catch (err) {
+    console.error("[UPLOAD-LEGAL-FILE] ERROR:", err);
+    res.status(500).json({ error: "Failed to process file." });
+  }
+});
 
 // --- ROUTE: /ask ---
 app.post("/ask", async (req, res) => {
@@ -329,21 +395,9 @@ ${context ? `\n\nसंदर्भ:\n${context}\n` : ""}
 
     // Emergency keyword detection
     const emergencyKeywords = [
-      "violence",
-      "rape",
-      "murder",
-      "emergency",
-      "harassment",
-      "attack",
-      "threat",
-      "injury",
-      "police",
-      "crime",
-      "suicide",
-      "danger",
-      "molestation",
-      "kidnap",
-      "missing",
+      "violence", "rape", "murder", "emergency", "harassment", "attack",
+      "threat", "injury", "police", "crime", "suicide", "danger",
+      "molestation", "kidnap", "missing",
     ]
     const textCheck = (userQuestion + " " + (answer || "")).toLowerCase()
     const found = emergencyKeywords.some((w) => textCheck.includes(w))
@@ -370,7 +424,7 @@ app.post("/speak", async (req, res) => {
     return res.status(400).json({ error: "Text is required" })
   }
 
-  // Voice selection map
+  // Voice selection map (same as your original)
   const voiceMap = {
     hindi: { code: "hi-IN", name: "hi-IN-Standard-E" },
     punjabi: { code: "pa-IN", name: "pa-IN-Wavenet-A" },
@@ -385,32 +439,32 @@ app.post("/speak", async (req, res) => {
     odia: { code: "or-IN", name: "or-IN-Standard-A" },
     english: { code: "en-IN", name: "en-IN-Standard-E" },
     awadhi: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  bhojpuri: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  maithili: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  bundeli: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  haryanvi: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  marwari: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  chhattisgarhi: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  dogri: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  varhadi: { code: "mr-IN", name: "mr-IN-Wavenet-A" }, // Close to Marathi
-  tulu: { code: "kn-IN", name: "kn-IN-Wavenet-A" },    // Closest to Kannada
-  konkani: { code: "mr-IN", name: "mr-IN-Wavenet-A" }, // Closest to Marathi
-  manipuri: { code: "bn-IN", name: "bn-IN-Wavenet-A" }, // Approx fallback
-  nepali: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  assamese: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
-  santali: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  sindhi: { code: "ur-IN", name: "ur-IN-Wavenet-A" },
-  bodo: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  kashmiri: { code: "ur-IN", name: "ur-IN-Wavenet-A" },
-  ladakhi: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  lepcha: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  mizo: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
-  mundari: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  bhili: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  garo: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
-  khasi: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
-  nagamese: { code: "hi-IN", name: "hi-IN-Standard-E" },
-  kokborok: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
+    bhojpuri: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    maithili: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    bundeli: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    haryanvi: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    marwari: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    chhattisgarhi: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    dogri: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    varhadi: { code: "mr-IN", name: "mr-IN-Wavenet-A" },
+    tulu: { code: "kn-IN", name: "kn-IN-Wavenet-A" },
+    konkani: { code: "mr-IN", name: "mr-IN-Wavenet-A" },
+    manipuri: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
+    nepali: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    assamese: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
+    santali: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    sindhi: { code: "ur-IN", name: "ur-IN-Wavenet-A" },
+    bodo: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    kashmiri: { code: "ur-IN", name: "ur-IN-Wavenet-A" },
+    ladakhi: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    lepcha: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    mizo: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
+    mundari: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    bhili: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    garo: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
+    khasi: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
+    nagamese: { code: "hi-IN", name: "hi-IN-Standard-E" },
+    kokborok: { code: "bn-IN", name: "bn-IN-Wavenet-A" },
   }
 
   const selected = voiceMap[language] || voiceMap.hindi
@@ -443,7 +497,7 @@ app.post("/speak", async (req, res) => {
   }
 })
 
-// --- FIXED ROUTE: /request-call ---
+// --- ROUTE: /request-call ---
 app.post("/request-call", async (req, res) => {
   console.log("[REQUEST-CALL] Received request:", req.body);
 
@@ -509,7 +563,6 @@ app.post("/request-call", async (req, res) => {
   }
 });
 
-
 // --- ROUTE: /nearby-police ---
 app.get("/nearby-police", async (req, res) => {
   console.log("NEARBY POLICE ROUTE HIT, QUERY:", req.query)
@@ -550,8 +603,6 @@ app.get("/nearby-police", async (req, res) => {
   }
 })
 
-
-// --- ROUTE: /nearby-advocate ---
 // --- ROUTE: /nearby-advocate ---
 app.get("/nearby-advocate", async (req, res) => {
   const { lat, lng } = req.query;
@@ -595,7 +646,6 @@ app.get("/nearby-advocate", async (req, res) => {
           lng: place.geometry.location.lng,
           phone,
           placeUrl
-          
         };
       })
     );
@@ -605,7 +655,6 @@ app.get("/nearby-advocate", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch advocates." });
   }
 });
-
 
 // --- ROUTE: /stt (Speech to Text) ---
 app.post("/stt", upload.single("audio"), async (req, res) => {
