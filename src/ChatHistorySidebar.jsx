@@ -10,7 +10,7 @@ useEffect(() => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const token = user?.token;
-      const res = await fetch("http://localhost:3000/history", {
+      const res = await fetch("https://nyay-gpt.onrender.com", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch");

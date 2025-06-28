@@ -357,7 +357,7 @@ export default function MainLanding({ chatId }) {
       const user = JSON.parse(localStorage.getItem("user"));
       const token = user?.token;
 
-      const res = await fetch(`http://localhost:3000/history/${chatId}`, {
+      const res = await fetch(`https://nyay-gpt.onrender.com/history/${chatId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
