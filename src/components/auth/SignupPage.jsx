@@ -1,18 +1,58 @@
 import React, { useState } from "react";
 import AuthLayout from "./AuthLayout";
 import { Link } from "react-router-dom";
+import { auth } from "../../firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+
 
 export default function SignupPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Placeholder for actual signup logic
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    // TODO: Implement registration logic here
-    setTimeout(() => setLoading(false), 1200); // Demo purpose
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const userCred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+    await updateProfile(userCred.user, { displayName: form.name });
+
+    const token = await userCred.user.getIdToken();
+
+    // Send token to backend and sync user to MongoDB
+    await fetch("http://localhost:3000/sync-user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name: form.name }),
+    });
+
+    // ✅ Now get full user info from /profile
+    const res = await fetch("http://localhost:3000/profile", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    // ✅ Save to localStorage
+    localStorage.setItem("user", JSON.stringify(data));
+
+    alert("Account created ✅");
+    navigate("/"); // redirect to homepage/dashboard
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+
+  setLoading(false);
+};
+
 
   return (
     <AuthLayout title="Join Nyay-GPT" subtitle="Create your AI-powered account">

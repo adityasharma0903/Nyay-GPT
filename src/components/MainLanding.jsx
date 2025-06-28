@@ -822,6 +822,27 @@ export default function MainLanding(props) {
 
   const formatTime = (sec) => `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`
 
+
+
+  
+
+
+  const [user, setUser] = useState(null);
+  // const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/");
+  };
+
   return (
     <div
       style={{
@@ -848,7 +869,7 @@ export default function MainLanding(props) {
       />
 
       {/* Glassmorphism Navbar */}
-      <nav
+<nav
       style={{
         background: "rgba(17, 24, 39, 0.85)",
         backdropFilter: "blur(20px)",
@@ -929,52 +950,88 @@ export default function MainLanding(props) {
             {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
           </div>
 
-          {/* Auth Buttons - glassmorphism style */}
-          <Link to="/login" style={{ textDecoration: "none" }}>
-            <button
-              style={{
-                background: "rgba(99,102,241,0.18)",
-                color: "#fff",
-                border: "1.5px solid rgba(99,102,241,0.25)",
-                borderRadius: "1rem",
-                padding: "0.65rem 2.1rem",
-                fontWeight: 700,
-                fontSize: "1.09rem",
-                boxShadow: "0 2px 12px rgba(99,102,241,0.06)",
-                cursor: "pointer",
-                backdropFilter: "blur(12px)",
-                marginRight: "0.25rem",
-                transition: "all 0.17s",
-                outline: "none",
-              }}
-              onMouseOver={e => e.currentTarget.style.background = "rgba(99,102,241,0.32)"}
-              onMouseOut={e => e.currentTarget.style.background = "rgba(99,102,241,0.18)"}
-            >
-              Login
-            </button>
-          </Link>
-          <Link to="/signup" style={{ textDecoration: "none" }}>
-            <button
-              style={{
-                background: "rgba(16,185,129,0.18)",
-                color: "#fff",
-                border: "1.5px solid rgba(16,185,129,0.22)",
-                borderRadius: "1rem",
-                padding: "0.65rem 2.1rem",
-                fontWeight: 700,
-                fontSize: "1.09rem",
-                boxShadow: "0 2px 12px rgba(16,185,129,0.09)",
-                cursor: "pointer",
-                backdropFilter: "blur(12px)",
-                transition: "all 0.17s",
-                outline: "none",
-              }}
-              onMouseOver={e => e.currentTarget.style.background = "rgba(16,185,129,0.32)"}
-              onMouseOut={e => e.currentTarget.style.background = "rgba(16,185,129,0.18)"}
-            >
-              Sign Up
-            </button>
-          </Link>
+          {/* Auth Buttons / User Info */}
+          {user ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
+              <div
+                style={{
+                  fontSize: "0.95rem",
+                  color: "rgba(255,255,255,0.95)",
+                  fontWeight: "bold",
+                }}
+              >
+                👤 {user.name }
+              </div>
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: "rgba(239,68,68,0.18)",
+                  color: "#fff",
+                  border: "1.5px solid rgba(239,68,68,0.28)",
+                  borderRadius: "1rem",
+                  padding: "0.65rem 2rem",
+                  fontWeight: 700,
+                  fontSize: "1.05rem",
+                  boxShadow: "0 2px 10px rgba(239,68,68,0.1)",
+                  cursor: "pointer",
+                  backdropFilter: "blur(10px)",
+                  transition: "all 0.17s",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.32)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.18)")}
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link to="/login" style={{ textDecoration: "none" }}>
+                <button
+                  style={{
+                    background: "rgba(99,102,241,0.18)",
+                    color: "#fff",
+                    border: "1.5px solid rgba(99,102,241,0.25)",
+                    borderRadius: "1rem",
+                    padding: "0.65rem 2.1rem",
+                    fontWeight: 700,
+                    fontSize: "1.09rem",
+                    boxShadow: "0 2px 12px rgba(99,102,241,0.06)",
+                    cursor: "pointer",
+                    backdropFilter: "blur(12px)",
+                    marginRight: "0.25rem",
+                    transition: "all 0.17s",
+                    outline: "none",
+                  }}
+                  onMouseOver={e => e.currentTarget.style.background = "rgba(99,102,241,0.32)"}
+                  onMouseOut={e => e.currentTarget.style.background = "rgba(99,102,241,0.18)"}
+                >
+                  Login
+                </button>
+              </Link>
+              <Link to="/signup" style={{ textDecoration: "none" }}>
+                <button
+                  style={{
+                    background: "rgba(16,185,129,0.18)",
+                    color: "#fff",
+                    border: "1.5px solid rgba(16,185,129,0.22)",
+                    borderRadius: "1rem",
+                    padding: "0.65rem 2.1rem",
+                    fontWeight: 700,
+                    fontSize: "1.09rem",
+                    boxShadow: "0 2px 12px rgba(16,185,129,0.09)",
+                    cursor: "pointer",
+                    backdropFilter: "blur(12px)",
+                    transition: "all 0.17s",
+                    outline: "none",
+                  }}
+                  onMouseOver={e => e.currentTarget.style.background = "rgba(16,185,129,0.32)"}
+                  onMouseOut={e => e.currentTarget.style.background = "rgba(16,185,129,0.18)"}
+                >
+                  Sign Up
+                </button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

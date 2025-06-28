@@ -20,6 +20,32 @@ import { askGrok } from "./grok.js"
 
 // --- ENVIRONMENT SETUP ---
 dotenv.config()
+import mongoose from "mongoose";
+import admin from "firebase-admin";
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    }),
+  });
+}
+
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("✅ Connected to MongoDB"))
+.catch((err) => console.error("❌ MongoDB connection error:", err));
+
+const app = express()
+const PORT = process.env.PORT || 3000
+
+
+
+
 console.log("OpenAI Key Loaded:", process.env.OPENAI_API_KEY ? "✅ YES" : "❌ NO")
 console.log("Groq Key Loaded:", process.env.GROQ_API_KEY ? "✅ YES" : "❌ NO")
 console.log("OmniDim Key Loaded:", process.env.OMNIDIM_API_KEY ? "✅ YES" : "❌ NO")
@@ -202,8 +228,7 @@ Politely ask for clarification if the query is vague. Never provide risky legal 
 }
 
 // --- EXPRESS APP SETUP ---
-const app = express()
-const PORT = process.env.PORT || 3000
+
 
 const upload = multer({ dest: "uploads/" })
 const ttsClient = new TextToSpeechClient()
@@ -221,19 +246,31 @@ const allowedOrigins = ["http://localhost:5173", "http://localhost:3000", "https
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true)
-      } else {
-        callback(new Error("CORS error: Not allowed by CORS"))
-      }
-    },
+    origin: "http://localhost:5173", // ✅ hardcoded for testing
     credentials: true,
-  }),
+  })
 )
+
 
 app.use(bodyParser.json({ limit: "10mb" }))
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }))
+
+
+app.get("/profile", verifyFirebaseToken, async (req, res) => {
+  try {
+    const user = await UserModel.findOne({ uid: req.user.uid });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({
+      uid: req.user.uid,
+      email: req.user.email,
+      name: user.name,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
 
 // --- ERROR HANDLING MIDDLEWARE ---
 app.use((err, req, res, next) => {
@@ -248,6 +285,44 @@ app.use((err, req, res, next) => {
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() })
 })
+
+
+
+async function verifyFirebaseToken(req, res, next) {
+  const token = req.headers.authorization?.split("Bearer ")[1];
+  if (!token) return res.status(401).json({ error: "No token provided" });
+
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    console.error("Auth failed:", err.message);
+    res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+
+const UserSchema = new mongoose.Schema({ uid: String, email: String, name: String });
+const UserModel = mongoose.model("User", UserSchema);
+
+app.post("/sync-user", verifyFirebaseToken, async (req, res) => {
+  const { uid, email } = req.user;
+  const { name } = req.body;
+
+  try {
+    const existing = await UserModel.findOne({ uid });
+    if (!existing) {
+      await UserModel.create({ uid, email, name });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error("User sync error:", err.message);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+
 
 // --- PDF TEXT EXTRACTION FUNCTION (with pdfjs-dist) ---
 async function extractTextFromPDF(filePath) {

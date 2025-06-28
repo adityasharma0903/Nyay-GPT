@@ -1,18 +1,52 @@
 import React, { useState } from "react";
 import AuthLayout from "./AuthLayout";
 import { Link } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase";
+import { useNavigate } from "react-router-dom";
+
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Placeholder for actual login logic
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    // TODO: Implement authentication logic here
-    setTimeout(() => setLoading(false), 1200); // Demo purpose
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const userCred = await signInWithEmailAndPassword(auth, form.email, form.password);
+    const token = await userCred.user.getIdToken();
+
+    // 🔥 Hit backend to get full user data (email + name)
+    const res = await fetch("http://localhost:3000/profile", {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+const data = await res.json();
+console.log("🔥 /profile data:", data); // 👈👈 YAHAN DEKHNA
+
+localStorage.setItem("user", JSON.stringify({
+  name: data.name,
+  email: data.email,
+  uid: data.uid,
+}));
+
+
+    alert("Logged in as " + data.name); // Show username, not email
+    navigate("/"); // Go to home/dashboard
+
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+
+  setLoading(false);
+};
+
+
 
   return (
     <AuthLayout title="Welcome Back!" subtitle="Login to your Nyay-GPT account">
