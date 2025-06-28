@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 
 
 export default function LoginPage() {
+  const BACKEND_URL = "https://nyay-gpt.onrender.com" || "http://localhost:3000";
+
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -21,13 +23,13 @@ const handleSubmit = async (e) => {
     const token = await userCred.user.getIdToken();
 
     // 🔥 Hit backend to get full user data (email + name)
-    const res = await fetch("https://nyay-gpt.onrender.com/profile", {
+    const res = await fetch(`${BACKEND_URL}/profile`, {
   headers: {
     Authorization: `Bearer ${token}`,
   },
 });
 const data = await res.json();
-console.log("🔥 /profile data:", data); // 👈👈 YAHAN DEKHNA
+
 
 localStorage.setItem("user", JSON.stringify({
   name: data.name,
@@ -58,7 +60,7 @@ localStorage.setItem("user", JSON.stringify({
             required
             value={form.email}
             onChange={e => setForm({ ...form, email: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 transition"
+            className="w-full px-4 py-2 rounded-lg border border-gray-700 focus:border-indigo-500 transition  placeholder-gray-700 text-gray-700"
             placeholder="you@example.com"
           />
         </div>
@@ -69,7 +71,7 @@ localStorage.setItem("user", JSON.stringify({
             required
             value={form.password}
             onChange={e => setForm({ ...form, password: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 transition"
+            className="w-full px-4 py-2 rounded-lg border border-gray-700 focus:border-indigo-500 transition placeholder-gray-700 text-gray-700"
             placeholder="Your password"
           />
         </div>
