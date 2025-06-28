@@ -12,6 +12,8 @@ import OpenAI from "openai"
 import fetch from "node-fetch"
 import Tesseract from "tesseract.js"
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs"
+import { v4 as uuidv4 } from "uuid"; // TOP of file
+
 
 // --- NEW IMPORTS FOR CONTEXT QnA ---
 import { Pinecone } from "@pinecone-database/pinecone"
@@ -41,6 +43,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 const app = express()
+app.use(express.json()); 
 const PORT = process.env.PORT || 3000
 
 
@@ -51,6 +54,25 @@ console.log("Groq Key Loaded:", process.env.GROQ_API_KEY ? "✅ YES" : "❌ NO")
 console.log("OmniDim Key Loaded:", process.env.OMNIDIM_API_KEY ? "✅ YES" : "❌ NO")
 console.log("Node Process Info:", process.pid, process.platform, process.version)
 
+
+const allowedOrigins = [
+  "http://localhost:5173",         // Dev Frontend
+  "http://localhost:3000",         // Optional
+  "https://nyaygpt.vercel.app",    // Your deployed frontend
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // if using cookies or auth headers
+  })
+);
 // --- SYSTEM PROMPTS GLOBAL SCOPE ---
 export const systemPrompts = {
   english: `You are Nyay-GPT, a highly knowledgeable, friendly, and concise legal assistant for India. 
@@ -241,25 +263,81 @@ const embeddings = new HuggingFaceTransformersEmbeddings({
   modelName: "Xenova/all-MiniLM-L6-v2",
 })
 
-// --- MIDDLEWARE ---
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://nyaygpt.vercel.app",
-];
+const ChatSchema = new mongoose.Schema({
+  uid: { type: String, required: true, index: true },
+  chatId: { type: String, required: true, unique: true },
+  messages: [
+    {
+      role: { type: String, enum: ["user", "assistant"], required: true },
+      content: { type: String, required: true },
+      timestamp: { type: Date, default: Date.now }
+    }
+  ],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+const ChatModel = mongoose.models.Chat || mongoose.model("Chat", ChatSchema);
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS error: Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+app.post("/history", verifyFirebaseToken, async (req, res) => {
+  const { chatId, message } = req.body;
+    console.log("POST /history UID:", req.user.uid, "chatId:", chatId, "message:", message);
+
+  if (!message || !message.role || !message.content) {
+    return res.status(400).json({ error: "Message is required" });
+  }
+  let chat;
+  try {
+    if (chatId) {
+      chat = await ChatModel.findOneAndUpdate(
+        { uid: req.user.uid, chatId },
+        {
+          $push: { messages: { ...message, timestamp: new Date() } },
+          $set: { updatedAt: new Date() }
+        },
+        { new: true }
+      );
+    } else {
+      // New chat
+      const newChatId = uuidv4();
+      chat = await ChatModel.create({
+        uid: req.user.uid,
+        chatId: newChatId,
+        messages: [{ ...message, timestamp: new Date() }]
+      });
+    }
+    res.json({ chatId: chat.chatId, success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save message" });
+  }
+});
+
+
+app.get("/history", verifyFirebaseToken, async (req, res) => {
+  try {
+    const chats = await ChatModel.find({ uid: req.user.uid })
+      .sort({ updatedAt: -1 })   // latest chat on top
+      .select("-__v");           // optional: remove mongoose version key
+    res.json({ chats });
+    console.log("GET /history UID:", req.user.uid);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch chats" });
+  }
+});
+
+app.get("/history/:chatId", verifyFirebaseToken, async (req, res) => {
+  try {
+    const chat = await ChatModel.findOne({ uid: req.user.uid, chatId: req.params.chatId }).lean();
+    if (!chat) return res.status(404).json({ error: "Chat not found" });
+    res.json({ chat });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch chat" });
+  }
+});
+
+
+
+
+// --- MIDDLEWARE ---
 
 
 

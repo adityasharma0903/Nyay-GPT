@@ -42,8 +42,11 @@ const handleSubmit = async (e) => {
 
     const data = await res.json();
 
-    // ✅ Save to localStorage
-    localStorage.setItem("user", JSON.stringify(data));
+    // ✅ Save to localStorage WITH TOKEN!
+    localStorage.setItem("user", JSON.stringify({
+      ...data,      // name, email, uid
+      token: token, // <-- Yeh zaroori hai!
+    }));
 
     alert("Account created ✅");
     navigate("/"); // redirect to homepage/dashboard

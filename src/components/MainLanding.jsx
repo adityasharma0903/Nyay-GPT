@@ -307,12 +307,14 @@ const languageGreetings = {
 
 
 
-export default function MainLanding(props) {
+export default function MainLanding({ chatId }) {
   const recognitionRef = useRef(null)
   const audioRef = useRef(null)
   const apiCallInProgressRef = useRef(false)
   const timerRef = useRef(null)
   const utteranceIdRef = useRef(0)
+  // const [chatId, setChatId] = useState(null);
+  const [currentChatId, setCurrentChatId] = useState(chatId);
 
   // File upload states
   const [filePreview, setFilePreview] = useState("");
@@ -342,6 +344,39 @@ export default function MainLanding(props) {
   const [showAdvocates, setShowAdvocates] = useState(false);
   const [selectedAdvocate, setSelectedAdvocate] = useState(null);
   const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+
+
+  useEffect(() => {
+  const fetchChat = async () => {
+    if (!chatId) {
+      setHistory([]); // new chat case
+      return;
+    }
+
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const token = user?.token;
+
+      const res = await fetch(`http://localhost:3000/history/${chatId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to load chat");
+      const data = await res.json();
+      setHistory(data.chat.messages || []);
+    } catch (err) {
+      console.error("Chat fetch error:", err.message);
+      setHistory([]);
+    }
+  };
+
+  fetchChat();
+}, [chatId]);
+
+
+
 
   // Audio unlock for mobile devices
   useEffect(() => {
@@ -384,80 +419,106 @@ export default function MainLanding(props) {
 
     let stoppedByApp = false
 
-    recognition.onresult = async (event) => {
-      if (muted || speaking || apiCallInProgressRef.current) return
+recognition.onresult = async (event) => {
+  if (muted || speaking || apiCallInProgressRef.current) return;
 
-      setUserSpeaking(true)
-      setReadyToSpeak(false)
-      setTimeout(() => setUserSpeaking(false), 1200)
-      recognition.stop()
+  setUserSpeaking(true);
+  setReadyToSpeak(false);
+  setTimeout(() => setUserSpeaking(false), 1200);
+  recognition.stop();
 
-      utteranceIdRef.current += 1
-      const thisUtterance = utteranceIdRef.current
-      const userSpeech = event.results[event.results.length - 1][0].transcript.toLowerCase().trim()
+  utteranceIdRef.current += 1;
+  const thisUtterance = utteranceIdRef.current;
+  const userSpeech = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
 
-      // Handle voice context for file upload
-      if (awaitingVoiceContext) {
-        console.log("Voice context received:", userSpeech);
-        setAwaitingVoiceContext(false);
-        await handleFileAnalysis(userSpeech);
-        return;
-      }
+  // Handle context input for document upload
+  if (awaitingVoiceContext) {
+    console.log("Voice context received:", userSpeech);
+    setAwaitingVoiceContext(false);
+    await handleFileAnalysis(userSpeech);
+    return;
+  }
 
-      if (phase === "askLang") {
-        let detectedLang = null
-        Object.keys(languageKeywords).forEach((lang) => {
-          languageKeywords[lang].forEach((keyword) => {
-            if (userSpeech.includes(keyword)) {
-              detectedLang = lang
-            }
-          })
-        })
-        if (detectedLang) {
-          setCurrentLang(detectedLang)
-          setLangSelected(true)
-          setRecognitionKey((k) => k + 1)
-          setHistory([])
-          setPhase("normal")
-          await speakText(languageGreetings[detectedLang], detectedLang)
-          return
-        } else {
-          await speakText("कृपया अपनी पसंदीदा भाषा का नाम दोबारा बताएं। For example: Hindi, English, Tamil, etc.", "hindi")
-          setRecognitionKey((k) => k + 1)
-          return
+  // Handle language selection phase
+  if (phase === "askLang") {
+    let detectedLang = null;
+    Object.keys(languageKeywords).forEach((lang) => {
+      languageKeywords[lang].forEach((keyword) => {
+        if (userSpeech.includes(keyword)) {
+          detectedLang = lang;
         }
-      }
-
-      if (phase === "normal" && !apiCallInProgressRef.current) {
-        apiCallInProgressRef.current = true
-        setSpeaking(true)
-        const newHistory = [...history, { role: "user", content: userSpeech }]
-        setHistory(newHistory)
-        try {
-          const res = await fetch(`${backendBaseUrl}/ask-context`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              history: newHistory,
-              language: currentLang,
-            }),
-          })
-          if (!res.ok) throw new Error(`Server responded with ${res.status}`)
-          const data = await res.json()
-          if (utteranceIdRef.current === thisUtterance && apiCallInProgressRef.current) {
-            setHistory((h) => [...h, { role: "assistant", content: data.reply }])
-            await speakText(data.reply, currentLang)
-            setRecognitionKey((k) => k + 1)
-          }
-        } catch (err) {
-          console.error("API Error:", err)
-          setSpeaking(false)
-          setRecognitionKey((k) => k + 1)
-        } finally {
-          apiCallInProgressRef.current = false
-        }
-      }
+      });
+    });
+    if (detectedLang) {
+      setCurrentLang(detectedLang);
+      setLangSelected(true);
+      setRecognitionKey((k) => k + 1);
+      setHistory([]);
+      setPhase("normal");
+      await speakText(languageGreetings[detectedLang], detectedLang);
+      return;
+    } else {
+      await speakText(
+        "कृपया अपनी पसंदीदा भाषा का नाम दोबारा बताएं। For example: Hindi, English, Tamil, etc.",
+        "hindi"
+      );
+      setRecognitionKey((k) => k + 1);
+      return;
     }
+  }
+
+  // Normal phase: handle user queries
+  if (phase === "normal" && !apiCallInProgressRef.current) {
+    apiCallInProgressRef.current = true;
+    setSpeaking(true);
+
+    // 1. Add user message to history
+    const newHistory = [...history, { role: "user", content: userSpeech }];
+    setHistory(newHistory);
+
+    // 2. Save user message to backend
+    const userMessageObj = { role: "user", content: userSpeech };
+    const returnedChatId = await saveUserChat(userMessageObj, chatId);
+    if (!chatId && returnedChatId) {
+      setChatId(returnedChatId); // ✅ this saves it for next calls
+    }
+
+
+    try {
+      // 3. Call assistant API
+      const res = await fetch(`${backendBaseUrl}/ask-context`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          history: newHistory,
+          language: currentLang,
+        }),
+      });
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      const data = await res.json();
+
+      // 4. If this is still the latest utterance, process reply
+      if (utteranceIdRef.current === thisUtterance && apiCallInProgressRef.current) {
+        // Add assistant reply to history
+        setHistory((h) => [...h, { role: "assistant", content: data.reply }]);
+
+        // 5. Save assistant reply to backend
+        const assistantMessageObj = { role: "assistant", content: data.reply };
+        await saveUserChat(assistantMessageObj, chatId || returnedChatId);
+
+        // 6. Speak reply and prepare for next
+        await speakText(data.reply, currentLang);
+        setRecognitionKey((k) => k + 1);
+      }
+    } catch (err) {
+      console.error("API Error:", err);
+      setSpeaking(false);
+      setRecognitionKey((k) => k + 1);
+    } finally {
+      apiCallInProgressRef.current = false;
+    }
+  }
+};
 
     recognition.onend = () => {
       if (connected && !muted && !stoppedByApp && !speaking) {
@@ -475,6 +536,37 @@ export default function MainLanding(props) {
     } catch (e) {
       console.log("Recognition start failed:", e)
     }
+
+async function saveUserChat(messageObj, existingChatId = null) {
+  // Debug log for tracing
+  console.log("saveUserChat called", messageObj, existingChatId, user);
+
+  // Don't proceed if user/token missing
+  if (!user?.token) return;
+
+  try {
+    const res = await fetch(`${backendBaseUrl}/history`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({
+        chatId: existingChatId, // null for new, or current chatId
+        message: messageObj,
+      }),
+    });
+    const data = await res.json();
+
+    // If backend provides a new chatId (new chat), update the state
+    if (data.chatId && !chatId) {
+      setChatId(data.chatId);
+    }
+    return data.chatId;
+  } catch (err) {
+    console.error("Failed to save chat:", err);
+  }
+}
 
     return () => {
       stoppedByApp = true
@@ -564,16 +656,21 @@ export default function MainLanding(props) {
       const data = await res.json();
       console.log("File analysis response:", data);
 
-      if (data.reply) {
-        // Add to history
-        setHistory((h) => [...h, 
-          { role: "user", content: `Document uploaded: ${uploadedFile.name}. Context: ${contextText}` },
-          { role: "assistant", content: data.reply }
-        ]);
-        
-        // Speak the reply automatically
-        await speakText(data.reply, currentLang || "hindi");
-      }
+if (data.reply) {
+  // User message first
+  const userMsg = { role: "user", content: `Document uploaded: ${uploadedFile.name}. Context: ${contextText}` };
+  await saveUserChat(userMsg, chatId);
+
+  // Assistant reply
+  const assistantMsg = { role: "assistant", content: data.reply };
+  await saveUserChat(assistantMsg, chatId);
+
+  // Add to UI history
+  setHistory((h) => [...h, userMsg, assistantMsg]);
+
+  // Speak the reply automatically
+  await speakText(data.reply, currentLang || "hindi");
+}
 
       // Clear file after analysis
       handleClearFile();
@@ -684,6 +781,7 @@ export default function MainLanding(props) {
       setSpeaking(false)
       setReadyToSpeak(false)
     }
+    setChatId(null);
   }
 
   const handleConnect = async () => {
@@ -1222,6 +1320,8 @@ if (typeof window !== "undefined") {
             awaitingVoiceContext={awaitingVoiceContext}
             onStartVoiceContext={handleStartVoiceContext}
           />
+
+            
 
           {/* Main Microphone */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "3rem" }}>
@@ -2014,7 +2114,24 @@ if (typeof window !== "undefined") {
           </div>
         </div>
       )}
-
+        <div className="p-4 space-y-3">
+  {history.length === 0 ? (
+    <p className="text-gray-500">No messages yet.</p>
+  ) : (
+    history.map((msg, idx) => (
+      <div
+        key={idx}
+        className={`p-3 rounded-lg ${
+          msg.role === "user"
+            ? "bg-blue-100 text-blue-800 text-right"
+            : "bg-gray-100 text-gray-800 text-left"
+        }`}
+      >
+        {msg.content}
+      </div>
+    ))
+  )}
+</div>
       <div>
 
 

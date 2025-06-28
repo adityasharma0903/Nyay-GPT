@@ -21,7 +21,7 @@ const handleSubmit = async (e) => {
   try {
     const userCred = await signInWithEmailAndPassword(auth, form.email, form.password);
     const token = await userCred.user.getIdToken();
-
+    console.log("Firebase Auth Token:", token);
     // 🔥 Hit backend to get full user data (email + name)
     const res = await fetch(`${BACKEND_URL}/profile`, {
   headers: {
@@ -35,6 +35,7 @@ localStorage.setItem("user", JSON.stringify({
   name: data.name,
   email: data.email,
   uid: data.uid,
+  token: token, // <-- Yeh zaroori hai!
 }));
 
 
