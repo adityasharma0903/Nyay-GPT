@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { FaMicrophone, FaMicrophoneSlash, FaMapMarkerAlt, FaPhone, FaTimes, FaVolumeUp } from "react-icons/fa"
 import FileUpload from "./FileUpload"; // <-- add this at the top ( for file uplaod folder )
 import { Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 
 const backendBaseUrl =
@@ -308,13 +309,14 @@ const languageGreetings = {
 
 
 export default function MainLanding({ chatId }) {
+  const { chatId } = useParams();
   const recognitionRef = useRef(null)
   const audioRef = useRef(null)
   const apiCallInProgressRef = useRef(false)
   const timerRef = useRef(null)
   const utteranceIdRef = useRef(0)
   // const [chatId, setChatId] = useState(null);
-  const [currentChatId, setCurrentChatId] = useState(chatId);
+  // const [currentChatId, setCurrentChatId] = useState(chatId);
 
   // File upload states
   const [filePreview, setFilePreview] = useState("");

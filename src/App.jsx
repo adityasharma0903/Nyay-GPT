@@ -36,7 +36,9 @@ export default function App() {
       <ChatHistorySidebar onSelectChat={handleSelectChat} />
       <div style={{ flex: 1, overflow: "auto" }}>
         <Routes>
-          <Route path="/" element={<MainLanding chatId={selectedChatId} />} />
+          <Route path="/chat/:chatId" element={<MainLanding />} />
+          <Route path="/" element={<MainLanding />} />
+
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
         </Routes>
