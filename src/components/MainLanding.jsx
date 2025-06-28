@@ -308,7 +308,7 @@ const languageGreetings = {
 
 
 
-export default function MainLanding({ chatId }) {
+export default function MainLanding() {
   const { chatId } = useParams();
   const recognitionRef = useRef(null)
   const audioRef = useRef(null)
