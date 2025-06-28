@@ -2116,24 +2116,7 @@ if (typeof window !== "undefined") {
           </div>
         </div>
       )}
-        <div className="p-4 space-y-3">
-  {history.length === 0 ? (
-    <p className="text-gray-500">No messages yet.</p>
-  ) : (
-    history.map((msg, idx) => (
-      <div
-        key={idx}
-        className={`p-3 rounded-lg ${
-          msg.role === "user"
-            ? "bg-blue-100 text-blue-800 text-right"
-            : "bg-gray-100 text-gray-800 text-left"
-        }`}
-      >
-        {msg.content}
-      </div>
-    ))
-  )}
-</div>
+        
       <div>
 
 
