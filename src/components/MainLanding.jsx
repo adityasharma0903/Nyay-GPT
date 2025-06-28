@@ -145,7 +145,7 @@ const languages = {
   },
   mizo: {
     code: "bn-IN",
-    greeting: "Hello! I am Navya from Chanakya AI. Can you tell me what legal help you need or if it’s an emergency?",
+    greeting: "Hello! I am Navya from Chanakya AI. Can you tell me what legal help you need or if it's an emergency?",
   },
   mundari: {
     code: "hi-IN",
@@ -277,7 +277,7 @@ const languageGreetings = {
 
   assamese: "নমস্কাৰ, মই নব্যা, চাণক্য AI ৰ পৰা আপোনাৰ লিগেল এজেন্ট। আপোনাক ভালকৈ সহায় কৰিবলৈ, অনুগ্ৰহ কৰি ক'ব পাৰিবনে আপোনাৰ কিদৰে সহায়ৰ প্ৰয়োজন?",
 
-  santali: "Johar! Ing navya kana chaanakya AI re legal agent do. Enge eda kana menak’ sagaw kana kanaen do?",
+  santali: "Johar! Ing navya kana chaanakya AI re legal agent do. Enge eda kana menak' sagaw kana kanaen do?",
 
   sindhi: "سلام، مان ناويا آهيان، چانڪيا اي آءِ مان توهانجي قانوني ايجنٽ. مهرباني ڪري ٻڌايو ته توهان کي ڪهڙي قانوني مدد گهرجي يا توهان ايمرجنسي ۾ آهيو؟",
 
@@ -287,7 +287,7 @@ const languageGreetings = {
 
   ladakhi: "जूलय! में नव्या यिन, चाणक्य एआई ले थुगे लीगल एजेंट यिन। थुगे हेनान कानूनी मदद हक्पा यिन ना?",
 
-  lepcha: "Namaste, I am Navya from Chanakya AI. I’m your legal assistant. Could you tell me if you need legal help or if it’s an emergency?",
+  lepcha: "Namaste, I am Navya from Chanakya AI. I'm your legal assistant. Could you tell me if you need legal help or if it's an emergency?",
 
   mizo: "Chibai! Ka hming Navya, Chanakya AI atangin. Lawmin chhiar ang che, eng kinda tihchhiar ngai ang che?",
 
@@ -314,12 +314,11 @@ export default function MainLanding(props) {
   const timerRef = useRef(null)
   const utteranceIdRef = useRef(0)
 
-const [filePreview, setFilePreview] = useState("");
-const [uploadedFile, setUploadedFile] = useState(null);
-const [loading, setLoading] = useState(false);
-const [problem, setProblem] = useState("");
-const [options, setOptions] = useState([]);
-const [speakPrompt, setSpeakPrompt] = useState("");
+  // File upload states
+  const [filePreview, setFilePreview] = useState("");
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [awaitingVoiceContext, setAwaitingVoiceContext] = useState(false);
 
   const [connected, setConnected] = useState(false)
   const [muted, setMuted] = useState(false)
@@ -397,6 +396,14 @@ const [speakPrompt, setSpeakPrompt] = useState("");
       const thisUtterance = utteranceIdRef.current
       const userSpeech = event.results[event.results.length - 1][0].transcript.toLowerCase().trim()
 
+      // Handle voice context for file upload
+      if (awaitingVoiceContext) {
+        console.log("Voice context received:", userSpeech);
+        setAwaitingVoiceContext(false);
+        await handleFileAnalysis(userSpeech);
+        return;
+      }
+
       if (phase === "askLang") {
         let detectedLang = null
         Object.keys(languageKeywords).forEach((lang) => {
@@ -473,7 +480,7 @@ const [speakPrompt, setSpeakPrompt] = useState("");
       stoppedByApp = true
       recognition.stop()
     }
-  }, [connected, muted, recognitionKey, speaking, phase, currentLang, history])
+  }, [connected, muted, recognitionKey, speaking, phase, currentLang, history, awaitingVoiceContext])
 
   // Timer setup
   useEffect(() => {
@@ -485,6 +492,104 @@ const [speakPrompt, setSpeakPrompt] = useState("");
     }
     return () => clearInterval(timerRef.current)
   }, [connected])
+
+  // File upload handlers
+  const handleFileSelected = (file) => {
+    console.log("File selected:", file.name);
+    setUploadedFile(file);
+    
+    // For images, show a preview; for PDFs, just show file name
+    if (file.type.startsWith("image/")) {
+      setFilePreview(URL.createObjectURL(file));
+    } else {
+      setFilePreview(file.name);
+    }
+    
+    setAwaitingVoiceContext(true);
+  };
+
+  const handleClearFile = () => {
+    setUploadedFile(null);
+    setFilePreview("");
+    setAwaitingVoiceContext(false);
+    setLoading(false);
+  };
+
+  // FIXED: This function now properly triggers voice recognition
+  const handleStartVoiceContext = () => {
+    console.log("Starting voice context collection...");
+    
+    // If not connected, connect first
+    if (!connected) {
+      setConnected(true);
+      setMuted(false);
+      setLangSelected(true); // Skip language selection for file context
+      setCurrentLang("hindi"); // Default to Hindi
+      setPhase("normal");
+      setRecognitionKey((k) => k + 1);
+    }
+    
+    // Ensure we're ready to listen
+    setAwaitingVoiceContext(true);
+    setMuted(false);
+    setSpeaking(false);
+    setReadyToSpeak(true);
+    
+    // Restart recognition to ensure it's listening
+    setRecognitionKey((k) => k + 1);
+    
+    // Provide audio feedback
+    const contextPrompt = currentLang === "hindi" 
+      ? "कृपया अपनी दस्तावेज़ के बारे में चिंता बताएं"
+      : "Please tell me your concern about this document";
+    
+    speakText(contextPrompt, currentLang || "hindi");
+  };
+
+  const handleFileAnalysis = async (contextText) => {
+    console.log("Analyzing file with context:", contextText);
+    setLoading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+      formData.append("context", contextText);
+      formData.append("language", currentLang || "hindi");
+
+      const res = await fetch(`${backendBaseUrl}/upload-legal-file`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      console.log("File analysis response:", data);
+
+      if (data.reply) {
+        // Add to history
+        setHistory((h) => [...h, 
+          { role: "user", content: `Document uploaded: ${uploadedFile.name}. Context: ${contextText}` },
+          { role: "assistant", content: data.reply }
+        ]);
+        
+        // Speak the reply automatically
+        await speakText(data.reply, currentLang || "hindi");
+      }
+
+      // Clear file after analysis
+      handleClearFile();
+      
+    } catch (error) {
+      console.error("File analysis error:", error);
+      const errorMessage = currentLang === "hindi" 
+        ? "दस्तावेज़ प्रोसेसिंग में त्रुटि हुई। कृपया दोबारा कोशिश करें।"
+        : "Error processing document. Please try again.";
+      
+      await speakText(errorMessage, currentLang || "hindi");
+      handleClearFile();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMute = () => {
     setMuted((m) => !m)
@@ -514,6 +619,8 @@ const [speakPrompt, setSpeakPrompt] = useState("");
     setPhase("init")
     setCallRequestLoading(false)
     setReadyToSpeak(false)
+    // Clear file upload states
+    handleClearFile()
     recognitionRef.current?.stop()
     if (audioRef.current) {
       audioRef.current.pause()
@@ -712,37 +819,7 @@ const [speakPrompt, setSpeakPrompt] = useState("");
       setCallRequestLoading(false)
     }
   }
-// Call this when file is chosen
-const handleFileSelected = (file) => {
-  setUploadedFile(file);
-  // For images, show a preview; for PDFs, just show file name
-  if (file.type.startsWith("image/")) {
-    setFilePreview(URL.createObjectURL(file));
-  } else {
-    setFilePreview(file.name);
-  }
-  setAwaitingContext(true); // ask for context after upload
-};
 
-const handleUserContext = async (contextText) => {
-  // Upload file and context to backend
-  const formData = new FormData();
-  formData.append("file", uploadedFile);
-  formData.append("context", contextText);
-
-  const res = await fetch(`${backendBaseUrl}/upload-legal-file`, {
-    method: "POST",
-    body: formData,
-  });
-  const data = await res.json();
-  if (data.reply) setHistory((h) => [...h, { role: "assistant", content: data.reply }]);
-  if (data.summary) setSummary(data.summary);
-  setAwaitingContext(false);
-  setUploadedFile(null);
-  setFilePreview("");
-  // Speak the reply automatically with your existing TTS
-  if (data.reply) await speakText(data.reply, currentLang);
-};
   const formatTime = (sec) => `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`
 
   return (
@@ -940,99 +1017,23 @@ const handleUserContext = async (contextText) => {
                 </div>
               )}
               {userSpeaking && "👂 Listening..."}
-              {!speaking && !userSpeaking && !readyToSpeak && connected && "Ready for your question"}
+              {awaitingVoiceContext && "🎤 Tell me about your legal concern with this document"}
+              {!speaking && !userSpeaking && !readyToSpeak && !awaitingVoiceContext && connected && "Ready for your question"}
               {!connected && "Tap the microphone to start"}
             </div>
           </div>
 
-{/* ---- Add this just above your microphone/chat area ---- */}
-<FileUpload onFileSelected={handleFileSelected} />
+          {/* File Upload Component */}
+          <FileUpload 
+            onFileSelected={handleFileSelected}
+            uploadedFile={uploadedFile}
+            filePreview={filePreview}
+            loading={loading}
+            onClearFile={handleClearFile}
+            awaitingVoiceContext={awaitingVoiceContext}
+            onStartVoiceContext={handleStartVoiceContext}
+          />
 
-{filePreview && (
-  <div style={{ margin: "0.5rem 0", textAlign: "center" }}>
-    {uploadedFile?.type?.startsWith("image/") ? (
-      <img src={filePreview} alt="preview" style={{ width: 80, borderRadius: 8 }} />
-    ) : (
-      <span style={{ color: "#10b981" }}>{filePreview}</span>
-    )}
-  </div>
-)}
-
-{/* Show spinner/loader when analyzing */}
-{loading && (
-  <div style={{
-    margin: "1rem 0",
-    background: "#F0FFF4",
-    color: "#222",
-    padding: 12,
-    borderRadius: 8,
-    textAlign: "center",
-    fontWeight: 500
-  }}>
-    <span>Analyzing document...</span>
-    {/* You can add a spinner here */}
-  </div>
-)}
-
-{/* Show problem summary after analysis */}
-{problem && (
-  <div style={{
-    margin: "1.5rem 0",
-    background: "#ECFDF5",
-    color: "#064E3B",
-    padding: "1rem",
-    borderRadius: "1rem",
-    border: "1px solid #A7F3D0",
-    textAlign: "left",
-    fontWeight: 500,
-  }}>
-    <strong>यह आपकी समस्या है:</strong>
-    <div style={{ marginTop: 8 }}>{problem}</div>
-  </div>
-)}
-
-{/* Show options as buttons */}
-{options && options.length > 0 && (
-  <div style={{
-    margin: "1rem 0",
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "0.5rem"
-  }}>
-    {options.map((opt, idx) => (
-      <button
-        key={idx}
-        onClick={() => handleOptionClick(opt)}
-        style={{
-          padding: "0.75rem 1.5rem",
-          background: "#10b981",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          fontWeight: 600,
-          cursor: "pointer"
-        }}
-      >
-        {opt}
-      </button>
-    ))}
-  </div>
-)}
-
-{/* Show the follow-up speakPrompt */}
-{speakPrompt && (
-  <div style={{
-    margin: "1rem 0",
-    background: "#F0FFF4",
-    color: "#222",
-    padding: 12,
-    borderRadius: 8,
-    textAlign: "center",
-    fontWeight: 500
-  }}>
-    {speakPrompt}
-  </div>
-)}
           {/* Main Microphone */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "3rem" }}>
             <div style={{ position: "relative" }}>
@@ -1186,6 +1187,10 @@ const handleUserContext = async (contextText) => {
                 >
                   <FaMicrophone style={{ color: "#f87171" }} />
                   SPEAK NOW
+                </p>
+              ) : awaitingVoiceContext ? (
+                <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>
+                  Tell me about your legal concern with this document
                 </p>
               ) : (
                 <p style={{ color: "rgba(255, 255, 255, 0.8)", margin: 0 }}>Ask your legal question</p>

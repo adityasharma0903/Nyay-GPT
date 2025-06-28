@@ -1,11 +1,8 @@
-"use client"
-
-import { useRef } from "react"
-import { FaUpload, FaFilePdf, FaImage, FaTimes, FaMicrophone } from "react-icons/fa"
+import React, { useRef } from 'react';
+import { FaUpload, FaFilePdf, FaImage, FaTimes, FaMicrophone } from 'react-icons/fa';
 
 const FileUpload = ({
   onFileSelected,
-  onFileAnalyzed,
   uploadedFile,
   filePreview,
   loading,
@@ -13,31 +10,31 @@ const FileUpload = ({
   awaitingVoiceContext,
   onStartVoiceContext,
 }) => {
-  const fileInputRef = useRef(null)
+  const fileInputRef = useRef(null);
 
   const handleFileChange = (event) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
       // Validate file type
-      const validTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
+      const validTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
       if (!validTypes.includes(file.type)) {
-        alert("Please upload only PDF, JPG, or PNG files.")
-        return
+        alert("Please upload only PDF, JPG, or PNG files.");
+        return;
       }
 
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        alert("File size should be less than 10MB.")
-        return
+        alert("File size should be less than 10MB.");
+        return;
       }
 
-      onFileSelected(file)
+      onFileSelected(file);
     }
-  }
+  };
 
   const triggerFileInput = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   return (
     <div style={{ marginBottom: "2rem" }}>
@@ -70,15 +67,15 @@ const FileUpload = ({
             onMouseEnter={(e) => {
               if (!loading) {
                 e.currentTarget.style.background =
-                  "linear-gradient(135deg, rgba(5, 150, 105, 0.9) 0%, rgba(4, 120, 87, 1) 100%)"
-                e.currentTarget.style.transform = "translateY(-2px)"
+                  "linear-gradient(135deg, rgba(5, 150, 105, 0.9) 0%, rgba(4, 120, 87, 1) 100%)";
+                e.currentTarget.style.transform = "translateY(-2px)";
               }
             }}
             onMouseLeave={(e) => {
               if (!loading) {
                 e.currentTarget.style.background =
-                  "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)"
-                e.currentTarget.style.transform = "translateY(0)"
+                  "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)";
+                e.currentTarget.style.transform = "translateY(0)";
               }
             }}
           >
@@ -101,7 +98,7 @@ const FileUpload = ({
               marginTop: "0.5rem",
             }}
           >
-           
+            PDF, JPG, PNG (Max 10MB)
           </div>
         </div>
       )}
@@ -152,7 +149,7 @@ const FileUpload = ({
           {uploadedFile.type.startsWith("image/") && (
             <div style={{ textAlign: "center", marginBottom: "0.75rem" }}>
               <img
-                src={filePreview || "/placeholder.svg"}
+                src={filePreview}
                 alt="Document preview"
                 style={{
                   maxWidth: "200px",
@@ -197,6 +194,7 @@ const FileUpload = ({
                   marginTop: "0.5rem",
                 }}
               >
+                Tell me about your legal concern with this document
               </div>
             </div>
           )}
@@ -272,7 +270,7 @@ const FileUpload = ({
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default FileUpload
+export default FileUpload;
