@@ -23,7 +23,7 @@ const handleSubmit = async (e) => {
     const token = await userCred.user.getIdToken();
 
     // Send token to backend and sync user to MongoDB
-    await fetch("http://localhost:3000/sync-user", {
+    await fetch("https://nyay-gpt.onrender.com/sync-user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,7 +33,7 @@ const handleSubmit = async (e) => {
     });
 
     // ✅ Now get full user info from /profile
-    const res = await fetch("http://localhost:3000/profile", {
+    const res = await fetch("https://nyay-gpt.onrender.com/profile", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

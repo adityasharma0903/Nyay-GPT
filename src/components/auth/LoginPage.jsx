@@ -21,7 +21,7 @@ const handleSubmit = async (e) => {
     const token = await userCred.user.getIdToken();
 
     // 🔥 Hit backend to get full user data (email + name)
-    const res = await fetch("http://localhost:3000/profile", {
+    const res = await fetch("https://nyay-gpt.onrender.com/profile", {
   headers: {
     Authorization: `Bearer ${token}`,
   },
