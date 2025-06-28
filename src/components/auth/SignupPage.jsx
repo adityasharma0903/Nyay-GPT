@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 
 export default function SignupPage() {
+  const BACKEND_URL = "https://nyay-gpt.onrender.com" || "http://localhost:3000";
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const handleSubmit = async (e) => {
     const token = await userCred.user.getIdToken();
 
     // Send token to backend and sync user to MongoDB
-    await fetch("https://nyay-gpt.onrender.com/sync-user", {
+    await fetch(`${BACKEND_URL}/sync-user`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,7 +34,7 @@ const handleSubmit = async (e) => {
     });
 
     // ✅ Now get full user info from /profile
-    const res = await fetch("https://nyay-gpt.onrender.com/profile", {
+    const res = await fetch(`${BACKEND_URL}/profile`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -64,18 +65,18 @@ const handleSubmit = async (e) => {
             required
             value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 transition"
+            className="w-full px-4 py-2 rounded-lg border border-gray-700 focus:border-indigo-500 transition placeholder-gray-700 text-gray-700"
             placeholder="Your name"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1 ">Email</label>
           <input
             type="email"
             required
             value={form.email}
             onChange={e => setForm({ ...form, email: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 transition"
+            className="w-full px-4 py-2 rounded-lg border border-gray-700 focus:border-indigo-500 transition placeholder-gray-700 text-gray-700"
             placeholder="you@example.com"
           />
         </div>
@@ -86,7 +87,7 @@ const handleSubmit = async (e) => {
             required
             value={form.password}
             onChange={e => setForm({ ...form, password: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 transition"
+            className="w-full px-4 py-2 rounded-lg border border-gray-700 focus:border-indigo-500 transition  placeholder-gray-700 text-gray-700"
             placeholder="Create a password"
           />
         </div>
