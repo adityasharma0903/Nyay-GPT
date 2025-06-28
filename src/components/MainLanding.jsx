@@ -842,6 +842,187 @@ export default function MainLanding(props) {
     setUser(null);
     navigate("/");
   };
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+const styles = {
+    nav: {
+      background: "rgba(17, 24, 39, 0.85)",
+      backdropFilter: "blur(20px)",
+      borderBottom: "1px solid rgba(255,255,255,0.08)",
+      padding: "1.2rem 2rem",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
+      position: "relative",
+      zIndex: 10,
+      width: "100%",
+    },
+    container: {
+      maxWidth: "64rem",
+      margin: "0 auto",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      minHeight: "3.5rem",
+    },
+    logoWrapper: {
+      display: "flex",
+      alignItems: "center",
+      gap: "0.85rem",
+      height: "3rem",
+    },
+    logoImg: {
+      width: "3rem",
+      height: "3rem",
+      borderRadius: "0.5rem",
+      objectFit: "contain",
+      backgroundColor: "#000",
+    },
+    logoText: {
+      fontSize: "1.5rem",
+      fontWeight: "bold",
+      letterSpacing: "0.01em",
+      color: "#fff",
+      margin: 0,
+    },
+    right: {
+      display: "flex",
+      alignItems: "center",
+      gap: "1.2rem",
+    },
+    hamburger: {
+      display: isMobile ? "flex" : "none",
+      flexDirection: "column",
+      cursor: "pointer",
+      gap: "5px",
+      marginLeft: "auto",
+    },
+    bar: {
+      width: "25px",
+      height: "3px",
+      backgroundColor: "#fff",
+      borderRadius: "2px",
+    },
+    desktopMenu: {
+      display: isMobile ? "none" : "flex",
+      alignItems: "center",
+      gap: "1rem",
+    },
+    mobileMenu: {
+      display: menuOpen ? "flex" : "none",
+      flexDirection: "column",
+      position: "absolute",
+      top: "100%",
+      right: "2rem",
+      background: "rgba(17,24,39,0.97)",
+      borderRadius: "1rem",
+      padding: "0.75rem 1.5rem",
+      zIndex: 25,
+      marginTop: "0.5rem",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.18)",
+      minWidth: "180px",
+    },
+    authButtons: {
+      display: "flex",
+      gap: "1rem",
+      flexDirection: isMobile ? "column" : "row",
+    },
+    loginBtn: {
+      background: "rgba(99,102,241,0.18)",
+      color: "#fff",
+      border: "1.5px solid rgba(99,102,241,0.25)",
+      borderRadius: "1rem",
+      padding: "0.6rem 1.5rem",
+      fontWeight: 700,
+      fontSize: "1rem",
+      backdropFilter: "blur(12px)",
+      cursor: "pointer",
+    },
+    signupBtn: {
+      background: "rgba(16,185,129,0.18)",
+      color: "#fff",
+      border: "1.5px solid rgba(16,185,129,0.25)",
+      borderRadius: "1rem",
+      padding: "0.6rem 1.5rem",
+      fontWeight: 700,
+      fontSize: "1rem",
+      backdropFilter: "blur(12px)",
+      cursor: "pointer",
+    },
+    statusBox: {
+      fontSize: "0.95rem",
+      color: "rgba(255,255,255,0.88)",
+      background: "rgba(255,255,255,0.10)",
+      padding: "0.5rem 1.25rem",
+      borderRadius: "1rem",
+      backdropFilter: "blur(10px)",
+      border: "1px solid rgba(255,255,255,0.10)",
+      fontWeight: 500,
+      marginBottom: "0.75rem",
+      marginTop: isMobile ? "1rem" : "0",
+      width: isMobile ? "90%" : "auto",
+      marginLeft: isMobile ? "auto" : 0,
+      marginRight: isMobile ? "auto" : 0,
+      textAlign: "center",
+      display: "block",
+    },
+    userDropdownTrigger: {
+      color: "#fff",
+      fontWeight: "bold",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: "0.5rem",
+    },
+    dropdown: {
+      position: "absolute",
+      top: "100%",
+      right: 0,
+      background: "rgba(255,255,255,0.1)",
+      borderRadius: "0.5rem",
+      marginTop: "0.5rem",
+      padding: "0.5rem 1rem",
+      zIndex: 20,
+    },
+    logoutBtn: {
+      background: "rgba(239,68,68,0.18)",
+      color: "#fff",
+      border: "1.5px solid rgba(239,68,68,0.28)",
+      borderRadius: "0.5rem",
+      padding: "0.5rem 1rem",
+      fontWeight: 600,
+      cursor: "pointer",
+      backdropFilter: "blur(10px)",
+    },
+    menu: {
+    display: "flex",
+    alignItems: "center",
+    gap: "1rem",
+  },
+  menuOpen: {
+    flexDirection: "column",
+    width: "100%",
+    paddingTop: "1rem",
+    display: "flex",
+  },
+  };
+
+// 🔁 Media query styles for mobile hamburger menu
+if (typeof window !== "undefined") {
+  const mediaQuery = window.matchMedia("(max-width: 768px)");
+  if (mediaQuery.matches) {
+    styles.menu.display = "none";
+    styles.hamburger.display = "flex";
+    styles.menuOpen.display = "flex";
+  }
+}
 
   return (
     <div
@@ -869,173 +1050,124 @@ export default function MainLanding(props) {
       />
 
       {/* Glassmorphism Navbar */}
-<nav
-      style={{
-        background: "rgba(17, 24, 39, 0.85)",
-        backdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        padding: "1.2rem 2rem",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
-        position: "relative",
-        zIndex: 10,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "64rem",
-          margin: "0 auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        {/* Logo + Title */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", height: "3rem" }}>
-          <div
-            style={{
-              width: "3rem",
-              height: "3rem",
-              borderRadius: "0.5rem",
-              overflow: "hidden",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#000",
-            }}
-          >
-            <img
-              src="/image.png"
-              alt="Logo"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-              }}
-            />
-          </div>
-          <h1
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: "bold",
-              letterSpacing: "0.01em",
-              textShadow: "0 2px 4px rgba(0,0,0,0.4)",
-              color: "#fff",
-              margin: 0,
-            }}
-          >
-            Chanakya AI
-          </h1>
-        </div>
-
-        {/* Status & Auth Buttons */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1.5rem",
-        }}>
-          {/* Status */}
-          <div
-            style={{
-              fontSize: "0.95rem",
-              color: "rgba(255,255,255,0.88)",
-              background: "rgba(255,255,255,0.10)",
-              padding: "0.5rem 1.25rem",
-              borderRadius: "1rem",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.10)",
-              fontWeight: 500,
-              marginRight: "0.35rem"
-            }}
-          >
-            {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
+<>
+      <nav style={styles.nav}>
+        <div style={styles.container}>
+          {/* Left: Logo + Title */}
+          <div style={styles.logoWrapper}>
+            <img src="/image.png" alt="Logo" style={styles.logoImg} />
+            <h1 style={styles.logoText}>Chanakya AI</h1>
           </div>
 
-          {/* Auth Buttons / User Info */}
-          {user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
-              <div
-                style={{
-                  fontSize: "0.95rem",
-                  color: "rgba(255,255,255,0.95)",
-                  fontWeight: "bold",
-                }}
-              >
-                👤 {user.name }
-              </div>
-              <button
-                onClick={handleLogout}
-                style={{
-                  background: "rgba(239,68,68,0.18)",
-                  color: "#fff",
-                  border: "1.5px solid rgba(239,68,68,0.28)",
-                  borderRadius: "1rem",
-                  padding: "0.65rem 2rem",
-                  fontWeight: 700,
-                  fontSize: "1.05rem",
-                  boxShadow: "0 2px 10px rgba(239,68,68,0.1)",
-                  cursor: "pointer",
-                  backdropFilter: "blur(10px)",
-                  transition: "all 0.17s",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.32)")}
-                onMouseOut={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.18)")}
-              >
-                Logout
-              </button>
+          {/* Center: Status (desktop only) */}
+          {!isMobile && (
+            <div style={styles.statusBox}>
+              {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
             </div>
-          ) : (
-            <>
-              <Link to="/login" style={{ textDecoration: "none" }}>
-                <button
-                  style={{
-                    background: "rgba(99,102,241,0.18)",
-                    color: "#fff",
-                    border: "1.5px solid rgba(99,102,241,0.25)",
-                    borderRadius: "1rem",
-                    padding: "0.65rem 2.1rem",
-                    fontWeight: 700,
-                    fontSize: "1.09rem",
-                    boxShadow: "0 2px 12px rgba(99,102,241,0.06)",
-                    cursor: "pointer",
-                    backdropFilter: "blur(12px)",
-                    marginRight: "0.25rem",
-                    transition: "all 0.17s",
-                    outline: "none",
-                  }}
-                  onMouseOver={e => e.currentTarget.style.background = "rgba(99,102,241,0.32)"}
-                  onMouseOut={e => e.currentTarget.style.background = "rgba(99,102,241,0.18)"}
-                >
-                  Login
-                </button>
-              </Link>
-              <Link to="/signup" style={{ textDecoration: "none" }}>
-                <button
-                  style={{
-                    background: "rgba(16,185,129,0.18)",
-                    color: "#fff",
-                    border: "1.5px solid rgba(16,185,129,0.22)",
-                    borderRadius: "1rem",
-                    padding: "0.65rem 2.1rem",
-                    fontWeight: 700,
-                    fontSize: "1.09rem",
-                    boxShadow: "0 2px 12px rgba(16,185,129,0.09)",
-                    cursor: "pointer",
-                    backdropFilter: "blur(12px)",
-                    transition: "all 0.17s",
-                    outline: "none",
-                  }}
-                  onMouseOver={e => e.currentTarget.style.background = "rgba(16,185,129,0.32)"}
-                  onMouseOut={e => e.currentTarget.style.background = "rgba(16,185,129,0.18)"}
-                >
-                  Sign Up
-                </button>
-              </Link>
-            </>
           )}
-        </div>
-      </div>
-    </nav>
 
+          {/* Right: Hamburger (mobile) or Auth menu (desktop) */}
+          <div style={styles.right}>
+            {/* Hamburger (mobile only) */}
+            <div
+              className="hamburger"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              style={styles.hamburger}
+              aria-label="Open menu"
+            >
+              <div style={styles.bar}></div>
+              <div style={styles.bar}></div>
+              <div style={styles.bar}></div>
+            </div>
+
+            {/* Desktop Auth Menu */}
+            <div className="authMenu" style={styles.desktopMenu}>
+              {user ? (
+                <div style={{ position: "relative" }}>
+                  <div
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    style={styles.userDropdownTrigger}
+                  >
+                    👤 {user.name}
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </div>
+                  {menuOpen && (
+                    <div style={styles.dropdown}>
+                      <button onClick={handleLogout} style={styles.logoutBtn}>
+                        🚪 Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={styles.authButtons}>
+                  <Link to="/login" style={{ textDecoration: "none" }}>
+                    <button style={styles.loginBtn}>Login</button>
+                  </Link>
+                  <Link to="/signup" style={{ textDecoration: "none" }}>
+                    <button style={styles.signupBtn}>Sign Up</button>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Auth Menu */}
+            {isMobile && menuOpen && (
+  <div style={styles.mobileMenu}>
+    {user ? (
+      <>
+        <div
+          style={{
+            color: "#fff",
+            fontWeight: 600,
+            padding: "0.5rem 1rem",
+            marginBottom: "0.25rem",
+            textAlign: "center",
+            borderBottom: "1px solid rgba(255,255,255,0.12)",
+          }}
+        >
+          👤 {user.name}
+        </div>
+        <button onClick={handleLogout} style={styles.logoutBtn}>
+          🚪 Logout
+        </button>
+      </>
+    ) : (
+      <div style={styles.authButtons}>
+        <Link to="/login" style={{ textDecoration: "none" }}>
+          <button style={styles.loginBtn}>Login</button>
+        </Link>
+        <Link to="/signup" style={{ textDecoration: "none" }}>
+          <button style={styles.signupBtn}>Sign Up</button>
+        </Link>
+      </div>
+    )}
+  </div>
+)}
+          </div>
+        </div>
+      </nav>
+
+      {/* Status: mobile below nav */}
+      {isMobile && (
+        <div style={styles.statusBox}>
+          {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
+        </div>
+      )}
+    </>
+
+      
       {/* Main Content */}
       <div
         style={{

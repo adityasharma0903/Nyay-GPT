@@ -493,3 +493,75 @@
   border-radius: 24px;   /* Optional: for rounded look */
   background: transparent;
 }
+
+
+@media (min-width: 768px) {
+  .status-desktop {
+    display: block !important;
+  }
+}
+
+
+/* Hide desktop status on mobile */
+.desktop-status {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.9rem;
+  color: white;
+  background: rgba(255,255,255,0.1);
+  padding: 0.4rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.mobile-status {
+  display: none;
+  font-size: 0.8rem;
+  color: white;
+  background: rgba(255,255,255,0.08);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Responsive toggle */
+@media (max-width: 768px) {
+  .desktop-status {
+    display: none;
+  }
+
+  .mobile-status {
+    display: inline-block;
+    margin-left: 3rem;
+  }
+}
+
+/* HIDE/SHOW elements based on screen size */
+.desktop-status {
+  display: block;
+}
+.desktop-user {
+  display: flex;
+}
+.mobile-menu {
+  display: none;
+}
+.mobile-status {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-status {
+    display: none;
+  }
+  .desktop-user {
+    display: none;
+  }
+  .mobile-menu {
+    display: block;
+  }
+  .mobile-status {
+    display: block;
+  }
+}
