@@ -5,6 +5,8 @@ import { FaMicrophone, FaMicrophoneSlash, FaMapMarkerAlt, FaPhone, FaTimes, FaVo
 import FileUpload from "./FileUpload"; // <-- add this at the top ( for file uplaod folder )
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import ChatHistorySidebar from "../ChatHistorySidebar";
+import "../index.css"
 
 
 const backendBaseUrl =
@@ -114,7 +116,7 @@ const languages = {
   },
   manipuri: {
     code: "hi-IN",
-    greeting: "ꯊꯥꯔꯦꯝ! ꯑꯃ ꯅꯌꯥꯌ GPT ꯑꯃꯁꯤ. ꯑꯃꯅꯤ ꯁꯦꯠꯇꯨ ꯀꯥꯅꯨꯟ ꯄ꯭ꯔꯦꯁꯟ ꯁꯪꯗꯦꯜ ꯀꯨꯠ ꯇꯨꯡ.",
+    greeting: "ꯊꯥꯔꯦꯝ! ꯑꯃ ꯅꯌꯥꯌ GPT ꯑꯃꯁꯤ. ꯑꯃꯅꯤ ꯁꯦꯠꯇꯨ ꯀꯥꯨꯟ ꯄ꯭ꯔꯦꯁꯟ ꯁꯪꯗꯦꯜ ꯀꯨꯠ ꯇꯨꯡ.",
   },
   nepali: {
     code: "hi-IN",
@@ -344,40 +346,38 @@ export default function MainLanding() {
   const [phoneNumber, setPhoneNumber] = useState("")
   const [advocates, setAdvocates] = useState([]);
   const [showAdvocates, setShowAdvocates] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedAdvocate, setSelectedAdvocate] = useState(null);
   const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
-
   useEffect(() => {
-  const fetchChat = async () => {
-    if (!chatId) {
-      setHistory([]); // new chat case
-      return;
-    }
+    const fetchChat = async () => {
+      if (!chatId) {
+        setHistory([]); // new chat case
+        return;
+      }
 
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const token = user?.token;
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = user?.token;
 
-      const res = await fetch(`https://nyay-gpt.onrender.com/history/${chatId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        const res = await fetch(`https://nyay-gpt.onrender.com/history/${chatId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      if (!res.ok) throw new Error("Failed to load chat");
-      const data = await res.json();
-      setHistory(data.chat.messages || []);
-    } catch (err) {
-      console.error("Chat fetch error:", err.message);
-      setHistory([]);
-    }
-  };
+        if (!res.ok) throw new Error("Failed to load chat");
+        const data = await res.json();
+        setHistory(data.chat.messages || []);
+      } catch (err) {
+        console.error("Chat fetch error:", err.message);
+        setHistory([]);
+      }
+    };
 
-  fetchChat();
-}, [chatId]);
-
-
+    fetchChat();
+  }, [chatId]);
 
 
   // Audio unlock for mobile devices
@@ -421,106 +421,106 @@ export default function MainLanding() {
 
     let stoppedByApp = false
 
-recognition.onresult = async (event) => {
-  if (muted || speaking || apiCallInProgressRef.current) return;
+    recognition.onresult = async (event) => {
+      if (muted || speaking || apiCallInProgressRef.current) return;
 
-  setUserSpeaking(true);
-  setReadyToSpeak(false);
-  setTimeout(() => setUserSpeaking(false), 1200);
-  recognition.stop();
+      setUserSpeaking(true);
+      setReadyToSpeak(false);
+      setTimeout(() => setUserSpeaking(false), 1200);
+      recognition.stop();
 
-  utteranceIdRef.current += 1;
-  const thisUtterance = utteranceIdRef.current;
-  const userSpeech = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+      utteranceIdRef.current += 1;
+      const thisUtterance = utteranceIdRef.current;
+      const userSpeech = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
 
-  // Handle context input for document upload
-  if (awaitingVoiceContext) {
-    console.log("Voice context received:", userSpeech);
-    setAwaitingVoiceContext(false);
-    await handleFileAnalysis(userSpeech);
-    return;
-  }
-
-  // Handle language selection phase
-  if (phase === "askLang") {
-    let detectedLang = null;
-    Object.keys(languageKeywords).forEach((lang) => {
-      languageKeywords[lang].forEach((keyword) => {
-        if (userSpeech.includes(keyword)) {
-          detectedLang = lang;
-        }
-      });
-    });
-    if (detectedLang) {
-      setCurrentLang(detectedLang);
-      setLangSelected(true);
-      setRecognitionKey((k) => k + 1);
-      setHistory([]);
-      setPhase("normal");
-      await speakText(languageGreetings[detectedLang], detectedLang);
-      return;
-    } else {
-      await speakText(
-        "कृपया अपनी पसंदीदा भाषा का नाम दोबारा बताएं। For example: Hindi, English, Tamil, etc.",
-        "hindi"
-      );
-      setRecognitionKey((k) => k + 1);
-      return;
-    }
-  }
-
-  // Normal phase: handle user queries
-  if (phase === "normal" && !apiCallInProgressRef.current) {
-    apiCallInProgressRef.current = true;
-    setSpeaking(true);
-
-    // 1. Add user message to history
-    const newHistory = [...history, { role: "user", content: userSpeech }];
-    setHistory(newHistory);
-
-    // 2. Save user message to backend
-    const userMessageObj = { role: "user", content: userSpeech };
-    const returnedChatId = await saveUserChat(userMessageObj, chatId);
-    if (!chatId && returnedChatId) {
-      setChatId(returnedChatId); // ✅ this saves it for next calls
-    }
-
-
-    try {
-      // 3. Call assistant API
-      const res = await fetch(`${backendBaseUrl}/ask-context`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          history: newHistory,
-          language: currentLang,
-        }),
-      });
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-      const data = await res.json();
-
-      // 4. If this is still the latest utterance, process reply
-      if (utteranceIdRef.current === thisUtterance && apiCallInProgressRef.current) {
-        // Add assistant reply to history
-        setHistory((h) => [...h, { role: "assistant", content: data.reply }]);
-
-        // 5. Save assistant reply to backend
-        const assistantMessageObj = { role: "assistant", content: data.reply };
-        await saveUserChat(assistantMessageObj, chatId || returnedChatId);
-
-        // 6. Speak reply and prepare for next
-        await speakText(data.reply, currentLang);
-        setRecognitionKey((k) => k + 1);
+      // Handle context input for document upload
+      if (awaitingVoiceContext) {
+        console.log("Voice context received:", userSpeech);
+        setAwaitingVoiceContext(false);
+        await handleFileAnalysis(userSpeech);
+        return;
       }
-    } catch (err) {
-      console.error("API Error:", err);
-      setSpeaking(false);
-      setRecognitionKey((k) => k + 1);
-    } finally {
-      apiCallInProgressRef.current = false;
-    }
-  }
-};
+
+      // Handle language selection phase
+      if (phase === "askLang") {
+        let detectedLang = null;
+        Object.keys(languageKeywords).forEach((lang) => {
+          languageKeywords[lang].forEach((keyword) => {
+            if (userSpeech.includes(keyword)) {
+              detectedLang = lang;
+            }
+          });
+        });
+        if (detectedLang) {
+          setCurrentLang(detectedLang);
+          setLangSelected(true);
+          setRecognitionKey((k) => k + 1);
+          setHistory([]);
+          setPhase("normal");
+          await speakText(languageGreetings[detectedLang], detectedLang);
+          return;
+        } else {
+          await speakText(
+            "कृपया अपनी पसंदीदा भाषा का नाम दोबारा बताएं। For example: Hindi, English, Tamil, etc.",
+            "hindi"
+          );
+          setRecognitionKey((k) => k + 1);
+          return;
+        }
+      }
+
+      // Normal phase: handle user queries
+      if (phase === "normal" && !apiCallInProgressRef.current) {
+        apiCallInProgressRef.current = true;
+        setSpeaking(true);
+
+        // 1. Add user message to history
+        const newHistory = [...history, { role: "user", content: userSpeech }];
+        setHistory(newHistory);
+
+        // 2. Save user message to backend
+        const userMessageObj = { role: "user", content: userSpeech };
+        const returnedChatId = await saveUserChat(userMessageObj, chatId);
+        if (!chatId && returnedChatId) {
+          setChatId(returnedChatId); // ✅ this saves it for next calls
+        }
+
+
+        try {
+          // 3. Call assistant API
+          const res = await fetch(`${backendBaseUrl}/ask-context`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              history: newHistory,
+              language: currentLang,
+            }),
+          });
+          if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+          const data = await res.json();
+
+          // 4. If this is still the latest utterance, process reply
+          if (utteranceIdRef.current === thisUtterance && apiCallInProgressRef.current) {
+            // Add assistant reply to history
+            setHistory((h) => [...h, { role: "assistant", content: data.reply }]);
+
+            // 5. Save assistant reply to backend
+            const assistantMessageObj = { role: "assistant", content: data.reply };
+            await saveUserChat(assistantMessageObj, chatId || returnedChatId);
+
+            // 6. Speak reply and prepare for next
+            await speakText(data.reply, currentLang);
+            setRecognitionKey((k) => k + 1);
+          }
+        } catch (err) {
+          console.error("API Error:", err);
+          setSpeaking(false);
+          setRecognitionKey((k) => k + 1);
+        } finally {
+          apiCallInProgressRef.current = false;
+        }
+      }
+    };
 
     recognition.onend = () => {
       if (connected && !muted && !stoppedByApp && !speaking) {
@@ -539,36 +539,36 @@ recognition.onresult = async (event) => {
       console.log("Recognition start failed:", e)
     }
 
-async function saveUserChat(messageObj, existingChatId = null) {
-  // Debug log for tracing
-  console.log("saveUserChat called", messageObj, existingChatId, user);
+    async function saveUserChat(messageObj, existingChatId = null) {
+      // Debug log for tracing
+      console.log("saveUserChat called", messageObj, existingChatId, user);
 
-  // Don't proceed if user/token missing
-  if (!user?.token) return;
+      // Don't proceed if user/token missing
+      if (!user?.token) return;
 
-  try {
-    const res = await fetch(`${backendBaseUrl}/history`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({
-        chatId: existingChatId, // null for new, or current chatId
-        message: messageObj,
-      }),
-    });
-    const data = await res.json();
+      try {
+        const res = await fetch(`${backendBaseUrl}/history`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({
+            chatId: existingChatId, // null for new, or current chatId
+            message: messageObj,
+          }),
+        });
+        const data = await res.json();
 
-    // If backend provides a new chatId (new chat), update the state
-    if (data.chatId && !chatId) {
-      setChatId(data.chatId);
+        // If backend provides a new chatId (new chat), update the state
+        if (data.chatId && !chatId) {
+          setChatId(data.chatId);
+        }
+        return data.chatId;
+      } catch (err) {
+        console.error("Failed to save chat:", err);
+      }
     }
-    return data.chatId;
-  } catch (err) {
-    console.error("Failed to save chat:", err);
-  }
-}
 
     return () => {
       stoppedByApp = true
@@ -591,14 +591,14 @@ async function saveUserChat(messageObj, existingChatId = null) {
   const handleFileSelected = (file) => {
     console.log("File selected:", file.name);
     setUploadedFile(file);
-    
+
     // For images, show a preview; for PDFs, just show file name
     if (file.type.startsWith("image/")) {
       setFilePreview(URL.createObjectURL(file));
     } else {
       setFilePreview(file.name);
     }
-    
+
     setAwaitingVoiceContext(true);
   };
 
@@ -612,7 +612,7 @@ async function saveUserChat(messageObj, existingChatId = null) {
   // FIXED: This function now properly triggers voice recognition
   const handleStartVoiceContext = () => {
     console.log("Starting voice context collection...");
-    
+
     // If not connected, connect first
     if (!connected) {
       setConnected(true);
@@ -622,28 +622,28 @@ async function saveUserChat(messageObj, existingChatId = null) {
       setPhase("normal");
       setRecognitionKey((k) => k + 1);
     }
-    
+
     // Ensure we're ready to listen
     setAwaitingVoiceContext(true);
     setMuted(false);
     setSpeaking(false);
     setReadyToSpeak(true);
-    
+
     // Restart recognition to ensure it's listening
     setRecognitionKey((k) => k + 1);
-    
+
     // Provide audio feedback
-    const contextPrompt = currentLang === "hindi" 
+    const contextPrompt = currentLang === "hindi"
       ? "कृपया अपनी दस्तावेज़ के बारे में चिंता बताएं"
       : "Please tell me your concern about this document";
-    
+
     speakText(contextPrompt, currentLang || "hindi");
   };
 
   const handleFileAnalysis = async (contextText) => {
     console.log("Analyzing file with context:", contextText);
     setLoading(true);
-    
+
     try {
       const formData = new FormData();
       formData.append("file", uploadedFile);
@@ -658,31 +658,31 @@ async function saveUserChat(messageObj, existingChatId = null) {
       const data = await res.json();
       console.log("File analysis response:", data);
 
-if (data.reply) {
-  // User message first
-  const userMsg = { role: "user", content: `Document uploaded: ${uploadedFile.name}. Context: ${contextText}` };
-  await saveUserChat(userMsg, chatId);
+      if (data.reply) {
+        // User message first
+        const userMsg = { role: "user", content: `Document uploaded: ${uploadedFile.name}. Context: ${contextText}` };
+        await saveUserChat(userMsg, chatId);
 
-  // Assistant reply
-  const assistantMsg = { role: "assistant", content: data.reply };
-  await saveUserChat(assistantMsg, chatId);
+        // Assistant reply
+        const assistantMsg = { role: "assistant", content: data.reply };
+        await saveUserChat(assistantMsg, chatId);
 
-  // Add to UI history
-  setHistory((h) => [...h, userMsg, assistantMsg]);
+        // Add to UI history
+        setHistory((h) => [...h, userMsg, assistantMsg]);
 
-  // Speak the reply automatically
-  await speakText(data.reply, currentLang || "hindi");
-}
+        // Speak the reply automatically
+        await speakText(data.reply, currentLang || "hindi");
+      }
 
       // Clear file after analysis
       handleClearFile();
-      
+
     } catch (error) {
       console.error("File analysis error:", error);
-      const errorMessage = currentLang === "hindi" 
+      const errorMessage = currentLang === "hindi"
         ? "दस्तावेज़ प्रोसेसिंग में त्रुटि हुई। कृपया दोबारा कोशिश करें।"
         : "Error processing document. Please try again.";
-      
+
       await speakText(errorMessage, currentLang || "hindi");
       handleClearFile();
     } finally {
@@ -735,7 +735,7 @@ if (data.reply) {
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop()
-      } catch (e) {}
+      } catch (e) { }
     }
     if (audioRef.current) {
       audioRef.current.pause()
@@ -833,33 +833,33 @@ if (data.reply) {
 
 
   const handleNearbyAdvocate = () => {
-  if (!navigator.geolocation) {
-    alert("Geolocation is not supported by your browser")
-    return
-  }
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const { latitude, longitude } = pos.coords
-      try {
-        const res = await fetch(`${backendBaseUrl}/nearby-advocate?lat=${latitude}&lng=${longitude}`)
-        if (!res.ok) {
-          throw new Error(`Failed to fetch advocates: ${res.status}`)
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser")
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords
+        try {
+          const res = await fetch(`${backendBaseUrl}/nearby-advocate?lat=${latitude}&lng=${longitude}`)
+          if (!res.ok) {
+            throw new Error(`Failed to fetch advocates: ${res.status}`)
+          }
+          const data = await res.json()
+          setAdvocates(data.advocates || [])
+          setShowAdvocates(true)
+          setSelectedAdvocate(null)
+        } catch (e) {
+          console.error("Advocates fetch error:", e)
+          alert("Failed to fetch advocates. Please try again.")
         }
-        const data = await res.json()
-        setAdvocates(data.advocates || [])
-        setShowAdvocates(true)
-        setSelectedAdvocate(null)
-      } catch (e) {
-        console.error("Advocates fetch error:", e)
-        alert("Failed to fetch advocates. Please try again.")
-      }
-    },
-    (err) => {
-      console.error("Geolocation error:", err)
-      alert("Location permission denied or unavailable")
-    },
-  )
-}
+      },
+      (err) => {
+        console.error("Geolocation error:", err)
+        alert("Location permission denied or unavailable")
+      },
+    )
+  }
 
   const handleRequestCall = () => {
     const savedPhone = localStorage.getItem("nyaygpt_user_phone")
@@ -924,7 +924,7 @@ if (data.reply) {
 
 
 
-  
+
 
 
   const [user, setUser] = useState(null);
@@ -942,10 +942,34 @@ if (data.reply) {
     setUser(null);
     navigate("/");
   };
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-    useEffect(() => {
+  // Responsive style helpers
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    function handleResize() {
+      setWindowWidth(window.innerWidth);
+      setIsMobile(window.innerWidth <= 768);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Overlay for mobile menus/sidebar
+  const [overlayActive, setOverlayActive] = useState(false);
+
+  // Modified hamburger menu logic for proper z-index and overlay
+  const openMenu = () => {
+    setMenuOpen(true);
+    setOverlayActive(true);
+  };
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setOverlayActive(false);
+  };
+
+  useEffect(() => {
     function handleResize() {
       setIsMobile(window.innerWidth <= 768);
     }
@@ -953,7 +977,7 @@ if (data.reply) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-const styles = {
+  const styles = {
     nav: {
       background: "rgba(17, 24, 39, 0.85)",
       backdropFilter: "blur(20px)",
@@ -961,7 +985,7 @@ const styles = {
       padding: "1.2rem 2rem",
       boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
       position: "relative",
-      zIndex: 10,
+      zIndex: 100,
       width: "100%",
     },
     container: {
@@ -1020,14 +1044,16 @@ const styles = {
       flexDirection: "column",
       position: "absolute",
       top: "100%",
-      right: "2rem",
+      right: "0.5rem",
+      left: "auto",
       background: "rgba(17,24,39,0.97)",
       borderRadius: "1rem",
-      padding: "0.75rem 1.5rem",
-      zIndex: 25,
-      marginTop: "0.5rem",
+      padding: "0.75rem 1.2rem",
+      zIndex: 110,
+      marginTop: "0.35rem",
       boxShadow: "0 4px 12px rgba(0,0,0,0.18)",
-      minWidth: "180px",
+      minWidth: "160px",
+      alignItems: "stretch",
     },
     authButtons: {
       display: "flex",
@@ -1102,269 +1128,323 @@ const styles = {
       backdropFilter: "blur(10px)",
     },
     menu: {
-    display: "flex",
-    alignItems: "center",
-    gap: "1rem",
-  },
-  menuOpen: {
-    flexDirection: "column",
-    width: "100%",
-    paddingTop: "1rem",
-    display: "flex",
-  },
+      display: "flex",
+      alignItems: "center",
+      gap: "1rem",
+    },
+    menuOpen: {
+      flexDirection: "column",
+      width: "100%",
+      paddingTop: "1rem",
+      display: "flex",
+    },
   };
 
-// 🔁 Media query styles for mobile hamburger menu
-if (typeof window !== "undefined") {
-  const mediaQuery = window.matchMedia("(max-width: 768px)");
-  if (mediaQuery.matches) {
-    styles.menu.display = "none";
-    styles.hamburger.display = "flex";
-    styles.menuOpen.display = "flex";
+  // 🔁 Media query styles for mobile hamburger menu
+  if (typeof window !== "undefined") {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    if (mediaQuery.matches) {
+      styles.menu.display = "none";
+      styles.hamburger.display = "flex";
+      styles.menuOpen.display = "flex";
+    }
   }
-}
 
   return (
     <div
       style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)",
-        color: "#ffffff",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-      }}
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)",
+      color: "#ffffff",
+      display: "flex",
+      flexDirection: "row", // THIS IS IMPORTANT
+      position: "relative",
+      width: "100vw"
+    }}
     >
-      {/* Background Pattern */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-                           radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 50%)`,
-          pointerEvents: "none",
-        }}
-      />
+      {/* Sidebar - always rendered, but visible only when open */}
+      <ChatHistorySidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-      {/* Glassmorphism Navbar */}
-<>
-      <nav style={styles.nav}>
-        <div style={styles.container}>
-          {/* Left: Logo + Title */}
-          <div style={styles.logoWrapper}>
-            <img src="/image.png" alt="Logo" style={styles.logoImg} />
-            <h1 style={styles.logoText}>Chanakya AI</h1>
-          </div>
+      {/* Main Content Area */}
+      <div style={{ flex: 1, minWidth: 0, position: "relative", overflow: "auto" }}>
+        {/* Sidebar Open Button (floating, only visible if sidebar is closed) */}
+        {!sidebarOpen && (
+          <button
+            aria-label="Open chat history"
+            style={{
+              position: "fixed",
+              top: "24px",
+              left: "16px",
+              zIndex: 9999,
+              background: "rgba(255, 255, 255, 0.1)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
+              borderRadius: "16px",
+              padding: "12px",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
+              cursor: "pointer"
+            }}
+            onClick={() => setSidebarOpen(true)}
+          >
+            <svg width={20} height={20} fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
+              <rect x={3} y={4} width={18} height={16} rx={2} />
+              <line x1={9} y1={8} x2={15} y2={8} />
+              <line x1={9} y1={12} x2={15} y2={12} />
+              <line x1={9} y1={16} x2={13} y2={16} />
+            </svg>
+          </button>
+        )}
 
-          {/* Center: Status (desktop only) */}
-          {!isMobile && (
+        {/* Background Pattern */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                             radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 50%)`,
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Glassmorphism Navbar */}
+        <>
+          <nav style={styles.nav}>
+            <div style={styles.container}>
+              {/* Left: Logo + Title */}
+              <div style={styles.logoWrapper}>
+                <img src="/image.png" alt="Logo" style={styles.logoImg} />
+                <h1 style={styles.logoText}>Chanakya AI</h1>
+              </div>
+
+              {/* Center: Status (desktop only) */}
+              {!isMobile && (
+                <div style={styles.statusBox}>
+                  {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
+                </div>
+              )}
+
+              {/* Right: Hamburger (mobile) or Auth menu (desktop) */}
+              <div style={styles.right}>
+                {/* Hamburger (mobile only) */}
+                <div
+                  className="hamburger"
+                  onClick={menuOpen ? closeMenu : openMenu}
+                  style={styles.hamburger}
+                  aria-label="Open menu"
+                >
+                  <div style={styles.bar}></div>
+                  <div style={styles.bar}></div>
+                  <div style={styles.bar}></div>
+                </div>
+
+                {/* Desktop Auth Menu */}
+                <div className="authMenu" style={styles.desktopMenu}>
+                  {user ? (
+                    <div style={{ position: "relative" }}>
+                      <div
+                        onClick={() => setMenuOpen(!menuOpen)}
+                        style={styles.userDropdownTrigger}
+                      >
+                        👤 {user.name}
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </div>
+                      {menuOpen && (
+                        <div style={styles.dropdown}>
+                          <button onClick={handleLogout} style={styles.logoutBtn}>
+                            🚪 Logout
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={styles.authButtons}>
+                      <Link to="/login" style={{ textDecoration: "none" }}>
+                        <button style={styles.loginBtn}>Login</button>
+                      </Link>
+                      <Link to="/signup" style={{ textDecoration: "none" }}>
+                        <button style={styles.signupBtn}>Sign Up</button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile Auth Menu */}
+                {isMobile && menuOpen && (
+                  <div style={styles.mobileMenu}>
+                    {user ? (
+                      <>
+                        <div
+                          style={{
+                            color: "#fff",
+                            fontWeight: 600,
+                            padding: "0.5rem 1rem",
+                            marginBottom: "0.25rem",
+                            textAlign: "center",
+                            borderBottom: "1px solid rgba(255,255,255,0.12)",
+                          }}
+                        >
+                          👤 {user.name}
+                        </div>
+                        <button onClick={handleLogout} style={styles.logoutBtn}>
+                          🚪 Logout
+                        </button>
+                      </>
+                    ) : (
+                      <div style={styles.authButtons}>
+                        <Link to="/login" style={{ textDecoration: "none" }}>
+                          <button style={styles.loginBtn}>Login</button>
+                        </Link>
+                        <Link to="/signup" style={{ textDecoration: "none" }}>
+                          <button style={styles.signupBtn}>Sign Up</button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </nav>
+
+          {/* Status: mobile below nav */}
+          {isMobile && (
             <div style={styles.statusBox}>
               {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
             </div>
           )}
+        </>
 
-          {/* Right: Hamburger (mobile) or Auth menu (desktop) */}
-          <div style={styles.right}>
-            {/* Hamburger (mobile only) */}
-            <div
-              className="hamburger"
-              onClick={() => setMenuOpen((prev) => !prev)}
-              style={styles.hamburger}
-              aria-label="Open menu"
-            >
-              <div style={styles.bar}></div>
-              <div style={styles.bar}></div>
-              <div style={styles.bar}></div>
-            </div>
 
-            {/* Desktop Auth Menu */}
-            <div className="authMenu" style={styles.desktopMenu}>
-              {user ? (
-                <div style={{ position: "relative" }}>
-                  <div
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    style={styles.userDropdownTrigger}
-                  >
-                    👤 {user.name}
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </div>
-                  {menuOpen && (
-                    <div style={styles.dropdown}>
-                      <button onClick={handleLogout} style={styles.logoutBtn}>
-                        🚪 Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={styles.authButtons}>
-                  <Link to="/login" style={{ textDecoration: "none" }}>
-                    <button style={styles.loginBtn}>Login</button>
-                  </Link>
-                  <Link to="/signup" style={{ textDecoration: "none" }}>
-                    <button style={styles.signupBtn}>Sign Up</button>
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile Auth Menu */}
-            {isMobile && menuOpen && (
-  <div style={styles.mobileMenu}>
-    {user ? (
-      <>
+        {/* Main Content (your existing layout) */}
         <div
           style={{
-            color: "#fff",
-            fontWeight: 600,
-            padding: "0.5rem 1rem",
-            marginBottom: "0.25rem",
-            textAlign: "center",
-            borderBottom: "1px solid rgba(255,255,255,0.12)",
+            flex: "1",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "3rem 1.5rem",
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          👤 {user.name}
-        </div>
-        <button onClick={handleLogout} style={styles.logoutBtn}>
-          🚪 Logout
-        </button>
-      </>
-    ) : (
-      <div style={styles.authButtons}>
-        <Link to="/login" style={{ textDecoration: "none" }}>
-          <button style={styles.loginBtn}>Login</button>
-        </Link>
-        <Link to="/signup" style={{ textDecoration: "none" }}>
-          <button style={styles.signupBtn}>Sign Up</button>
-        </Link>
-      </div>
-    )}
-  </div>
-)}
-          </div>
-        </div>
-      </nav>
-
-      {/* Status: mobile below nav */}
-      {isMobile && (
-        <div style={styles.statusBox}>
-          {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
-        </div>
-      )}
-    </>
-
-      
-      {/* Main Content */}
-      <div
-        style={{
-          flex: "1",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "3rem 1.5rem",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <div style={{ width: "100%", maxWidth: "28rem", margin: "0 auto" }}>
-          {/* Glassmorphism Status Card */}
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "4.5rem",
-              background: "rgba(255, 255, 255, 0.05)",
-              backdropFilter: "blur(20px)",
-              borderRadius: "1.5rem",
-              padding: "1.5rem",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-            }}
-          >
-            <div style={{ fontSize: "1.125rem", color: "#ffffff", marginBottom: "0.5rem", fontWeight: "600" }}>
-              {connected ? "Connected - Ready to Help" : "Your AI Legal Assistant"}
+          <div style={{ width: "100%", maxWidth: "28rem", margin: "0 auto" }}>
+            {/* Glassmorphism Status Card */}
+            <div
+              style={{
+                textAlign: "center",
+                marginBottom: "4.5rem",
+                background: "rgba(255, 255, 255, 0.05)",
+                backdropFilter: "blur(20px)",
+                borderRadius: "1.5rem",
+                padding: "1.5rem",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+              }}
+            >
+              <div style={{ fontSize: "1.125rem", color: "#ffffff", marginBottom: "0.5rem", fontWeight: "600" }}>
+                {connected ? "Connected - Ready to Help" : "Your AI Legal Assistant"}
+              </div>
+              <div style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.7)" }}>
+                {speaking && (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                    <FaVolumeUp style={{ color: "#60a5fa" }} />
+                    <span>Chanakya AI is speaking...</span>
+                  </div>
+                )}
+                {userSpeaking && "👂 Listening..."}
+                {awaitingVoiceContext && "🎤 Tell me about your legal concern with this document"}
+                {!speaking && !userSpeaking && !readyToSpeak && !awaitingVoiceContext && connected && "Ready for your question"}
+                {!connected && "Tap the microphone to start"}
+              </div>
             </div>
-            <div style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.7)" }}>
-              {speaking && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-                  <FaVolumeUp style={{ color: "#60a5fa" }} />
-                  <span>Chanakya AI is speaking...</span>
-                </div>
-              )}
-              {userSpeaking && "👂 Listening..."}
-              {awaitingVoiceContext && "🎤 Tell me about your legal concern with this document"}
-              {!speaking && !userSpeaking && !readyToSpeak && !awaitingVoiceContext && connected && "Ready for your question"}
-              {!connected && "Tap the microphone to start"}
-            </div>
-          </div>
 
-          {/* File Upload Component */}
-          <FileUpload 
-            onFileSelected={handleFileSelected}
-            uploadedFile={uploadedFile}
-            filePreview={filePreview}
-            loading={loading}
-            onClearFile={handleClearFile}
-            awaitingVoiceContext={awaitingVoiceContext}
-            onStartVoiceContext={handleStartVoiceContext}
-          />
+            {/* File Upload Component */}
+            <FileUpload
+              onFileSelected={handleFileSelected}
+              uploadedFile={uploadedFile}
+              filePreview={filePreview}
+              loading={loading}
+              onClearFile={handleClearFile}
+              awaitingVoiceContext={awaitingVoiceContext}
+              onStartVoiceContext={handleStartVoiceContext}
+            />
 
-            
 
-          {/* Main Microphone */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "3rem" }}>
-            <div style={{ position: "relative" }}>
-              {/* Microphone Button */}
-              <button
-                onClick={connected ? handleEnd : handleConnect}
-                style={{
-                  width: "8rem",
-                  height: "8rem",
-                  borderRadius: "50%",
-                  border: readyToSpeak ? "3px solid rgba(248, 113, 113, 0.8)" : "3px solid rgba(255, 255, 255, 0.2)",
-                  background: readyToSpeak
-                    ? "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
-                    : "rgba(255, 255, 255, 0.1)",
-                  backdropFilter: "blur(20px)",
-                  transition: "all 0.3s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  outline: "none",
-                  boxShadow: readyToSpeak
-                    ? "0 0 40px rgba(248, 113, 113, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)"
-                    : "0 8px 32px rgba(0, 0, 0, 0.3)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!readyToSpeak) {
-                    e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                    e.target.style.transform = "scale(1.05)"
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!readyToSpeak) {
-                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                    e.target.style.transform = "scale(1)"
-                  }
-                }}
-              >
-                {connected ? (
-                  userSpeaking ? (
+
+            {/* Main Microphone */}
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "3rem" }}>
+              <div style={{ position: "relative" }}>
+                {/* Microphone Button */}
+                <button
+                  onClick={connected ? handleEnd : handleConnect}
+                  style={{
+                    width: "8rem",
+                    height: "8rem",
+                    borderRadius: "50%",
+                    border: readyToSpeak ? "3px solid rgba(248, 113, 113, 0.8)" : "3px solid rgba(255, 255, 255, 0.2)",
+                    background: readyToSpeak
+                      ? "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
+                      : "rgba(255, 255, 255, 0.1)",
+                    backdropFilter: "blur(20px)",
+                    transition: "all 0.3s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    outline: "none",
+                    boxShadow: readyToSpeak
+                      ? "0 0 40px rgba(248, 113, 113, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)"
+                      : "0 8px 32px rgba(0, 0, 0, 0.3)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!readyToSpeak) {
+                      e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                      e.target.style.transform = "scale(1.05)"
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!readyToSpeak) {
+                      e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                      e.target.style.transform = "scale(1)"
+                    }
+                  }}
+                >
+                  {connected ? (
+                    userSpeaking ? (
+                      <FaMicrophone
+                        style={{
+                          width: "3rem",
+                          height: "3rem",
+                          color: "#ffffff",
+                          filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                        }}
+                      />
+                    ) : (
+                      <FaMicrophoneSlash
+                        style={{
+                          width: "3rem",
+                          height: "3rem",
+                          color: "#ffffff",
+                          filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                        }}
+                      />
+                    )
+                  ) : (
                     <FaMicrophone
                       style={{
                         width: "3rem",
@@ -1373,1079 +1453,1061 @@ if (typeof window !== "undefined") {
                         filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
                       }}
                     />
-                  ) : (
+                  )}
+                </button>
+
+                {/* Speaking Animation Waves */}
+                {speaking && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "0",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {[...Array(3)].map((_, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          position: "absolute",
+                          width: "8rem",
+                          height: "8rem",
+                          border: "2px solid rgba(96, 165, 250, 0.6)",
+                          borderRadius: "50%",
+                          animation: "ping 2s infinite",
+                          animationDelay: `${i * 0.5}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Red Pulse when ready to speak */}
+                {readyToSpeak && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "0",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: "absolute",
+                        width: "9rem",
+                        height: "9rem",
+                        border: "2px solid rgba(248, 113, 113, 0.8)",
+                        borderRadius: "50%",
+                        animation: "pulse 1.5s infinite",
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Text */}
+            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+              {connected ? (
+                userSpeaking ? (
+                  <p style={{ color: "#f87171", fontWeight: "500", margin: 0 }}>
+                    <FaMicrophone style={{ marginRight: "0.5rem" }} />
+                    Speak now...
+                  </p>
+                ) : speaking ? (
+                  <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>
+                    {/* <FaVolumeUp style={{ marginRight: "0.5rem" }} /> */}
+                    Chanakya AI is speaking...
+                  </p>
+                ) : readyToSpeak ? (
+                  <p
+                    style={{
+                      color: "#f87171",
+                      fontWeight: "600",
+                      fontSize: "1.1rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.5rem",
+                      margin: 0,
+                      textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                    }}
+                  >
+                    <FaMicrophone style={{ color: "#f87171" }} />
+                    SPEAK NOW
+                  </p>
+                ) : awaitingVoiceContext ? (
+                  <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>
+                    Tell me about your legal concern with this document
+                  </p>
+                ) : (
+                  <p style={{ color: "rgba(255, 255, 255, 0.8)", margin: 0 }}>Ask your legal question</p>
+                )
+              ) : (
+                <p style={{ color: "rgba(255, 255, 255, 0.8)", margin: 0 }}>Tell your legal issue</p>
+              )}
+            </div>
+
+            {/* Glassmorphism Control Buttons */}
+            {!connected ? (
+              <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem" }}>
+                <button
+                  onClick={handleNearbyPolice}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "1rem",
+                    background: "rgba(255, 255, 255, 0.1)",
+                    backdropFilter: "blur(20px)",
+                    borderRadius: "1rem",
+                    transition: "all 0.3s ease",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    cursor: "pointer",
+                    outline: "none",
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                    e.target.style.transform = "translateY(-2px)"
+                    e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                    e.target.style.transform = "translateY(0)"
+                    e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
+                  }}
+                >
+                  <FaMapMarkerAlt
+                    style={{
+                      width: "1.5rem",
+                      height: "1.5rem",
+                      color: "#60a5fa",
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                    }}
+                  />
+                  <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
+                    Nearby Police
+                  </span>
+                </button>
+
+                <button
+                  onClick={handleRequestCall}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "1rem",
+                    background: "rgba(255, 255, 255, 0.1)",
+                    backdropFilter: "blur(20px)",
+                    borderRadius: "1rem",
+                    transition: "all 0.3s ease",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    cursor: "pointer",
+                    outline: "none",
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                    e.target.style.transform = "translateY(-2px)"
+                    e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                    e.target.style.transform = "translateY(0)"
+                    e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
+                  }}
+                >
+                  <FaPhone
+                    style={{
+                      width: "1.5rem",
+                      height: "1.5rem",
+                      color: "#10b981",
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                    }}
+                  />
+                  <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
+                    Request Call
+                  </span>
+                </button>
+
+                <button
+                  onClick={handleNearbyAdvocate}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "1rem",
+                    background: "rgba(255, 255, 255, 0.1)",
+                    backdropFilter: "blur(20px)",
+                    borderRadius: "1rem",
+                    transition: "all 0.3s ease",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    cursor: "pointer",
+                    outline: "none",
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                  }}
+                >
+                  <FaMapMarkerAlt
+                    style={{
+                      width: "1.5rem",
+                      height: "1.5rem",
+                      color: "#fbbf24", // use a different color to distinguish
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                    }}
+                  />
+                  <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
+                    Nearby Advocate
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", justifyContent: "center", gap: "2rem" }}>
+                <button
+                  onClick={handleMute}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "1rem",
+                    borderRadius: "1rem",
+                    transition: "all 0.3s ease",
+                    background: muted
+                      ? "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
+                      : "rgba(255, 255, 255, 0.1)",
+                    backdropFilter: "blur(20px)",
+                    border: muted ? "1px solid rgba(248, 113, 113, 0.3)" : "1px solid rgba(255, 255, 255, 0.1)",
+                    cursor: "pointer",
+                    outline: "none",
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "translateY(-2px)"
+                    e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "translateY(0)"
+                    e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
+                  }}
+                >
+                  {muted ? (
                     <FaMicrophoneSlash
                       style={{
-                        width: "3rem",
-                        height: "3rem",
+                        width: "1.5rem",
+                        height: "1.5rem",
                         color: "#ffffff",
                         filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
                       }}
                     />
-                  )
-                ) : (
-                  <FaMicrophone
-                    style={{
-                      width: "3rem",
-                      height: "3rem",
-                      color: "#ffffff",
-                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                    }}
-                  />
-                )}
-              </button>
-
-              {/* Speaking Animation Waves */}
-              {speaking && (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: "0",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {[...Array(3)].map((_, i) => (
-                    <div
-                      key={i}
+                  ) : (
+                    <FaMicrophone
                       style={{
-                        position: "absolute",
-                        width: "8rem",
-                        height: "8rem",
-                        border: "2px solid rgba(96, 165, 250, 0.6)",
-                        borderRadius: "50%",
-                        animation: "ping 2s infinite",
-                        animationDelay: `${i * 0.5}s`,
+                        width: "1.5rem",
+                        height: "1.5rem",
+                        color: "#ffffff",
+                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
                       }}
                     />
-                  ))}
-                </div>
-              )}
+                  )}
+                  <span style={{ fontSize: "0.875rem", color: "#ffffff", fontWeight: "500" }}>
+                    {muted ? "Unmute" : "Mute"}
+                  </span>
+                </button>
 
-              {/* Red Pulse when ready to speak */}
-              {readyToSpeak && (
-                <div
+                <button
+                  onClick={handleNearbyPolice}
                   style={{
-                    position: "absolute",
-                    inset: "0",
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      width: "9rem",
-                      height: "9rem",
-                      border: "2px solid rgba(248, 113, 113, 0.8)",
-                      borderRadius: "50%",
-                      animation: "pulse 1.5s infinite",
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Action Text */}
-          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-            {connected ? (
-              userSpeaking ? (
-                <p style={{ color: "#f87171", fontWeight: "500", margin: 0 }}>
-                  <FaMicrophone style={{ marginRight: "0.5rem" }} />
-                  Speak now...
-                </p>
-              ) : speaking ? (
-                <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>
-                  {/* <FaVolumeUp style={{ marginRight: "0.5rem" }} /> */}
-                  Chanakya AI is speaking...
-                </p>
-              ) : readyToSpeak ? (
-                <p
-                  style={{
-                    color: "#f87171",
-                    fontWeight: "600",
-                    fontSize: "1.1rem",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
                     gap: "0.5rem",
-                    margin: 0,
-                    textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                    padding: "1rem",
+                    background: "rgba(255, 255, 255, 0.1)",
+                    backdropFilter: "blur(20px)",
+                    borderRadius: "1rem",
+                    transition: "all 0.3s ease",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    cursor: "pointer",
+                    outline: "none",
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                    e.target.style.transform = "translateY(-2px)"
+                    e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                    e.target.style.transform = "translateY(0)"
+                    e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
                   }}
                 >
-                  <FaMicrophone style={{ color: "#f87171" }} />
-                  SPEAK NOW
-                </p>
-              ) : awaitingVoiceContext ? (
-                <p style={{ color: "#60a5fa", fontWeight: "500", margin: 0 }}>
-                  Tell me about your legal concern with this document
-                </p>
-              ) : (
-                <p style={{ color: "rgba(255, 255, 255, 0.8)", margin: 0 }}>Ask your legal question</p>
-              )
-            ) : (
-              <p style={{ color: "rgba(255, 255, 255, 0.8)", margin: 0 }}>Tell your legal issue</p>
-            )}
-          </div>
-
-          {/* Glassmorphism Control Buttons */}
-          {!connected ? (
-            <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem" }}>
-              <button
-                onClick={handleNearbyPolice}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "1rem",
-                  background: "rgba(255, 255, 255, 0.1)",
-                  backdropFilter: "blur(20px)",
-                  borderRadius: "1rem",
-                  transition: "all 0.3s ease",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  cursor: "pointer",
-                  outline: "none",
-                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
-                }}
-              >
-                <FaMapMarkerAlt
-                  style={{
-                    width: "1.5rem",
-                    height: "1.5rem",
-                    color: "#60a5fa",
-                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                  }}
-                />
-                <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
-                  Nearby Police
-                </span>
-              </button>
-
-              <button
-                onClick={handleRequestCall}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "1rem",
-                  background: "rgba(255, 255, 255, 0.1)",
-                  backdropFilter: "blur(20px)",
-                  borderRadius: "1rem",
-                  transition: "all 0.3s ease",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  cursor: "pointer",
-                  outline: "none",
-                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
-                }}
-              >
-                <FaPhone
-                  style={{
-                    width: "1.5rem",
-                    height: "1.5rem",
-                    color: "#10b981",
-                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                  }}
-                />
-                <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
-                  Request Call
-                </span>
-              </button>
-
-              <button
-  onClick={handleNearbyAdvocate}
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "0.5rem",
-    padding: "1rem",
-    background: "rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(20px)",
-    borderRadius: "1rem",
-    transition: "all 0.3s ease",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    cursor: "pointer",
-    outline: "none",
-    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-  }}
->
-  <FaMapMarkerAlt
-    style={{
-      width: "1.5rem",
-      height: "1.5rem",
-      color: "#fbbf24", // use a different color to distinguish
-      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-    }}
-  />
-  <span style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" }}>
-    Nearby Advocate
-  </span>
-</button>
-            </div>
-          ) : (
-            <div style={{ display: "flex", justifyContent: "center", gap: "2rem" }}>
-              <button
-                onClick={handleMute}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "1rem",
-                  borderRadius: "1rem",
-                  transition: "all 0.3s ease",
-                  background: muted
-                    ? "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
-                    : "rgba(255, 255, 255, 0.1)",
-                  backdropFilter: "blur(20px)",
-                  border: muted ? "1px solid rgba(248, 113, 113, 0.3)" : "1px solid rgba(255, 255, 255, 0.1)",
-                  cursor: "pointer",
-                  outline: "none",
-                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
-                }}
-              >
-                {muted ? (
-                  <FaMicrophoneSlash
+                  <FaMapMarkerAlt
                     style={{
                       width: "1.5rem",
                       height: "1.5rem",
-                      color: "#ffffff",
+                      color: "#60a5fa",
                       filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
                     }}
                   />
-                ) : (
-                  <FaMicrophone
-                    style={{
-                      width: "1.5rem",
-                      height: "1.5rem",
-                      color: "#ffffff",
-                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                    }}
-                  />
-                )}
-                <span style={{ fontSize: "0.875rem", color: "#ffffff", fontWeight: "500" }}>
-                  {muted ? "Unmute" : "Mute"}
-                </span>
-              </button>
+                  <span style={{ fontSize: "0.875rem", color: "#ffffff", fontWeight: "500" }}>Police</span>
+                </button>
 
-              <button
-                onClick={handleNearbyPolice}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "1rem",
-                  background: "rgba(255, 255, 255, 0.1)",
-                  backdropFilter: "blur(20px)",
-                  borderRadius: "1rem",
-                  transition: "all 0.3s ease",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  cursor: "pointer",
-                  outline: "none",
-                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)"
-                }}
-              >
-                <FaMapMarkerAlt
+                <button
+                  onClick={handleEnd}
                   style={{
-                    width: "1.5rem",
-                    height: "1.5rem",
-                    color: "#60a5fa",
-                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "1rem",
+                    background: "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)",
+                    backdropFilter: "blur(20px)",
+                    borderRadius: "1rem",
+                    transition: "all 0.3s ease",
+                    border: "1px solid rgba(248, 113, 113, 0.3)",
+                    cursor: "pointer",
+                    outline: "none",
+                    boxShadow: "0 8px 32px rgba(220, 38, 38, 0.3)",
                   }}
-                />
-                <span style={{ fontSize: "0.875rem", color: "#ffffff", fontWeight: "500" }}>Police</span>
-              </button>
-
-              <button
-                onClick={handleEnd}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "1rem",
-                  background: "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)",
-                  backdropFilter: "blur(20px)",
-                  borderRadius: "1rem",
-                  transition: "all 0.3s ease",
-                  border: "1px solid rgba(248, 113, 113, 0.3)",
-                  cursor: "pointer",
-                  outline: "none",
-                  boxShadow: "0 8px 32px rgba(220, 38, 38, 0.3)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgba(185, 28, 28, 0.9) 0%, rgba(220, 38, 38, 0.7) 100%)"
-                  e.target.style.transform = "translateY(-2px)"
-                  e.target.style.boxShadow = "0 12px 40px rgba(220, 38, 38, 0.4)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background =
-                    "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
-                  e.target.style.transform = "translateY(0)"
-                  e.target.style.boxShadow = "0 8px 32px rgba(220, 38, 38, 0.3)"
-                }}
-              >
-                <FaPhone
-                  style={{
-                    width: "1.5rem",
-                    height: "1.5rem",
-                    color: "#ffffff",
-                    transform: "rotate(225deg)",
-                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                  onMouseEnter={(e) => {
+                    e.target.style.background =
+                      "linear-gradient(135deg, rgba(185, 28, 28, 0.9) 0%, rgba(220, 38, 38, 0.7) 100%)"
+                    e.target.style.transform = "translateY(-2px)"
+                    e.target.style.boxShadow = "0 12px 40px rgba(220, 38, 38, 0.4)"
                   }}
-                />
-                <span style={{ fontSize: "0.875rem", color: "#ffffff", fontWeight: "500" }}>End</span>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Glassmorphism Phone Number Modal */}
-      {showPhoneModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: "0",
-            background: "rgba(0, 0, 0, 0.8)",
-            backdropFilter: "blur(10px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1rem",
-            zIndex: "50",
-          }}
-        >
-          <div
-            style={{
-              background: "rgba(17, 24, 39, 0.9)",
-              backdropFilter: "blur(30px)",
-              borderRadius: "1.5rem",
-              padding: "2rem",
-              width: "100%",
-              maxWidth: "24rem",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <h3 style={{ fontSize: "1.25rem", fontWeight: "600", color: "#ffffff", margin: 0 }}>Request Call</h3>
-              <button
-                onClick={() => setShowPhoneModal(false)}
-                style={{
-                  color: "rgba(255, 255, 255, 0.6)",
-                  backgroundColor: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  outline: "none",
-                  padding: "0.5rem",
-                  borderRadius: "0.5rem",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = "#ffffff"
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = "rgba(255, 255, 255, 0.6)"
-                  e.target.style.background = "transparent"
-                }}
-              >
-                <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
-              </button>
-            </div>
-
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.875rem",
-                  color: "rgba(255, 255, 255, 0.8)",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                Phone Number (with country code)
-              </label>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+91XXXXXXXXXX"
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  background: "rgba(255, 255, 255, 0.1)",
-                  backdropFilter: "blur(10px)",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  borderRadius: "0.75rem",
-                  color: "#ffffff",
-                  fontSize: "1rem",
-                  outline: "none",
-                  transition: "all 0.3s ease",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "rgba(96, 165, 250, 0.5)"
-                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "rgba(255, 255, 255, 0.2)"
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                }}
-              />
-            </div>
-
-            <div style={{ display: "flex", gap: "1rem" }}>
-              <button
-                onClick={() => setShowPhoneModal(false)}
-                style={{
-                  flex: "1",
-                  padding: "0.75rem",
-                  background: "rgba(255, 255, 255, 0.1)",
-                  backdropFilter: "blur(10px)",
-                  color: "#ffffff",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  borderRadius: "0.75rem",
-                  cursor: "pointer",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  outline: "none",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.15)"
-                  e.target.style.transform = "translateY(-1px)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                  e.target.style.transform = "translateY(0)"
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={submitCallRequest}
-                disabled={callRequestLoading}
-                style={{
-                  flex: "1",
-                  padding: "0.75rem",
-                  background: callRequestLoading
-                    ? "rgba(75, 85, 99, 0.8)"
-                    : "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)",
-                  backdropFilter: "blur(10px)",
-                  color: "#ffffff",
-                  border: "1px solid rgba(16, 185, 129, 0.3)",
-                  borderRadius: "0.75rem",
-                  cursor: callRequestLoading ? "not-allowed" : "pointer",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  outline: "none",
-                  opacity: callRequestLoading ? 0.6 : 1,
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  if (!callRequestLoading) {
+                  onMouseLeave={(e) => {
                     e.target.style.background =
-                      "linear-gradient(135deg, rgba(5, 150, 105, 0.9) 0%, rgba(4, 120, 87, 1) 100%)"
-                    e.target.style.transform = "translateY(-1px)"
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!callRequestLoading) {
-                    e.target.style.background =
-                      "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)"
+                      "linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%)"
                     e.target.style.transform = "translateY(0)"
-                  }
-                }}
-              >
-                {callRequestLoading ? "Requesting..." : "Request Call"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Glassmorphism Police Stations Modal */}
-      {showStations && (
-        <div
-          style={{
-            position: "fixed",
-            inset: "0",
-            background: "rgba(0, 0, 0, 0.8)",
-            backdropFilter: "blur(10px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1rem",
-            zIndex: "50",
-          }}
-        >
-          <div
-            style={{
-              background: "rgba(17, 24, 39, 0.9)",
-              backdropFilter: "blur(30px)",
-              borderRadius: "1.5rem",
-              padding: "1.5rem",
-              width: "100%",
-              maxWidth: "28rem",
-              maxHeight: "24rem",
-              overflowY: "auto",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "1rem",
-              }}
-            >
-              <h3 style={{ fontSize: "1.125rem", fontWeight: "600", color: "#ffffff", margin: 0 }}>
-                Nearby Police Stations
-              </h3>
-              <button
-                onClick={() => {
-                  setShowStations(false)
-                  setSelectedStation(null)
-                }}
-                style={{
-                  color: "rgba(255, 255, 255, 0.6)",
-                  backgroundColor: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  outline: "none",
-                  padding: "0.5rem",
-                  borderRadius: "0.5rem",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = "#ffffff"
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = "rgba(255, 255, 255, 0.6)"
-                  e.target.style.background = "transparent"
-                }}
-              >
-                <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
-              </button>
-            </div>
-
-            {policeStations.length ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                {policeStations.map((station, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setSelectedStation(station)}
+                    e.target.style.boxShadow = "0 8px 32px rgba(220, 38, 38, 0.3)"
+                  }}
+                >
+                  <FaPhone
                     style={{
-                      width: "100%",
-                      textAlign: "left",
-                      padding: "0.75rem",
-                      background: "rgba(255, 255, 255, 0.05)",
-                      backdropFilter: "blur(10px)",
-                      borderRadius: "0.75rem",
-                      transition: "all 0.3s ease",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      cursor: "pointer",
-                      outline: "none",
+                      width: "1.5rem",
+                      height: "1.5rem",
+                      color: "#ffffff",
+                      transform: "rotate(225deg)",
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
                     }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                      e.target.style.transform = "translateY(-1px)"
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = "rgba(255, 255, 255, 0.05)"
-                      e.target.style.transform = "translateY(0)"
-                    }}
-                  >
-                    <div style={{ fontWeight: "500", color: "#ffffff", marginBottom: "0.25rem" }}>{station.name}</div>
-                    <div style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.7)" }}>{station.vicinity}</div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", color: "rgba(255, 255, 255, 0.6)", padding: "2rem 0" }}>
-                No nearby police stations found.
+                  />
+                  <span style={{ fontSize: "0.875rem", color: "#ffffff", fontWeight: "500" }}>End</span>
+                </button>
               </div>
             )}
           </div>
         </div>
-      )}
 
-      {/* Glassmorphism Directions Modal */}
-      {selectedStation && userPos && (
-        <div
-          style={{
-            position: "fixed",
-            inset: "0",
-            background: "rgba(0, 0, 0, 0.8)",
-            backdropFilter: "blur(10px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1rem",
-            zIndex: "50",
-          }}
-        >
+        {/* Glassmorphism Phone Number Modal */}
+        {showPhoneModal && (
           <div
             style={{
-              background: "rgba(17, 24, 39, 0.9)",
-              backdropFilter: "blur(30px)",
-              borderRadius: "1.5rem",
-              padding: "1.5rem",
-              width: "100%",
-              maxWidth: "48rem",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "1rem",
-              }}
-            >
-              <h3 style={{ fontSize: "1.125rem", fontWeight: "600", color: "#ffffff", margin: 0 }}>
-                Directions to <span style={{ color: "#60a5fa" }}>{selectedStation.name}</span>
-              </h3>
-              <button
-                onClick={() => setSelectedStation(null)}
-                style={{
-                  color: "rgba(255, 255, 255, 0.6)",
-                  backgroundColor: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  outline: "none",
-                  padding: "0.5rem",
-                  borderRadius: "0.5rem",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = "#ffffff"
-                  e.target.style.background = "rgba(255, 255, 255, 0.1)"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = "rgba(255, 255, 255, 0.6)"
-                  e.target.style.background = "transparent"
-                }}
-              >
-                <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
-              </button>
-            </div>
-
-            {MAPS_EMBED_API_KEY ? (
-              <iframe
-                width="100%"
-                height="400"
-                frameBorder="0"
-                style={{ border: 0, borderRadius: "1rem" }}
-                allowFullScreen
-                loading="lazy"
-                src={`https://www.google.com/maps/embed/v1/directions?key=${MAPS_EMBED_API_KEY}&origin=${userPos.lat},${userPos.lng}&destination=${selectedStation.lat},${selectedStation.lng}&mode=driving`}
-                title="Directions Map"
-              />
-            ) : (
-              <div
-                style={{
-                  textAlign: "center",
-                  color: "#f87171",
-                  padding: "2rem 0",
-                  background: "rgba(248, 113, 113, 0.1)",
-                  borderRadius: "1rem",
-                  border: "1px solid rgba(248, 113, 113, 0.2)",
-                }}
-              >
-                API Key missing. Please set VITE_GOOGLE_MAPS_API_KEY in your environment variables.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-        
-      <div>
-
-
-      {/* Glassmorphism Advocates Modal */}
-{showAdvocates && (
-        <div
-          style={{
-            position: "fixed",
-            inset: "0",
-            background: "rgba(0,0,0,0.8)",
-            backdropFilter: "blur(10px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1rem",
-            zIndex: "50",
-          }}
-        >
-          <div
-            style={{
-              background: "rgba(17,24,39,0.9)",
-              borderRadius: "1.5rem",
-              padding: "1.5rem",
-              width: "100%",
-              maxWidth: "28rem",
-              maxHeight: "24rem",
-              overflowY: "auto",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <h3 style={{ margin: 0, color: "#fff" }}>Nearby Advocates</h3>
-              <button
-                onClick={() => {
-                  setShowAdvocates(false);
-                  setSelectedAdvocate(null);
-                }}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "#9ca3af",
-                  cursor: "pointer",
-                  fontSize: "1.25rem",
-                }}
-              >
-                <FaTimes />
-              </button>
-            </div>
-            {advocates.length ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                {advocates.map((advocate, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: "rgba(255,255,255,0.05)",
-                      borderRadius: "0.75rem",
-                      padding: "0.75rem",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => {
-                      if (userPos && advocate.lat && advocate.lng) {
-                        window.open(
-                          `https://www.google.com/maps/dir/?api=1&origin=${userPos.lat},${userPos.lng}&destination=${advocate.lat},${advocate.lng}&travelmode=driving`,
-                          "_blank"
-                        );
-                      }
-                    }}
-                  >
-                    <div style={{ fontWeight: "500", color: "#fff" }}>{advocate.name}</div>
-                    <div style={{ fontSize: "0.875rem", color: "#ccc" }}>{advocate.vicinity}</div>
-                    <div style={{ fontSize: "0.85rem", color: "#a7f3d0" }}>
-                      📞 {advocate.phone && advocate.phone !== "Not available"
-                        ? (
-                          <a
-                            href={`tel:${advocate.phone.replace(/[^0-9+]/g, '')}`}
-                            style={{ color: "#34d399", textDecoration: "underline", fontWeight: 600 }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {advocate.phone}
-                          </a>
-                        )
-                        : "Not available"}
-                    </div>
-                    <div style={{ marginTop: "0.5rem" }}>
-                      <button
-                        style={{
-                          background: "#fbbf24",
-                          color: "#2d2d2d",
-                          borderRadius: "0.5rem",
-                          padding: "0.25rem 0.75rem",
-                          fontWeight: 600,
-                          fontSize: "0.9rem",
-                          border: "none",
-                          cursor: "pointer"
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedAdvocate(advocate);
-                        }}
-                      >
-                        Tap for Details
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", color: "#aaa", padding: "2rem 0" }}>
-                No nearby advocates found.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {selectedAdvocate && (
-        <div
-          style={{
-            position: "fixed",
-            inset: "0",
-            background: "rgba(0,0,0,0.75)",
-            backdropFilter: "blur(6px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: "60",
-          }}
-          onClick={() => setSelectedAdvocate(null)}
-        >
-          <div
-            style={{
-              background: "#1f2937",
-              borderRadius: "1rem",
-              padding: "1.5rem",
-              width: "98%",
-              maxWidth: "500px",
-              color: "#fff",
-              boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <h4 style={{ margin: 0 }}>{selectedAdvocate.name}</h4>
-              <button
-                onClick={() => setSelectedAdvocate(null)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "#9ca3af",
-                  cursor: "pointer",
-                  fontSize: "1.25rem",
-                  paddinf: "0.5rem"
-                }}
-              >
-                <FaTimes />
-              </button>
-            </div>
-            <p style={{ margin: "0 0 0.5rem" }}>
-              📍 <strong>Address:</strong> {selectedAdvocate.vicinity}
-            </p>
-            <p style={{ margin: "0 0 1rem" }}>
-  📞 <strong>Phone:</strong>{" "}
-  {selectedAdvocate.phone && selectedAdvocate.phone !== "Not available"
-    ? (
-      <a
-        href={`tel:${selectedAdvocate.phone.replace(/[^0-9+]/g, '')}`}
-        style={{
-          color: "#34d399",
-          textDecoration: "underline",
-          fontWeight: "600",
-          cursor: "pointer",
-        }}
-        onClick={(e) => {
-          e.stopPropagation(); // prevent closing modal
-        }}
-      >
-        {selectedAdvocate.phone}
-      </a>
-    )
-    : "Not available"}
-</p>
-
-
-            {MAPS_EMBED_API_KEY && (
-              <img
-                src={`https://maps.googleapis.com/maps/api/staticmap?center=${selectedAdvocate.lat},${selectedAdvocate.lng}&zoom=17&size=1000x700&markers=color:red%7C${selectedAdvocate.lat},${selectedAdvocate.lng}&key=${MAPS_EMBED_API_KEY}`}
-                alt="Map preview"
-                style={{
-                  borderRadius: "0.5rem",
-                  width: "100%",
-                  marginBottom: "1rem",
-                  display: "block"
-                }}
-              />
-            )}
-
-            <button
-              style={{
-                background: "#fbbf24",
-                color: "#2d2d2d",
-                borderRadius: "0.5rem",
-                padding: "0.5rem 1rem",
-                fontWeight: 600,
-                fontSize: "0.9rem",
-                border: "none",
-                cursor: "pointer",
-                width: "100%",
-              }}
-              onClick={() => {
-                if (selectedAdvocate.lat && selectedAdvocate.lng) {
-                  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedAdvocate.name + ', ' + selectedAdvocate.vicinity)}`, '_blank');
-                }
-              }}
-            >
-              Open Directions in Google Maps
-            </button>
-          </div>
-        </div>
-      )}
-      {/* Fixed WhatsApp Button */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: "2rem",
-          right: "2rem",
-          zIndex: "60",
-        }}
-      >
-        <div style={{ position: "relative", display: "inline-block" }}>
-          <a
-            href="https://wa.me/ais/1435183977724162?s=5"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
+              position: "fixed",
+              inset: "0",
+              background: "rgba(0, 0, 0, 0.8)",
+              backdropFilter: "blur(10px)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "3.5rem",
-              height: "3.5rem",
-              backgroundColor: "#25D366",
-              borderRadius: "50%",
-              boxShadow: "0 4px 20px rgba(37, 211, 102, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)",
-              transition: "all 0.3s ease",
-              textDecoration: "none",
-              cursor: "pointer",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = "scale(1.1)"
-              e.target.style.boxShadow = "0 6px 25px rgba(37, 211, 102, 0.6), 0 12px 40px rgba(0, 0, 0, 0.4)"
-              // Show tooltip
-              const tooltip = e.target.nextElementSibling
-              if (tooltip) {
-                tooltip.style.opacity = "1"
-                tooltip.style.visibility = "visible"
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = "scale(1)"
-              e.target.style.boxShadow = "0 4px 20px rgba(37, 211, 102, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)"
-              // Hide tooltip
-              const tooltip = e.target.nextElementSibling
-              if (tooltip) {
-                tooltip.style.opacity = "0"
-                tooltip.style.visibility = "hidden"
-              }
+              padding: "1rem",
+              zIndex: "50",
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.893 3.106" />
-            </svg>
-          </a>
-
-          {/* Tooltip */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: "4rem",
-              right: "0",
-              backgroundColor: "rgba(17, 24, 39, 0.95)",
-              backdropFilter: "blur(20px)",
-              color: "white",
-              padding: "0.75rem 1rem",
-              borderRadius: "0.75rem",
-              fontSize: "0.875rem",
-              fontWeight: "500",
-              whiteSpace: "nowrap",
-              opacity: "0",
-              visibility: "hidden",
-              transition: "all 0.3s ease",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-              zIndex: "70",
-            }}
-          >
-            Ask your legal query on WhatsApp
             <div
               style={{
-                position: "absolute",
-                top: "100%",
-                right: "1rem",
-                width: "0",
-                height: "0",
-                borderLeft: "6px solid transparent",
-                borderRight: "6px solid transparent",
-                borderTop: "6px solid rgba(17, 24, 39, 0.95)",
+                background: "rgba(17, 24, 39, 0.9)",
+                backdropFilter: "blur(30px)",
+                borderRadius: "1.5rem",
+                padding: "2rem",
+                width: "100%",
+                maxWidth: "24rem",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
               }}
-            />
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                <h3 style={{ fontSize: "1.25rem", fontWeight: "600", color: "#ffffff", margin: 0 }}>Request Call</h3>
+                <button
+                  onClick={() => setShowPhoneModal(false)}
+                  style={{
+                    color: "rgba(255, 255, 255, 0.6)",
+                    backgroundColor: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    outline: "none",
+                    padding: "0.5rem",
+                    borderRadius: "0.5rem",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = "#ffffff"
+                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = "rgba(255, 255, 255, 0.6)"
+                    e.target.style.background = "transparent"
+                  }}
+                >
+                  <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
+                </button>
+              </div>
+
+              <div style={{ marginBottom: "1.5rem" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    color: "rgba(255, 255, 255, 0.8)",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Phone Number (with country code)
+                </label>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+91XXXXXXXXXX"
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    background: "rgba(255, 255, 255, 0.1)",
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    borderRadius: "0.75rem",
+                    color: "#ffffff",
+                    fontSize: "1rem",
+                    outline: "none",
+                    transition: "all 0.3s ease",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "rgba(96, 165, 250, 0.5)"
+                    e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "rgba(255, 255, 255, 0.2)"
+                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <button
+                  onClick={() => setShowPhoneModal(false)}
+                  style={{
+                    flex: "1",
+                    padding: "0.75rem",
+                    background: "rgba(255, 255, 255, 0.1)",
+                    backdropFilter: "blur(10px)",
+                    color: "#ffffff",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    borderRadius: "0.75rem",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    outline: "none",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = "rgba(255, 255, 255, 0.15)"
+                    e.target.style.transform = "translateY(-1px)"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                    e.target.style.transform = "translateY(0)"
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitCallRequest}
+                  disabled={callRequestLoading}
+                  style={{
+                    flex: "1",
+                    padding: "0.75rem",
+                    background: callRequestLoading
+                      ? "rgba(75, 85, 99, 0.8)"
+                      : "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)",
+                    backdropFilter: "blur(10px)",
+                    color: "#ffffff",
+                    border: "1px solid rgba(16, 185, 129, 0.3)",
+                    borderRadius: "0.75rem",
+                    cursor: callRequestLoading ? "not-allowed" : "pointer",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    outline: "none",
+                    opacity: callRequestLoading ? 0.6 : 1,
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!callRequestLoading) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgba(5, 150, 105, 0.9) 0%, rgba(4, 120, 87, 1) 100%)"
+                      e.target.style.transform = "translateY(-1px)"
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!callRequestLoading) {
+                      e.target.style.background =
+                        "linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.9) 100%)"
+                      e.target.style.transform = "translateY(0)"
+                    }
+                  }}
+                >
+                  {callRequestLoading ? "Requesting..." : "Request Call"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Glassmorphism Police Stations Modal */}
+        {showStations && (
+          <div
+            style={{
+              position: "fixed",
+              inset: "0",
+              background: "rgba(0, 0, 0, 0.8)",
+              backdropFilter: "blur(10px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "1rem",
+              zIndex: "50",
+            }}
+          >
+            <div
+              style={{
+                background: "rgba(17, 24, 39, 0.9)",
+                backdropFilter: "blur(30px)",
+                borderRadius: "1.5rem",
+                padding: "1.5rem",
+                width: "100%",
+                maxWidth: "28rem",
+                maxHeight: "24rem",
+                overflowY: "auto",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "1rem",
+                }}
+              >
+                <h3 style={{ fontSize: "1.125rem", fontWeight: "600", color: "#ffffff", margin: 0 }}>
+                  Nearby Police Stations
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowStations(false)
+                    setSelectedStation(null)
+                  }}
+                  style={{
+                    color: "rgba(255, 255, 255, 0.6)",
+                    backgroundColor: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    outline: "none",
+                    padding: "0.5rem",
+                    borderRadius: "0.5rem",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = "#ffffff"
+                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = "rgba(255, 255, 255, 0.6)"
+                    e.target.style.background = "transparent"
+                  }}
+                >
+                  <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
+                </button>
+              </div>
+
+              {policeStations.length ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  {policeStations.map((station, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedStation(station)}
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "0.75rem",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        backdropFilter: "blur(10px)",
+                        borderRadius: "0.75rem",
+                        transition: "all 0.3s ease",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        cursor: "pointer",
+                        outline: "none",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                        e.target.style.transform = "translateY(-1px)"
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = "rgba(255, 255, 255, 0.05)"
+                        e.target.style.transform = "translateY(0)"
+                      }}
+                    >
+                      <div style={{ fontWeight: "500", color: "#ffffff", marginBottom: "0.25rem" }}>{station.name}</div>
+                      <div style={{ fontSize: "0.875rem", color: "rgba(255, 255, 255, 0.7)" }}>{station.vicinity}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ textAlign: "center", color: "rgba(255, 255, 255, 0.6)", padding: "2rem 0" }}>
+                  No nearby police stations found.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Glassmorphism Directions Modal */}
+        {selectedStation && userPos && (
+          <div
+            style={{
+              position: "fixed",
+              inset: "0",
+              background: "rgba(0, 0, 0, 0.8)",
+              backdropFilter: "blur(10px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "1rem",
+              zIndex: "50",
+            }}
+          >
+            <div
+              style={{
+                background: "rgba(17, 24, 39, 0.9)",
+                backdropFilter: "blur(30px)",
+                borderRadius: "1.5rem",
+                padding: "1.5rem",
+                width: "100%",
+                maxWidth: "48rem",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "1rem",
+                }}
+              >
+                <h3 style={{ fontSize: "1.125rem", fontWeight: "600", color: "#ffffff", margin: 0 }}>
+                  Directions to <span style={{ color: "#60a5fa" }}>{selectedStation.name}</span>
+                </h3>
+                <button
+                  onClick={() => setSelectedStation(null)}
+                  style={{
+                    color: "rgba(255, 255, 255, 0.6)",
+                    backgroundColor: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    outline: "none",
+                    padding: "0.5rem",
+                    borderRadius: "0.5rem",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = "#ffffff"
+                    e.target.style.background = "rgba(255, 255, 255, 0.1)"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = "rgba(255, 255, 255, 0.6)"
+                    e.target.style.background = "transparent"
+                  }}
+                >
+                  <FaTimes style={{ width: "1.25rem", height: "1.25rem" }} />
+                </button>
+              </div>
+
+              {MAPS_EMBED_API_KEY ? (
+                <iframe
+                  width="100%"
+                  height="400"
+                  frameBorder="0"
+                  style={{ border: 0, borderRadius: "1rem" }}
+                  allowFullScreen
+                  loading="lazy"
+                  src={`https://www.google.com/maps/embed/v1/directions?key=${MAPS_EMBED_API_KEY}&origin=${userPos.lat},${userPos.lng}&destination=${selectedStation.lat},${selectedStation.lng}&mode=driving`}
+                  title="Directions Map"
+                />
+              ) : (
+                <div
+                  style={{
+                    textAlign: "center",
+                    color: "#f87171",
+                    padding: "2rem 0",
+                    background: "rgba(248, 113, 113, 0.1)",
+                    borderRadius: "1rem",
+                    border: "1px solid rgba(248, 113, 113, 0.2)",
+                  }}
+                >
+                  API Key missing. Please set VITE_GOOGLE_MAPS_API_KEY in your environment variables.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div>
+
+
+          {/* Glassmorphism Advocates Modal */}
+          {showAdvocates && (
+            <div
+              style={{
+                position: "fixed",
+                inset: "0",
+                background: "rgba(0,0,0,0.8)",
+                backdropFilter: "blur(10px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "1rem",
+                zIndex: "50",
+              }}
+            >
+              <div
+                style={{
+                  background: "rgba(17,24,39,0.9)",
+                  borderRadius: "1.5rem",
+                  padding: "1.5rem",
+                  width: "100%",
+                  maxWidth: "28rem",
+                  maxHeight: "24rem",
+                  overflowY: "auto",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                  <h3 style={{ margin: 0, color: "#fff" }}>Nearby Advocates</h3>
+                  <button
+                    onClick={() => {
+                      setShowAdvocates(false);
+                      setSelectedAdvocate(null);
+                    }}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#9ca3af",
+                      cursor: "pointer",
+                      fontSize: "1.25rem",
+                    }}
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+                {advocates.length ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    {advocates.map((advocate, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          background: "rgba(255,255,255,0.05)",
+                          borderRadius: "0.75rem",
+                          padding: "0.75rem",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          if (userPos && advocate.lat && advocate.lng) {
+                            window.open(
+                              `https://www.google.com/maps/dir/?api=1&origin=${userPos.lat},${userPos.lng}&destination=${advocate.lat},${advocate.lng}&travelmode=driving`,
+                              "_blank"
+                            );
+                          }
+                        }}
+                      >
+                        <div style={{ fontWeight: "500", color: "#fff" }}>{advocate.name}</div>
+                        <div style={{ fontSize: "0.875rem", color: "#ccc" }}>{advocate.vicinity}</div>
+                        <div style={{ fontSize: "0.85rem", color: "#a7f3d0" }}>
+                          📞 {advocate.phone && advocate.phone !== "Not available"
+                            ? (
+                              <a
+                                href={`tel:${advocate.phone.replace(/[^0-9+]/g, '')}`}
+                                style={{ color: "#34d399", textDecoration: "underline", fontWeight: 600 }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {advocate.phone}
+                              </a>
+                            )
+                            : "Not available"}
+                        </div>
+                        <div style={{ marginTop: "0.5rem" }}>
+                          <button
+                            style={{
+                              background: "#fbbf24",
+                              color: "#2d2d2d",
+                              borderRadius: "0.5rem",
+                              padding: "0.25rem 0.75rem",
+                              fontWeight: 600,
+                              fontSize: "0.9rem",
+                              border: "none",
+                              cursor: "pointer"
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedAdvocate(advocate);
+                            }}
+                          >
+                            Tap for Details
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ textAlign: "center", color: "#aaa", padding: "2rem 0" }}>
+                    No nearby advocates found.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {selectedAdvocate && (
+            <div
+              style={{
+                position: "fixed",
+                inset: "0",
+                background: "rgba(0,0,0,0.75)",
+                backdropFilter: "blur(6px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: "60",
+              }}
+              onClick={() => setSelectedAdvocate(null)}
+            >
+              <div
+                style={{
+                  background: "#1f2937",
+                  borderRadius: "1rem",
+                  padding: "1.5rem",
+                  width: "98%",
+                  maxWidth: "500px",
+                  color: "#fff",
+                  boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                  <h4 style={{ margin: 0 }}>{selectedAdvocate.name}</h4>
+                  <button
+                    onClick={() => setSelectedAdvocate(null)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#9ca3af",
+                      cursor: "pointer",
+                      fontSize: "1.25rem",
+                      paddinf: "0.5rem"
+                    }}
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+                <p style={{ margin: "0 0 0.5rem" }}>
+                  📍 <strong>Address:</strong> {selectedAdvocate.vicinity}
+                </p>
+                <p style={{ margin: "0 0 1rem" }}>
+                  📞 <strong>Phone:</strong>{" "}
+                  {selectedAdvocate.phone && selectedAdvocate.phone !== "Not available"
+                    ? (
+                      <a
+                        href={`tel:${selectedAdvocate.phone.replace(/[^0-9+]/g, '')}`}
+                        style={{
+                          color: "#34d399",
+                          textDecoration: "underline",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation(); // prevent closing modal
+                        }}
+                      >
+                        {selectedAdvocate.phone}
+                      </a>
+                    )
+                    : "Not available"}
+                </p>
+
+
+                {MAPS_EMBED_API_KEY && (
+                  <img
+                    src={`https://maps.googleapis.com/maps/api/staticmap?center=${selectedAdvocate.lat},${selectedAdvocate.lng}&zoom=17&size=1000x700&markers=color:red%7C${selectedAdvocate.lat},${selectedAdvocate.lng}&key=${MAPS_EMBED_API_KEY}`}
+                    alt="Map preview"
+                    style={{
+                      borderRadius: "0.5rem",
+                      width: "100%",
+                      marginBottom: "1rem",
+                      display: "block"
+                    }}
+                  />
+                )}
+
+                <button
+                  style={{
+                    background: "#fbbf24",
+                    color: "#2d2d2d",
+                    borderRadius: "0.5rem",
+                    padding: "0.5rem 1rem",
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                    border: "none",
+                    cursor: "pointer",
+                    width: "100%",
+                  }}
+                  onClick={() => {
+                    if (selectedAdvocate.lat && selectedAdvocate.lng) {
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedAdvocate.name + ', ' + selectedAdvocate.vicinity)}`, '_blank');
+                    }
+                  }}
+                >
+                  Open Directions in Google Maps
+                </button>
+              </div>
+            </div>
+          )}
+          {/* Fixed WhatsApp Button */}
+          <div
+            style={{
+              position: "fixed",
+              bottom: "2rem",
+              right: "2rem",
+              zIndex: "60",
+            }}
+          >
+            <div style={{ position: "relative", display: "inline-block" }}>
+              <a
+                href="https://wa.me/ais/1435183977724162?s=5"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "3.5rem",
+                  height: "3.5rem",
+                  backgroundColor: "#25D366",
+                  borderRadius: "50%",
+                  boxShadow: "0 4px 20px rgba(37, 211, 102, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)",
+                  transition: "all 0.3s ease",
+                  textDecoration: "none",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "scale(1.1)"
+                  e.target.style.boxShadow = "0 6px 25px rgba(37, 211, 102, 0.6), 0 12px 40px rgba(0, 0, 0, 0.4)"
+                  // Show tooltip
+                  const tooltip = e.target.nextElementSibling
+                  if (tooltip) {
+                    tooltip.style.opacity = "1"
+                    tooltip.style.visibility = "visible"
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "scale(1)"
+                  e.target.style.boxShadow = "0 4px 20px rgba(37, 211, 102, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)"
+                  // Hide tooltip
+                  const tooltip = e.target.nextElementSibling
+                  if (tooltip) {
+                    tooltip.style.opacity = "0"
+                    tooltip.style.visibility = "hidden"
+                  }
+                }}
+              >
+                <svg width={24} height={24} viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.893 3.106" />
+                </svg>
+              </a>
+
+              {/* Tooltip */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "4rem",
+                  right: "0",
+                  backgroundColor: "rgba(17, 24, 39, 0.95)",
+                  backdropFilter: "blur(20px)",
+                  color: "white",
+                  padding: "0.75rem 1rem",
+                  borderRadius: "0.75rem",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  whiteSpace: "nowrap",
+                  opacity: "0",
+                  visibility: "hidden",
+                  transition: "all 0.3s ease",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+                  zIndex: "70",
+                }}
+              >
+                Ask your legal query on WhatsApp
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    right: "1rem",
+                    width: "0",
+                    height: "0",
+                    borderLeft: "6px solid transparent",
+                    borderRight: "6px solid transparent",
+                    borderTop: "6px solid rgba(17, 24, 39, 0.95)",
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-      {/* CSS Animations */}
-      <style>{`
-        @keyframes ping {
-          75%, 100% {
-            transform: scale(2);
-            opacity: 0;
+        {/* CSS Animations */}
+        <style>{`
+          @keyframes ping {
+            75%, 100% {
+              transform: scale(2);
+              opacity: 0;
+            }
           }
-        }
-        
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
+          
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
           }
-          50% {
-            opacity: 0.5;
-          }
-        }
-      `}</style>
+        `}</style>
+      </div>
     </div>
   )
 }
