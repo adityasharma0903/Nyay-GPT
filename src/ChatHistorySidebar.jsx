@@ -105,7 +105,8 @@ export default function ChatHistorySidebar({ isOpen, setIsOpen }) {
     border: "1px solid rgba(255, 255, 255, 0.1)",
     position: "relative",
     overflow: "hidden",
-    transition: "all 0.3s"
+    transition: "all 0.3s",
+    
   }
 
   const chatListIconStyle = {
@@ -317,7 +318,8 @@ export default function ChatHistorySidebar({ isOpen, setIsOpen }) {
               <p style={noChatsSub}>Start a new chat to see your history</p>
             </div>
           ) : (
-            <div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
               {chats.map((chat) => (
                 <button
                   key={chat.chatId}
