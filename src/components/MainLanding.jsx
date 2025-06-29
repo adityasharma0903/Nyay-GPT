@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import ChatHistorySidebar from "../ChatHistorySidebar";
 import "../index.css"
-
+import { useNavigate } from "react-router-dom"; // add this
 
 const backendBaseUrl =
   window.location.hostname === "localhost" ? "http://localhost:3000" : "https://nyay-gpt.onrender.com"
@@ -312,20 +312,21 @@ const languageGreetings = {
 
 export default function MainLanding() {
   const { chatId } = useParams();
+  const navigate = useNavigate();
   const recognitionRef = useRef(null)
   const audioRef = useRef(null)
   const apiCallInProgressRef = useRef(false)
   const timerRef = useRef(null)
   const utteranceIdRef = useRef(0)
   // const [chatId, setChatId] = useState(null);
-  // const [currentChatId, setCurrentChatId] = useState(chatId);
+  const [currentChatId, setCurrentChatId] = useState(chatId);
 
   // File upload states
   const [filePreview, setFilePreview] = useState("");
   const [uploadedFile, setUploadedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [awaitingVoiceContext, setAwaitingVoiceContext] = useState(false);
-
+  const [user, setUser] = useState(null);
   const [connected, setConnected] = useState(false)
   const [muted, setMuted] = useState(false)
   const [speaking, setSpeaking] = useState(false)
@@ -351,11 +352,20 @@ export default function MainLanding() {
   const MAPS_EMBED_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
   useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchChat = async () => {
-      if (!chatId) {
-        setHistory([]); // new chat case
-        return;
-      }
+if (!chatId) {
+      setHistory([]);
+      setCurrentChatId(null); // ✅ Add this
+      return;
+    }
+    setCurrentChatId(chatId);
 
       try {
         const user = JSON.parse(localStorage.getItem("user"));
@@ -480,9 +490,10 @@ export default function MainLanding() {
 
         // 2. Save user message to backend
         const userMessageObj = { role: "user", content: userSpeech };
-        const returnedChatId = await saveUserChat(userMessageObj, chatId);
-        if (!chatId && returnedChatId) {
-          setChatId(returnedChatId); // ✅ this saves it for next calls
+        const returnedChatId = await saveUserChat(userMessageObj, currentChatId);
+        if (!currentChatId && returnedChatId) {
+          // ✅ State update करें, setChatId नहीं
+          setCurrentChatId(returnedChatId);
         }
 
 
@@ -506,7 +517,7 @@ export default function MainLanding() {
 
             // 5. Save assistant reply to backend
             const assistantMessageObj = { role: "assistant", content: data.reply };
-            await saveUserChat(assistantMessageObj, chatId || returnedChatId);
+            await saveUserChat(assistantMessageObj, currentChatId || returnedChatId);
 
             // 6. Speak reply and prepare for next
             await speakText(data.reply, currentLang);
@@ -540,35 +551,41 @@ export default function MainLanding() {
     }
 
     async function saveUserChat(messageObj, existingChatId = null) {
-      // Debug log for tracing
-      console.log("saveUserChat called", messageObj, existingChatId, user);
+  console.log("saveUserChat called", messageObj, existingChatId, user);
+  
+  // ✅ User check सही करें
+  if (!user?.token) {
+    console.log("No user token available");
+    return;
+  }
 
-      // Don't proceed if user/token missing
-      if (!user?.token) return;
-
-      try {
-        const res = await fetch(`${backendBaseUrl}/history`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-          body: JSON.stringify({
-            chatId: existingChatId, // null for new, or current chatId
-            message: messageObj,
-          }),
-        });
-        const data = await res.json();
-
-        // If backend provides a new chatId (new chat), update the state
-        if (data.chatId && !chatId) {
-          setChatId(data.chatId);
-        }
-        return data.chatId;
-      } catch (err) {
-        console.error("Failed to save chat:", err);
-      }
+  try {
+    const res = await fetch(`${backendBaseUrl}/history`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({
+        chatId: existingChatId,
+        message: messageObj,
+      }),
+    });
+    
+    const data = await res.json();
+    
+    // ✅ New chat के लिए navigate करें
+    if (data.chatId && !existingChatId) {
+      setCurrentChatId(data.chatId);
+      // Navigate to new chat URL
+      // navigate(`/chat/${data.chatId}`, { replace: true });
     }
+    
+    return data.chatId;
+  } catch (err) {
+    console.error("Failed to save chat:", err);
+  }
+}
 
     return () => {
       stoppedByApp = true
@@ -927,7 +944,7 @@ export default function MainLanding() {
 
 
 
-  const [user, setUser] = useState(null);
+  // const [user, setUser] = useState(null);
   // const navigate = useNavigate();
 
   useEffect(() => {
