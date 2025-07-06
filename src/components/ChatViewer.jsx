@@ -566,7 +566,7 @@ export default function ChatViewer() {
                     margin: 0,
                   }}
                 >
-                  Chankya AI
+                  Chanakya AI
                 </h1>
                 {messages.length > 0 && (
                   <p
