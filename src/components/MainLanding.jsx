@@ -995,14 +995,114 @@ export default function MainLanding() {
   }, []);
 
   const styles = {
+    // Add these new styles to your existing styles object
+    authDropdownButtons: {
+      padding: '16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px',
+    },
+
+    mobileUserDropdown: {
+      position: 'absolute',
+      top: '100%',
+      right: '0',
+      marginTop: '12px',
+      backgroundColor: '#1a1d2e',
+      borderRadius: '12px',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+      border: '1px solid rgba(0, 0, 0, 0.1)',
+      minWidth: '200px',
+      maxWidth: '280px',
+      zIndex: 1000,
+      overflow: 'hidden',
+    },
+
+    dropdownLoginBtn: {
+      width: '100%',
+      padding: '14px 20px',
+      border: '1px solid rgba(230, 214, 214, 0.6)',
+      backgroundColor: '#1a1d2e',
+      color: '#ffff',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '8px',
+      transition: 'all 0.2s ease',
+      ':hover': {
+        backgroundColor: '#f9fafb',
+        borderColor: 'rgba(0, 0, 0, 0.2)',
+      }
+    },
+
+    dropdownSignupBtn: {
+      width: '100%',
+      padding: '14px 20px',
+      border: '1px solid rgba(230, 214, 214, 0.6)',
+      backgroundColor: '#1a1d2e',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '8px',
+      transition: 'all 0.2s ease',
+      ':hover': {
+        backgroundColor: '#2563eb',
+      }
+    },
+
+    mobileAuthButtons: {
+      padding: '16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px',
+    },
+
+    mobileLoginBtn: {
+      width: '100%',
+      padding: '12px 16px',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      backgroundColor: '',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '6px',
+      transition: 'all 0.2s ease',
+    },
+
+    mobileSignupBtn: {
+      width: '100%',
+      padding: '12px 16px',
+      border: 'none',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '6px',
+      transition: 'all 0.2s ease',
+    },
     // Add these to your existing styles object
     userProfileTrigger: {
       display: 'flex',
       alignItems: 'center',
-      padding: '8px 12px',
+      padding: '8px',
       borderRadius: '8px',
       cursor: 'pointer',
-      transition: 'background-color 0.2s ease',
+      transition: 'all 0.2s ease',
       backgroundColor: 'transparent',
       border: 'none',
       color: '#fff',
@@ -1014,8 +1114,8 @@ export default function MainLanding() {
     },
 
     userAvatar: {
-      width: '32px',
-      height: '32px',
+      width: '40px',
+      height: '40px',
       borderRadius: '50%',
       backgroundColor: 'rgba(255, 255, 255, 0.15)',
       display: 'flex',
@@ -1023,41 +1123,48 @@ export default function MainLanding() {
       justifyContent: 'center',
       marginRight: '8px',
       color: '#fff',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      transition: 'all 0.2s ease',
+      ':hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      }
     },
 
     userName: {
       marginRight: '4px',
+      fontSize: '14px',
+      fontWeight: '500',
     },
 
     userDropdown: {
       position: 'absolute',
       top: '100%',
       right: '0',
-      marginTop: '8px',
-      backgroundColor: '#fff',
-      borderRadius: '8px',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+      marginTop: '12px',
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      borderRadius: '12px',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
       border: '1px solid rgba(0, 0, 0, 0.1)',
-      minWidth: '200px',
+      minWidth: '220px',
       zIndex: 1000,
       overflow: 'hidden',
     },
 
     userInfo: {
       padding: '16px',
-      borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+      borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
     },
 
     userInfoName: {
-      fontSize: '14px',
+      fontSize: '15px',
       fontWeight: '600',
-      color: '#1a1a1a',
+      color: '#ffff',
       marginBottom: '4px',
     },
 
     userInfoEmail: {
-      fontSize: '12px',
-      color: '#666',
+      fontSize: '13px',
+      color: '#6b7280',
     },
 
     dropdownDivider: {
@@ -1067,7 +1174,7 @@ export default function MainLanding() {
 
     logoutButton: {
       width: '100%',
-      padding: '12px 16px',
+      padding: '14px 16px',
       border: 'none',
       backgroundColor: 'transparent',
       color: '#dc2626',
@@ -1076,9 +1183,9 @@ export default function MainLanding() {
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
-      transition: 'background-color 0.2s ease',
+      transition: 'all 0.2s ease',
       ':hover': {
-        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+        backgroundColor: 'rgba(220, 38, 38, 0.05)',
       }
     },
 
@@ -1129,7 +1236,7 @@ export default function MainLanding() {
       borderRadius: '6px',
       margin: '8px 16px 16px 16px',
       transition: 'background-color 0.2s ease',
-    }, 
+    },
     nav: {
       background: "rgba(17, 24, 39, 0.85)",
       backdropFilter: "blur(20px)",
@@ -1175,11 +1282,7 @@ export default function MainLanding() {
       gap: "1.2rem",
     },
     hamburger: {
-      display: isMobile ? "flex" : "none",
-      flexDirection: "column",
-      cursor: "pointer",
-      gap: "5px",
-      marginLeft: "auto",
+      display: 'none', // Hide hamburger completely
     },
     bar: {
       width: "25px",
@@ -1369,6 +1472,7 @@ export default function MainLanding() {
             <div style={styles.container}>
               {/* Left: Logo + Title */}
               <div style={styles.logoWrapper}>
+                {/* <img src="/image.png" alt="Logo" style={styles.logoImg} /> */}
                 <h1 style={styles.logoText}>Chanakya AI</h1>
               </div>
               {/* Center: Status (desktop only) */}
@@ -1377,59 +1481,50 @@ export default function MainLanding() {
                   {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
                 </div>
               )}
-              {/* Right: Hamburger (mobile) or Auth menu (desktop) */}
+              {/* Right: User menu (both mobile and desktop) */}
               <div style={styles.right}>
-                {/* Hamburger (mobile only) */}
-                <div
-                  className="hamburger"
-                  onClick={menuOpen ? closeMenu : openMenu}
-                  style={styles.hamburger}
-                  aria-label="Open menu"
-                >
-                  <div style={styles.bar}></div>
-                  <div style={styles.bar}></div>
-                  <div style={styles.bar}></div>
-                </div>
-                {/* Desktop Auth Menu */}
-                <div className="authMenu" style={styles.desktopMenu}>
-                  {user ? (
-                    <div style={{ position: "relative" }}>
-                      <div
-                        onClick={() => setMenuOpen(!menuOpen)}
-                        style={styles.userProfileTrigger}
+                <div style={{ position: "relative" }}>
+                  <div
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    style={styles.userProfileTrigger}
+                  >
+                    <div style={styles.userAvatar}>
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       >
-                        <div style={styles.userAvatar}>
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                          </svg>
-                        </div>
-                        <span style={styles.userName}>{user.name}</span>
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          style={{ marginLeft: '4px' }}
-                        >
-                          <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                      </div>
-                      {menuOpen && (
-                        <div style={styles.userDropdown}>
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    {user && !isMobile && <span style={styles.userName}>{user.name}</span>}
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{
+                        marginLeft: (user && !isMobile) ? '8px' : '0',
+                        display: isMobile ? 'none' : 'block'
+                      }}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </div>
+                  {menuOpen && (
+                    <div style={isMobile ? styles.mobileUserDropdown : styles.userDropdown}>
+                      {user ? (
+                        <>
                           <div style={styles.userInfo}>
                             <div style={styles.userInfoName}>{user.name}</div>
                             <div style={styles.userInfoEmail}>{user.email}</div>
@@ -1453,77 +1548,55 @@ export default function MainLanding() {
                             </svg>
                             Logout
                           </button>
+                        </>
+                      ) : (
+                        <div style={styles.authDropdownButtons}>
+                          <Link to="/login" style={{ textDecoration: "none" }}>
+                            <button style={styles.dropdownLoginBtn} onClick={() => setMenuOpen(false)}>
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{ marginRight: '8px' }}
+                              >
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                                <polyline points="10 17 15 12 10 7" />
+                                <line x1="15" y1="12" x2="3" y2="12" />
+                              </svg>
+                              Login
+                            </button>
+                          </Link>
+                          <Link to="/signup" style={{ textDecoration: "none" }}>
+                            <button style={styles.dropdownSignupBtn} onClick={() => setMenuOpen(false)}>
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{ marginRight: '8px' }}
+                              >
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                              Sign Up
+                            </button>
+                          </Link>
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div style={styles.authButtons}>
-                      <Link to="/login" style={{ textDecoration: "none" }}>
-                        <button style={styles.loginBtn}>Login</button>
-                      </Link>
-                      <Link to="/signup" style={{ textDecoration: "none" }}>
-                        <button style={styles.signupBtn}>Sign Up</button>
-                      </Link>
-                    </div>
                   )}
                 </div>
-                {/* Mobile Auth Menu */}
-                {isMobile && menuOpen && (
-                  <div style={styles.mobileMenu}>
-                    {user ? (
-                      <>
-                        <div style={styles.mobileUserInfo}>
-                          <div style={styles.mobileUserAvatar}>
-                            <svg
-                              width="20"
-                              height="20"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                              <circle cx="12" cy="7" r="4" />
-                            </svg>
-                          </div>
-                          <div>
-                            <div style={styles.mobileUserName}>{user.name}</div>
-                            <div style={styles.mobileUserEmail}>{user.email}</div>
-                          </div>
-                        </div>
-                        <button onClick={handleLogout} style={styles.mobileLogoutBtn}>
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            style={{ marginRight: '8px' }}
-                          >
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                            <polyline points="16 17 21 12 16 7" />
-                            <line x1="21" y1="12" x2="9" y2="12" />
-                          </svg>
-                          Logout
-                        </button>
-                      </>
-                    ) : (
-                      <div style={styles.authButtons}>
-                        <Link to="/login" style={{ textDecoration: "none" }}>
-                          <button style={styles.loginBtn}>Login</button>
-                        </Link>
-                        <Link to="/signup" style={{ textDecoration: "none" }}>
-                          <button style={styles.signupBtn}>Sign Up</button>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           </nav>

@@ -21,7 +21,7 @@ export default function LoginPage() {
     try {
       const userCred = await signInWithEmailAndPassword(auth, form.email, form.password)
       const token = await userCred.user.getIdToken()
-      console.log("Firebase Auth Token:", token)
+      // console.log("Firebase Auth Token:", token)
 
       const res = await fetch(`${BACKEND_URL}/profile`, {
         headers: {
