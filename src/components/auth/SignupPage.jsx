@@ -5,6 +5,8 @@ import { Link } from "react-router-dom"
 import { auth } from "../../firebase"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { useNavigate } from "react-router-dom"
+import { Mail, Lock, User, Check, Shield, Search } from "lucide-react"
+import AuthLayout from "./AuthLayout"
 
 export default function SignupPage() {
   const BACKEND_URL = "https://nyay-gpt.onrender.com" || "http://localhost:3000"
@@ -57,312 +59,201 @@ export default function SignupPage() {
   }
 
   return (
-    <div style={styles.container}>
-      {/* Background Effects */}
-      <div style={styles.backgroundEffects}>
-        <div style={styles.blob1}></div>
-        <div style={styles.blob2}></div>
-        <div style={styles.blob3}></div>
-        <div style={styles.blob4}></div>
-      </div>
-
-      {/* Main Content */}
-      <div style={styles.mainCard}>
-        {/* Header */}
-        <div style={styles.header}>
-          <div style={styles.logoContainer}>
-            <div style={styles.logo}>⚖️</div>
-          </div>
-          <h1 style={styles.title}>Join Nyay-GPT</h1>
-          <p style={styles.subtitle}>Create your AI-powered legal assistant account</p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Name Field */}
-          <div style={styles.inputContainer}>
-            <div
-              style={{
-                ...styles.inputWrapper,
-                ...(focusedField === "name" ? styles.inputWrapperFocused : {}),
-              }}
-            >
-              <div style={styles.inputIcon}>👤</div>
-              <div style={styles.inputFieldContainer}>
-                <label
-                  style={{
-                    ...styles.floatingLabel,
-                    ...(form.name || focusedField === "name" ? styles.floatingLabelActive : {}),
-                  }}
-                >
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  onFocus={() => setFocusedField("name")}
-                  onBlur={() => setFocusedField("")}
-                  style={styles.input}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Email Field */}
-          <div style={styles.inputContainer}>
-            <div
-              style={{
-                ...styles.inputWrapper,
-                ...(focusedField === "email" ? styles.inputWrapperFocused : {}),
-              }}
-            >
-              <div style={styles.inputIcon}>📧</div>
-              <div style={styles.inputFieldContainer}>
-                <label
-                  style={{
-                    ...styles.floatingLabel,
-                    ...(form.email || focusedField === "email" ? styles.floatingLabelActive : {}),
-                  }}
-                >
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  onFocus={() => setFocusedField("email")}
-                  onBlur={() => setFocusedField("")}
-                  style={styles.input}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Password Field */}
-          <div style={styles.inputContainer}>
-            <div
-              style={{
-                ...styles.inputWrapper,
-                ...(focusedField === "password" ? styles.inputWrapperFocused : {}),
-              }}
-            >
-              <div style={styles.inputIcon}>🔒</div>
-              <div style={styles.inputFieldContainer}>
-                <label
-                  style={{
-                    ...styles.floatingLabel,
-                    ...(form.password || focusedField === "password" ? styles.floatingLabelActive : {}),
-                  }}
-                >
-                  Create Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  onFocus={() => setFocusedField("password")}
-                  onBlur={() => setFocusedField("")}
-                  style={styles.input}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Password Requirements */}
-          <div style={styles.passwordHints}>
-            <div style={styles.hintItem}>
-              <span style={styles.hintIcon}>✓</span>
-              <span style={styles.hintText}>At least 6 characters</span>
-            </div>
-            <div style={styles.hintItem}>
-              <span style={styles.hintIcon}>🔐</span>
-              <span style={styles.hintText}>Keep it secure and unique</span>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
+    <AuthLayout title="Join Chankya AI" subtitle="Create your AI-powered legal assistant account">
+      {/* Form */}
+      <form onSubmit={handleSubmit} style={styles.form}>
+        {/* Name Field */}
+        <div style={styles.inputContainer}>
+          <div
             style={{
-              ...styles.submitButton,
-              ...(loading ? styles.submitButtonLoading : {}),
-            }}
-            disabled={loading}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.target.style.transform = "translateY(-2px)"
-                e.target.style.boxShadow = "0 20px 40px rgba(34, 197, 94, 0.4)"
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!loading) {
-                e.target.style.transform = "translateY(0)"
-                e.target.style.boxShadow = "0 10px 30px rgba(34, 197, 94, 0.3)"
-              }
+              ...styles.inputWrapper,
+              ...(focusedField === "name" ? styles.inputWrapperFocused : {}),
             }}
           >
-            {loading ? (
-              <div style={styles.loadingContainer}>
-                <div style={styles.spinner}></div>
-                <span>Creating Account...</span>
-              </div>
-            ) : (
-              <div style={styles.buttonContent}>
-                <span>Create Account</span>
-                <span style={styles.buttonIcon}>🚀</span>
-              </div>
-            )}
-          </button>
-        </form>
-
-        {/* Terms */}
-        <div style={styles.termsContainer}>
-          <p style={styles.termsText}>
-            By creating an account, you agree to our{" "}
-            <a href="#" style={styles.termsLink}>
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="#" style={styles.termsLink}>
-              Privacy Policy
-            </a>
-          </p>
+            <div style={styles.inputIcon}>
+              <User size={20} color="#6b7280" />
+            </div>
+            <div style={styles.inputFieldContainer}>
+              <label
+                style={{
+                  ...styles.floatingLabel,
+                  ...(form.name || focusedField === "name" ? styles.floatingLabelActive : {}),
+                }}
+              >
+                Full Name
+              </label>
+              <input
+                type="text"
+                required
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onFocus={() => setFocusedField("name")}
+                onBlur={() => setFocusedField("")}
+                style={styles.input}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Divider */}
-        <div style={styles.divider}>
-          <div style={styles.dividerLine}></div>
-          <span style={styles.dividerText}>or</span>
-          <div style={styles.dividerLine}></div>
+        {/* Email Field */}
+        <div style={styles.inputContainer}>
+          <div
+            style={{
+              ...styles.inputWrapper,
+              ...(focusedField === "email" ? styles.inputWrapperFocused : {}),
+            }}
+          >
+            <div style={styles.inputIcon}>
+              <Mail size={20} color="#6b7280" />
+            </div>
+            <div style={styles.inputFieldContainer}>
+              <label
+                style={{
+                  ...styles.floatingLabel,
+                  ...(form.email || focusedField === "email" ? styles.floatingLabelActive : {}),
+                }}
+              >
+                Email Address
+              </label>
+              <input
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onFocus={() => setFocusedField("email")}
+                onBlur={() => setFocusedField("")}
+                style={styles.input}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Social Signup */}
-        <div style={styles.socialContainer}>
-          <button style={styles.socialButton}>
-            <span style={styles.socialIcon}>🔍</span>
-            Sign up with Google
-          </button>
+        {/* Password Field */}
+        <div style={styles.inputContainer}>
+          <div
+            style={{
+              ...styles.inputWrapper,
+              ...(focusedField === "password" ? styles.inputWrapperFocused : {}),
+            }}
+          >
+            <div style={styles.inputIcon}>
+              <Lock size={20} color="#6b7280" />
+            </div>
+            <div style={styles.inputFieldContainer}>
+              <label
+                style={{
+                  ...styles.floatingLabel,
+                  ...(form.password || focusedField === "password" ? styles.floatingLabelActive : {}),
+                }}
+              >
+                Create Password
+              </label>
+              <input
+                type="password"
+                required
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                onFocus={() => setFocusedField("password")}
+                onBlur={() => setFocusedField("")}
+                style={styles.input}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Login Link */}
-        <div style={styles.loginContainer}>
-          <span style={styles.loginText}>Already have an account? </span>
-          <Link to="/login" style={styles.loginLink}>
-            Sign In
-          </Link>
+        {/* Password Requirements */}
+        <div style={styles.passwordHints}>
+          <div style={styles.hintItem}>
+            <Check size={12} color="#34374a" />
+            <span style={styles.hintText}>At least 6 characters</span>
+          </div>
+          <div style={styles.hintItem}>
+            <Shield size={12} color="#34374a" />
+            <span style={styles.hintText}>Keep it secure and unique</span>
+          </div>
         </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          style={{
+            ...styles.submitButton,
+            ...(loading ? styles.submitButtonLoading : {}),
+          }}
+          disabled={loading}
+          onMouseEnter={(e) => {
+            if (!loading) {
+              e.target.style.transform = "translateY(-2px)"
+              e.target.style.boxShadow = "0 20px 40px rgba(52, 55, 74, 0.4)"
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!loading) {
+              e.target.style.transform = "translateY(0)"
+              e.target.style.boxShadow = "0 10px 30px rgba(52, 55, 74, 0.3)"
+            }
+          }}
+        >
+          {loading ? (
+            <div style={styles.loadingContainer}>
+              <div style={styles.spinner}></div>
+              <span>Creating Account...</span>
+            </div>
+          ) : (
+            <span>Create Account</span>
+          )}
+        </button>
+      </form>
+
+      {/* Terms */}
+      <div style={styles.termsContainer}>
+        <p style={styles.termsText}>
+          By creating an account, you agree to our{" "}
+          <a href="#" style={styles.termsLink}>
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="#" style={styles.termsLink}>
+            Privacy Policy
+          </a>
+        </p>
       </div>
-    </div>
+
+      {/* Divider */}
+      <div style={styles.divider}>
+        <div style={styles.dividerLine}></div>
+        <span style={styles.dividerText}>or</span>
+        <div style={styles.dividerLine}></div>
+      </div>
+
+      {/* Social Signup */}
+      <div style={styles.socialContainer}>
+        <button style={styles.socialButton}>
+          <Search size={20} color="#374151" />
+          Sign up with Google
+        </button>
+      </div>
+
+      {/* Login Link */}
+      <div style={styles.loginContainer}>
+        <span style={styles.loginText}>Already have an account? </span>
+        <Link to="/login" style={styles.loginLink}>
+          Sign In
+        </Link>
+      </div>
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </AuthLayout>
   )
 }
 
 const styles = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)",
-    padding: "20px",
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-    position: "relative",
-    overflow: "hidden",
-  },
-  backgroundEffects: {
-    position: "absolute",
-    inset: 0,
-    overflow: "hidden",
-    zIndex: 0,
-  },
-  blob1: {
-    position: "absolute",
-    top: "-30%",
-    left: "-30%",
-    width: "80%",
-    height: "80%",
-    background: "radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, transparent 70%)",
-    borderRadius: "50%",
-    animation: "float 8s ease-in-out infinite",
-  },
-  blob2: {
-    position: "absolute",
-    top: "10%",
-    right: "-40%",
-    width: "90%",
-    height: "90%",
-    background: "radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)",
-    borderRadius: "50%",
-    animation: "float 10s ease-in-out infinite reverse",
-  },
-  blob3: {
-    position: "absolute",
-    bottom: "-40%",
-    left: "10%",
-    width: "70%",
-    height: "70%",
-    background: "radial-gradient(circle, rgba(5, 150, 105, 0.12) 0%, transparent 70%)",
-    borderRadius: "50%",
-    animation: "float 12s ease-in-out infinite",
-  },
-  blob4: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "60%",
-    height: "60%",
-    background: "radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%)",
-    borderRadius: "50%",
-    animation: "float 14s ease-in-out infinite reverse",
-  },
-  mainCard: {
-    background: "rgba(255, 255, 255, 0.95)",
-    backdropFilter: "blur(20px)",
-    borderRadius: "24px",
-    padding: "48px",
-    width: "100%",
-    maxWidth: "480px",
-    boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.2)",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    position: "relative",
-    zIndex: 1,
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: "40px",
-  },
-  logoContainer: {
-    marginBottom: "24px",
-  },
-  logo: {
-    fontSize: "48px",
-    display: "inline-block",
-    padding: "16px",
-    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-    borderRadius: "20px",
-    boxShadow: "0 10px 30px rgba(16, 185, 129, 0.3)",
-  },
-  title: {
-    fontSize: "32px",
-    fontWeight: "700",
-    color: "#1f2937",
-    margin: "0 0 8px 0",
-    background: "linear-gradient(135deg, #1f2937 0%, #10b981 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
-  },
-  subtitle: {
-    fontSize: "16px",
-    color: "#6b7280",
-    margin: 0,
-    fontWeight: "400",
-    lineHeight: "1.5",
-  },
   form: {
     display: "flex",
     flexDirection: "column",
@@ -382,14 +273,15 @@ const styles = {
     backdropFilter: "blur(10px)",
   },
   inputWrapperFocused: {
-    borderColor: "#10b981",
+    borderColor: "#34374a",
     background: "rgba(255, 255, 255, 0.95)",
-    boxShadow: "0 0 0 4px rgba(16, 185, 129, 0.1)",
+    boxShadow: "0 0 0 4px rgba(52, 55, 74, 0.1)",
   },
   inputIcon: {
-    fontSize: "20px",
     padding: "16px",
-    color: "#6b7280",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   inputFieldContainer: {
     flex: 1,
@@ -411,7 +303,7 @@ const styles = {
     top: "8px",
     transform: "translateY(0)",
     fontSize: "12px",
-    color: "#10b981",
+    color: "#34374a",
     fontWeight: "600",
   },
   input: {
@@ -436,17 +328,13 @@ const styles = {
     alignItems: "center",
     gap: "6px",
   },
-  hintIcon: {
-    fontSize: "12px",
-    color: "#10b981",
-  },
   hintText: {
     fontSize: "12px",
     color: "#6b7280",
     fontWeight: "500",
   },
   submitButton: {
-    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    background: "linear-gradient(135deg, #34374a 0%, #252845 100%)",
     color: "white",
     border: "none",
     borderRadius: "16px",
@@ -455,7 +343,7 @@ const styles = {
     fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    boxShadow: "0 10px 30px rgba(16, 185, 129, 0.3)",
+    boxShadow: "0 10px 30px rgba(52, 55, 74, 0.3)",
     position: "relative",
     overflow: "hidden",
     marginTop: "8px",
@@ -463,15 +351,6 @@ const styles = {
   submitButtonLoading: {
     cursor: "not-allowed",
     opacity: 0.8,
-  },
-  buttonContent: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-  },
-  buttonIcon: {
-    fontSize: "16px",
   },
   loadingContainer: {
     display: "flex",
@@ -498,7 +377,7 @@ const styles = {
     margin: 0,
   },
   termsLink: {
-    color: "#10b981",
+    color: "#34374a",
     textDecoration: "none",
     fontWeight: "500",
     transition: "color 0.3s ease",
@@ -539,9 +418,6 @@ const styles = {
     transition: "all 0.3s ease",
     backdropFilter: "blur(10px)",
   },
-  socialIcon: {
-    fontSize: "20px",
-  },
   loginContainer: {
     textAlign: "center",
     padding: "24px 0 0 0",
@@ -552,44 +428,10 @@ const styles = {
     fontSize: "16px",
   },
   loginLink: {
-    color: "#10b981",
+    color: "#34374a",
     textDecoration: "none",
     fontWeight: "600",
     fontSize: "16px",
     transition: "color 0.3s ease",
   },
-}
-
-// Add CSS animations and hover effects
-if (typeof document !== "undefined") {
-  const styleElement = document.createElement("style")
-  styleElement.textContent = `
-    @keyframes float {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-25px) rotate(3deg); }
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .social-button:hover {
-      border-color: #10b981 !important;
-      background: rgba(16, 185, 129, 0.05) !important;
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-    
-    .terms-link:hover {
-      color: #059669 !important;
-      text-decoration: underline;
-    }
-    
-    .login-link:hover {
-      color: #059669 !important;
-      text-decoration: underline;
-    }
-  `
-  document.head.appendChild(styleElement)
 }

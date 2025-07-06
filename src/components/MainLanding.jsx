@@ -360,12 +360,12 @@ export default function MainLanding() {
 
   useEffect(() => {
     const fetchChat = async () => {
-if (!chatId) {
-      setHistory([]);
-      setCurrentChatId(null); // ✅ Add this
-      return;
-    }
-    setCurrentChatId(chatId);
+      if (!chatId) {
+        setHistory([]);
+        setCurrentChatId(null); // ✅ Add this
+        return;
+      }
+      setCurrentChatId(chatId);
 
       try {
         const user = JSON.parse(localStorage.getItem("user"));
@@ -551,41 +551,41 @@ if (!chatId) {
     }
 
     async function saveUserChat(messageObj, existingChatId = null) {
-  console.log("saveUserChat called", messageObj, existingChatId, user);
-  
-  // ✅ User check सही करें
-  if (!user?.token) {
-    console.log("No user token available");
-    return;
-  }
+      console.log("saveUserChat called", messageObj, existingChatId, user);
 
-  try {
-    const res = await fetch(`${backendBaseUrl}/history`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({
-        chatId: existingChatId,
-        message: messageObj,
-      }),
-    });
-    
-    const data = await res.json();
-    
-    // ✅ New chat के लिए navigate करें
-    if (data.chatId && !existingChatId) {
-      setCurrentChatId(data.chatId);
-      // Navigate to new chat URL
-      // navigate(`/chat/${data.chatId}`, { replace: true });
+      // ✅ User check सही करें
+      if (!user?.token) {
+        console.log("No user token available");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${backendBaseUrl}/history`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({
+            chatId: existingChatId,
+            message: messageObj,
+          }),
+        });
+
+        const data = await res.json();
+
+        // ✅ New chat के लिए navigate करें
+        if (data.chatId && !existingChatId) {
+          setCurrentChatId(data.chatId);
+          // Navigate to new chat URL
+          // navigate(`/chat/${data.chatId}`, { replace: true });
+        }
+
+        return data.chatId;
+      } catch (err) {
+        console.error("Failed to save chat:", err);
+      }
     }
-    
-    return data.chatId;
-  } catch (err) {
-    console.error("Failed to save chat:", err);
-  }
-}
 
     return () => {
       stoppedByApp = true
@@ -995,6 +995,141 @@ if (!chatId) {
   }, []);
 
   const styles = {
+    // Add these to your existing styles object
+    userProfileTrigger: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '8px 12px',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      transition: 'background-color 0.2s ease',
+      backgroundColor: 'transparent',
+      border: 'none',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      ':hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      }
+    },
+
+    userAvatar: {
+      width: '32px',
+      height: '32px',
+      borderRadius: '50%',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: '8px',
+      color: '#fff',
+    },
+
+    userName: {
+      marginRight: '4px',
+    },
+
+    userDropdown: {
+      position: 'absolute',
+      top: '100%',
+      right: '0',
+      marginTop: '8px',
+      backgroundColor: '#fff',
+      borderRadius: '8px',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+      border: '1px solid rgba(0, 0, 0, 0.1)',
+      minWidth: '200px',
+      zIndex: 1000,
+      overflow: 'hidden',
+    },
+
+    userInfo: {
+      padding: '16px',
+      borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+    },
+
+    userInfoName: {
+      fontSize: '14px',
+      fontWeight: '600',
+      color: '#1a1a1a',
+      marginBottom: '4px',
+    },
+
+    userInfoEmail: {
+      fontSize: '12px',
+      color: '#666',
+    },
+
+    dropdownDivider: {
+      height: '1px',
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    },
+
+    logoutButton: {
+      width: '100%',
+      padding: '12px 16px',
+      border: 'none',
+      backgroundColor: 'transparent',
+      color: '#dc2626',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      transition: 'background-color 0.2s ease',
+      ':hover': {
+        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+      }
+    },
+
+    mobileUserInfo: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '16px',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+      marginBottom: '8px',
+    },
+
+    mobileUserAvatar: {
+      width: '40px',
+      height: '40px',
+      borderRadius: '50%',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: '12px',
+      color: '#fff',
+    },
+
+    mobileUserName: {
+      fontSize: '16px',
+      fontWeight: '600',
+      color: '#fff',
+      marginBottom: '2px',
+    },
+
+    mobileUserEmail: {
+      fontSize: '12px',
+      color: 'rgba(255, 255, 255, 0.7)',
+    },
+
+    mobileLogoutBtn: {
+      width: '100%',
+      padding: '12px 16px',
+      border: 'none',
+      backgroundColor: 'rgba(220, 38, 38, 0.1)',
+      color: '#ff6b6b',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '6px',
+      margin: '8px 16px 16px 16px',
+      transition: 'background-color 0.2s ease',
+    }, 
     nav: {
       background: "rgba(17, 24, 39, 0.85)",
       backdropFilter: "blur(20px)",
@@ -1031,7 +1166,8 @@ if (!chatId) {
       fontWeight: "bold",
       letterSpacing: "0.01em",
       color: "#fff",
-      margin: 0,
+      margin: 36,
+      marginBottom: 25,
     },
     right: {
       display: "flex",
@@ -1108,8 +1244,8 @@ if (!chatId) {
       backdropFilter: "blur(10px)",
       border: "1px solid rgba(255,255,255,0.10)",
       fontWeight: 500,
-      marginBottom: "0.75rem",
-      marginTop: isMobile ? "1rem" : "0",
+      marginBottom: "0",
+      marginTop: isMobile ? "1rem" : 0,
       width: isMobile ? "90%" : "auto",
       marginLeft: isMobile ? "auto" : 0,
       marginRight: isMobile ? "auto" : 0,
@@ -1170,14 +1306,14 @@ if (!chatId) {
   return (
     <div
       style={{
-      minHeight: "100vh",
-      background: "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)",
-      color: "#ffffff",
-      display: "flex",
-      flexDirection: "row", // THIS IS IMPORTANT
-      position: "relative",
-      width: "100vw"
-    }}
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)",
+        color: "#ffffff",
+        display: "flex",
+        flexDirection: "row", // THIS IS IMPORTANT
+        position: "relative",
+        width: "100vw"
+      }}
     >
       {/* Sidebar - always rendered, but visible only when open */}
       <ChatHistorySidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
@@ -1233,17 +1369,14 @@ if (!chatId) {
             <div style={styles.container}>
               {/* Left: Logo + Title */}
               <div style={styles.logoWrapper}>
-                <img src="/image.png" alt="Logo" style={styles.logoImg} />
                 <h1 style={styles.logoText}>Chanakya AI</h1>
               </div>
-
               {/* Center: Status (desktop only) */}
               {!isMobile && (
                 <div style={styles.statusBox}>
                   {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
                 </div>
               )}
-
               {/* Right: Hamburger (mobile) or Auth menu (desktop) */}
               <div style={styles.right}>
                 {/* Hamburger (mobile only) */}
@@ -1257,33 +1390,68 @@ if (!chatId) {
                   <div style={styles.bar}></div>
                   <div style={styles.bar}></div>
                 </div>
-
                 {/* Desktop Auth Menu */}
                 <div className="authMenu" style={styles.desktopMenu}>
                   {user ? (
                     <div style={{ position: "relative" }}>
                       <div
                         onClick={() => setMenuOpen(!menuOpen)}
-                        style={styles.userDropdownTrigger}
+                        style={styles.userProfileTrigger}
                       >
-                        👤 {user.name}
+                        <div style={styles.userAvatar}>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                        </div>
+                        <span style={styles.userName}>{user.name}</span>
                         <svg
-                          width="14"
-                          height="14"
+                          width="12"
+                          height="12"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
+                          style={{ marginLeft: '4px' }}
                         >
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
                       </div>
                       {menuOpen && (
-                        <div style={styles.dropdown}>
-                          <button onClick={handleLogout} style={styles.logoutBtn}>
-                            🚪 Logout
+                        <div style={styles.userDropdown}>
+                          <div style={styles.userInfo}>
+                            <div style={styles.userInfoName}>{user.name}</div>
+                            <div style={styles.userInfoEmail}>{user.email}</div>
+                          </div>
+                          <div style={styles.dropdownDivider}></div>
+                          <button onClick={handleLogout} style={styles.logoutButton}>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              style={{ marginRight: '8px' }}
+                            >
+                              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                              <polyline points="16 17 21 12 16 7" />
+                              <line x1="21" y1="12" x2="9" y2="12" />
+                            </svg>
+                            Logout
                           </button>
                         </div>
                       )}
@@ -1299,26 +1467,49 @@ if (!chatId) {
                     </div>
                   )}
                 </div>
-
                 {/* Mobile Auth Menu */}
                 {isMobile && menuOpen && (
                   <div style={styles.mobileMenu}>
                     {user ? (
                       <>
-                        <div
-                          style={{
-                            color: "#fff",
-                            fontWeight: 600,
-                            padding: "0.5rem 1rem",
-                            marginBottom: "0.25rem",
-                            textAlign: "center",
-                            borderBottom: "1px solid rgba(255,255,255,0.12)",
-                          }}
-                        >
-                          👤 {user.name}
+                        <div style={styles.mobileUserInfo}>
+                          <div style={styles.mobileUserAvatar}>
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                              <circle cx="12" cy="7" r="4" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div style={styles.mobileUserName}>{user.name}</div>
+                            <div style={styles.mobileUserEmail}>{user.email}</div>
+                          </div>
                         </div>
-                        <button onClick={handleLogout} style={styles.logoutBtn}>
-                          🚪 Logout
+                        <button onClick={handleLogout} style={styles.mobileLogoutBtn}>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            style={{ marginRight: '8px' }}
+                          >
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                          </svg>
+                          Logout
                         </button>
                       </>
                     ) : (
@@ -1336,7 +1527,6 @@ if (!chatId) {
               </div>
             </div>
           </nav>
-
           {/* Status: mobile below nav */}
           {isMobile && (
             <div style={styles.statusBox}>

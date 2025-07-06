@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Mic, MicOff, Volume2 } from "lucide-react"
@@ -72,7 +71,6 @@ export default function ChatViewer() {
   // Function to filter out AI intro/system messages - MORE AGGRESSIVE
   const filterRelevantMessages = (messages) => {
     console.log("🔍 Original messages:", messages.length)
-
     // More comprehensive intro keywords
     const introKeywords = [
       "नमस्ते",
@@ -101,12 +99,10 @@ export default function ChatViewer() {
 
     const filtered = messages.filter((msg, index) => {
       const content = msg.content.toLowerCase()
-
       // Skip first 2 messages if they look like system messages
       if (index < 2) {
         const isSystemMessage =
           introKeywords.some((keyword) => content.includes(keyword.toLowerCase())) || content.length < 100 // Very short messages are likely intros
-
         if (isSystemMessage) {
           console.log(`🚫 Skipping message ${index + 1} (system/intro):`, msg.content.substring(0, 50))
           return false
@@ -116,7 +112,6 @@ export default function ChatViewer() {
       // For assistant messages, be more strict
       if (msg.role === "assistant") {
         const isIntroMessage = introKeywords.some((keyword) => content.includes(keyword.toLowerCase()))
-
         // Skip if it contains intro keywords OR is very generic
         if (isIntroMessage || content.includes("कृपया अपना") || content.includes("please ask")) {
           console.log(`🚫 Filtering assistant intro:`, msg.content.substring(0, 50))
@@ -150,24 +145,19 @@ export default function ChatViewer() {
       try {
         const user = JSON.parse(localStorage.getItem("user"))
         const token = user?.token
-
         const res = await fetch(`https://nyay-gpt.onrender.com/history/${chatId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
-
         if (!res.ok) throw new Error("Failed to fetch chat")
         const data = await res.json()
         const chatMessages = data.chat?.messages || []
-
         // Filter out intro messages for better context
         const filteredMessages = filterRelevantMessages(chatMessages)
         setMessages(chatMessages) // Keep all messages for UI
-
         console.log("📚 Total messages loaded:", chatMessages.length)
         console.log("📚 Relevant messages for AI:", filteredMessages.length)
-
         // Auto-detect language from chat history
         detectLanguageFromHistory(filteredMessages)
       } catch (error) {
@@ -180,14 +170,12 @@ export default function ChatViewer() {
         }, 100)
       }
     }
-
     fetchChat()
   }, [chatId])
 
   // Auto-detect language from chat history
   const detectLanguageFromHistory = (chatMessages) => {
     if (chatMessages.length === 0) return
-
     // Check last few messages for language patterns
     const recentMessages = chatMessages.slice(-5)
     const combinedText = recentMessages
@@ -262,12 +250,12 @@ export default function ChatViewer() {
       setUserSpeaking(true)
       setReadyToSpeak(false)
       setTimeout(() => setUserSpeaking(false), 1200)
-      recognition.stop()
 
+      recognition.stop()
       utteranceIdRef.current += 1
       const thisUtterance = utteranceIdRef.current
-      const userSpeech = event.results[event.results.length - 1][0].transcript.trim()
 
+      const userSpeech = event.results[event.results.length - 1][0].transcript.trim()
       console.log("🎤 User said:", userSpeech)
 
       if (!apiCallInProgressRef.current) {
@@ -307,7 +295,6 @@ export default function ChatViewer() {
 
           if (!res.ok) throw new Error(`Server responded with ${res.status}`)
           const data = await res.json()
-
           console.log("📥 AI Response received:", data.reply.substring(0, 100))
 
           // If this is still the latest utterance, process reply
@@ -395,6 +382,7 @@ export default function ChatViewer() {
         recognitionRef.current.stop()
       } catch (e) {}
     }
+
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ""
@@ -421,6 +409,7 @@ export default function ChatViewer() {
         setReadyToSpeak(true)
         console.log("🔊 Speech ended, ready for next input")
       }
+
       audio.onerror = (e) => {
         console.error("Audio playback error:", e)
         setSpeaking(false)
@@ -429,6 +418,7 @@ export default function ChatViewer() {
 
       setSpeaking(true)
       setReadyToSpeak(false)
+
       try {
         await audio.play()
       } catch (err) {
@@ -451,7 +441,6 @@ export default function ChatViewer() {
       setConnected(true)
       setMuted(false)
       setRecognitionKey((k) => k + 1)
-
       const relevantMessages = filterRelevantMessages(messages)
       console.log("🎤 Voice chat started with", relevantMessages.length, "relevant messages")
 
@@ -494,259 +483,662 @@ export default function ChatViewer() {
     }
   }
 
-  const containerStyle = {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)",
-    color: "#ffffff",
-    display: "flex",
-    flexDirection: "column",
-    fontFamily: "system-ui, -apple-system, sans-serif",
-  }
-
-  const headerStyle = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "1rem",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-    background: "rgba(17, 24, 39, 0.8)",
-    backdropFilter: "blur(10px)",
-    position: "sticky",
-    top: 0,
-    zIndex: 10,
-  }
-
-  const buttonStyle = {
-    padding: "0.5rem",
-    borderRadius: "50%",
-    border: "none",
-    cursor: "pointer",
-    transition: "all 0.3s ease",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  }
-
-  const backButtonStyle = {
-    ...buttonStyle,
-    background: "#374151",
-    color: "white",
-    marginRight: "1rem",
-  }
-
-  const micButtonStyle = {
-    ...buttonStyle,
-    padding: "0.75rem",
-    background: connected ? (readyToSpeak ? "#DC2626" : "#059669") : "#2563EB",
-    color: "white",
-    boxShadow: readyToSpeak ? "0 0 20px rgba(220, 38, 38, 0.5)" : "none",
-  }
-
-  const muteButtonStyle = {
-    ...buttonStyle,
-    background: muted ? "#DC2626" : "#374151",
-    color: "white",
-  }
-
-  const messagesContainerStyle = {
-    flex: 1,
-    overflowY: "auto",
-    padding: "1.5rem 1rem",
-    display: "flex",
-    flexDirection: "column",
-    gap: "1rem",
-  }
-
-  const messageStyle = (isUser) => ({
-    maxWidth: "80%",
-    padding: "0.75rem 1.25rem",
-    fontSize: "0.875rem",
-    borderRadius: "1rem",
-    whiteSpace: "pre-wrap",
-    lineHeight: "1.5",
-    alignSelf: isUser ? "flex-end" : "flex-start",
-    background: isUser ? "#2563EB" : "#1E293B",
-    color: "#ffffff",
-    borderBottomRightRadius: isUser ? "0.25rem" : "1rem",
-    borderBottomLeftRadius: isUser ? "1rem" : "0.25rem",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-  })
-
-  const statusBarStyle = {
-    background: "#374151",
-    padding: "0.5rem 1rem",
-    textAlign: "center",
-    fontSize: "0.875rem",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "1rem",
-  }
-
-  const instructionsStyle = {
-    background: "#374151",
-    padding: "0.75rem 1rem",
-    textAlign: "center",
-    fontSize: "0.875rem",
-    color: "#D1D5DB",
-  }
-
   // Calculate relevant message count for display
   const relevantMessageCount = filterRelevantMessages(messages).length
 
-
-  
   return (
-    <div style={containerStyle}>
-      {/* Header */}
-      <div style={headerStyle}>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <button
-            onClick={() => navigate("/")}
-            style={backButtonStyle}
-            onMouseEnter={(e) => (e.target.style.background = "#4B5563")}
-            onMouseLeave={(e) => (e.target.style.background = "#374151")}
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #1a1d2e 0%, #252845 100%)",
+        color: "#ffffff",
+        fontFamily: "system-ui, -apple-system, sans-serif",
+      }}
+    >
+      {/* Glassmorphism Header */}
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          backdropFilter: "blur(16px)",
+          background: "rgba(52, 55, 74, 0.3)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "56rem",
+            margin: "0 auto",
+            padding: "1rem 1.5rem",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
           >
-            <ArrowLeft size={20} />
-          </button>
-          <h1 style={{ fontSize: "1.125rem", fontWeight: "600", margin: 0 }}>
-            Chat Viewer {messages.length > 0 && `(${relevantMessageCount} relevant)`}
-          </h1>
-        </div>
-
-        {/* Voice Controls */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          {/* Voice Status */}
-          <div style={{ fontSize: "0.875rem", color: "#9CA3AF", minWidth: "120px" }}>
-            {speaking && (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <Volume2 size={16} style={{ color: "#60A5FA" }} />
-                <span>AI Speaking...</span>
-              </div>
-            )}
-            {userSpeaking && "🎤 Listening..."}
-            {readyToSpeak && !speaking && !userSpeaking && (
-              <span style={{ color: "#F87171", fontWeight: "600" }}>🎤 Ready!</span>
-            )}
-            {connected && !speaking && !userSpeaking && !readyToSpeak && "Voice Active"}
-            {!connected && "Voice Inactive"}
-          </div>
-
-          {/* Mute Button (only show when connected) */}
-          {connected && (
-            <button
-              onClick={handleMute}
-              style={muteButtonStyle}
-              onMouseEnter={(e) => {
-                e.target.style.background = muted ? "#B91C1C" : "#4B5563"
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "1rem",
               }}
-              onMouseLeave={(e) => {
-                e.target.style.background = muted ? "#DC2626" : "#374151"
-              }}
-              title={muted ? "Unmute" : "Mute"}
             >
-              {muted ? <MicOff size={16} /> : <Mic size={16} />}
-            </button>
-          )}
+              <button
+                onClick={() => navigate("/")}
+                style={{
+                  padding: "0.75rem",
+                  borderRadius: "50%",
+                  background: "rgba(52, 55, 74, 0.4)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  backdropFilter: "blur(4px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "rgba(255, 255, 255, 0.2)"
+                  e.target.style.transform = "scale(1.05)"
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "rgba(52, 55, 74, 0.4)"
+                  e.target.style.transform = "scale(1)"
+                }}
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <div>
+                <h1
+                  style={{
+                    fontSize: "1.25rem",
+                    fontWeight: "bold",
+                    background: "linear-gradient(to right, #60a5fa, #a78bfa)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    margin: 0,
+                  }}
+                >
+                  Chankya AI
+                </h1>
+                {messages.length > 0 && (
+                  <p
+                    style={{
+                      fontSize: "0.875rem",
+                      color: "rgba(255, 255, 255, 0.6)",
+                      margin: 0,
+                    }}
+                  >
+                    {relevantMessageCount} relevant messages
+                  </p>
+                )}
+              </div>
+            </div>
 
-          {/* Main Mic Button */}
-          <button
-            onClick={handleMicToggle}
-            style={micButtonStyle}
-            onMouseEnter={(e) => {
-              if (connected) {
-                e.target.style.background = readyToSpeak ? "#B91C1C" : "#047857"
-              } else {
-                e.target.style.background = "#1D4ED8"
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (connected) {
-                e.target.style.background = readyToSpeak ? "#DC2626" : "#059669"
-              } else {
-                e.target.style.background = "#2563EB"
-              }
-            }}
-            title={connected ? "End Voice Chat" : "Start Voice Chat"}
-          >
-            {connected ? userSpeaking ? <Mic size={20} /> : <MicOff size={20} /> : <Mic size={20} />}
-          </button>
+            {/* Voice Controls */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+              }}
+            >
+              {/* Voice Status Indicator */}
+              <div
+                style={{
+                  display: window.innerWidth >= 640 ? "flex" : "none",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.5rem 0.75rem",
+                  borderRadius: "50px",
+                  background: "rgba(52, 55, 74, 0.4)",
+                  backdropFilter: "blur(4px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                }}
+              >
+                {speaking && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <Volume2
+                      size={16}
+                      style={{
+                        color: "#60a5fa",
+                        animation: "pulse 2s infinite",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#60a5fa",
+                      }}
+                    >
+                      AI Speaking
+                    </span>
+                  </div>
+                )}
+                {userSpeaking && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        background: "#4ade80",
+                        borderRadius: "50%",
+                        animation: "pulse 2s infinite",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#4ade80",
+                      }}
+                    >
+                      Listening
+                    </span>
+                  </div>
+                )}
+                {readyToSpeak && !speaking && !userSpeaking && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        background: "#f87171",
+                        borderRadius: "50%",
+                        animation: "pulse 2s infinite",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#f87171",
+                        fontWeight: "600",
+                      }}
+                    >
+                      Ready!
+                    </span>
+                  </div>
+                )}
+                {connected && !speaking && !userSpeaking && !readyToSpeak && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        background: "#4ade80",
+                        borderRadius: "50%",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#4ade80",
+                      }}
+                    >
+                      Voice Active
+                    </span>
+                  </div>
+                )}
+                {!connected && (
+                  <span
+                    style={{
+                      fontSize: "0.875rem",
+                      color: "rgba(255, 255, 255, 0.6)",
+                    }}
+                  >
+                    Voice Inactive
+                  </span>
+                )}
+              </div>
+
+              {/* Mute Button */}
+              {connected && (
+                <button
+                  onClick={handleMute}
+                  style={{
+                    padding: "0.75rem",
+                    borderRadius: "50%",
+                    background: muted ? "rgba(239, 68, 68, 0.2)" : "rgba(52, 55, 74, 0.4)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    color: muted ? "#f87171" : "#ffffff",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    backdropFilter: "blur(4px)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = muted ? "rgba(239, 68, 68, 0.3)" : "rgba(255, 255, 255, 0.2)"
+                    e.target.style.transform = "scale(1.05)"
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = muted ? "rgba(239, 68, 68, 0.2)" : "rgba(52, 55, 74, 0.4)"
+                    e.target.style.transform = "scale(1)"
+                  }}
+                  title={muted ? "Unmute" : "Mute"}
+                >
+                  {muted ? <MicOff size={18} /> : <Mic size={18} />}
+                </button>
+              )}
+
+              {/* Main Mic Button */}
+              <button
+                onClick={handleMicToggle}
+                style={{
+                  padding: "1rem",
+                  borderRadius: "50%",
+                  background: connected
+                    ? readyToSpeak
+                      ? "rgba(239, 68, 68, 0.2)"
+                      : "rgba(34, 197, 94, 0.2)"
+                    : "rgba(59, 130, 246, 0.2)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  color: connected ? (readyToSpeak ? "#f87171" : "#4ade80") : "#60a5fa",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  backdropFilter: "blur(4px)",
+                  boxShadow: connected
+                    ? readyToSpeak
+                      ? "0 0 20px rgba(248, 113, 113, 0.25)"
+                      : "0 0 20px rgba(74, 222, 128, 0.25)"
+                    : "0 0 20px rgba(96, 165, 250, 0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onMouseEnter={(e) => {
+                  if (connected) {
+                    e.target.style.background = readyToSpeak ? "rgba(239, 68, 68, 0.3)" : "rgba(34, 197, 94, 0.3)"
+                  } else {
+                    e.target.style.background = "rgba(59, 130, 246, 0.3)"
+                  }
+                  e.target.style.transform = "scale(1.05)"
+                }}
+                onMouseLeave={(e) => {
+                  if (connected) {
+                    e.target.style.background = readyToSpeak ? "rgba(239, 68, 68, 0.2)" : "rgba(34, 197, 94, 0.2)"
+                  } else {
+                    e.target.style.background = "rgba(59, 130, 246, 0.2)"
+                  }
+                  e.target.style.transform = "scale(1)"
+                }}
+                title={connected ? "End Voice Chat" : "Start Voice Chat"}
+              >
+                {connected ? userSpeaking ? <Mic size={22} /> : <MicOff size={22} /> : <Mic size={22} />}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Voice Status Bar */}
       {connected && (
-        <div style={statusBarStyle}>
-          <span style={{ color: "#10B981" }}>● Voice Chat Active</span>
-          <span style={{ color: "#9CA3AF" }}>
-            Language: {currentLang} | Relevant: {relevantMessageCount} messages
-          </span>
-          {speaking && (
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <div
+          style={{
+            backdropFilter: "blur(16px)",
+            background: "rgba(37, 40, 69, 0.6)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+          }}
+        >
+          <div
+            style={{
+              maxWidth: "56rem",
+              margin: "0 auto",
+              padding: "0.75rem 1.5rem",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "1.5rem",
+                fontSize: "0.875rem",
+              }}
+            >
               <div
                 style={{
-                  width: "8px",
-                  height: "8px",
-                  background: "#60A5FA",
-                  borderRadius: "50%",
-                  animation: "pulse 2s infinite",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
                 }}
-              />
-              <span style={{ color: "#60A5FA" }}>AI is speaking...</span>
+              >
+                <div
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    background: "#4ade80",
+                    borderRadius: "50%",
+                    animation: "pulse 2s infinite",
+                  }}
+                />
+                <span
+                  style={{
+                    color: "#4ade80",
+                    fontWeight: "500",
+                  }}
+                >
+                  Voice Chat Active
+                </span>
+              </div>
+              <div style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+                Language:{" "}
+                <span
+                  style={{
+                    color: "rgba(255, 255, 255, 0.8)",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {currentLang}
+                </span>
+              </div>
+              <div style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+                Context: <span style={{ color: "rgba(255, 255, 255, 0.8)" }}>{relevantMessageCount} messages</span>
+              </div>
+              {speaking && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      background: "#60a5fa",
+                      borderRadius: "50%",
+                      animation: "pulse 2s infinite",
+                    }}
+                  />
+                  <span style={{ color: "#60a5fa" }}>AI responding...</span>
+                </div>
+              )}
+              {readyToSpeak && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      background: "#f87171",
+                      borderRadius: "50%",
+                      animation: "pulse 2s infinite",
+                    }}
+                  />
+                  <span
+                    style={{
+                      color: "#f87171",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Speak now!
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-          {readyToSpeak && (
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <div
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  background: "#F87171",
-                  borderRadius: "50%",
-                  animation: "pulse 2s infinite",
-                }}
-              />
-              <span style={{ color: "#F87171", fontWeight: "600" }}>Speak now!</span>
-            </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Messages */}
-      <div style={messagesContainerStyle}>
-        {loading ? (
-          <p style={{ textAlign: "center", color: "#9CA3AF" }}>Fetching messages...</p>
-        ) : messages.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#9CA3AF" }}>No messages found in this chat.</p>
-        ) : (
-          messages.map((msg, index) => (
-            <div key={index} style={messageStyle(msg.role === "user")}>
-              {msg.content}
+      {/* Messages Container */}
+      <div
+        style={{
+          maxWidth: "56rem",
+          margin: "0 auto",
+          padding: "2rem 1.5rem",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {loading ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "3rem 0",
+              }}
+            >
+              <div style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    border: "2px solid #60a5fa",
+                    borderTop: "2px solid transparent",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                    margin: "0 auto 1rem",
+                  }}
+                />
+                <p style={{ color: "rgba(255, 255, 255, 0.6)" }}>Loading conversation...</p>
+              </div>
             </div>
-          ))
-        )}
-        <div ref={scrollRef} />
+          ) : messages.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "3rem 0",
+              }}
+            >
+              <div
+                style={{
+                  width: "64px",
+                  height: "64px",
+                  background: "rgba(52, 55, 74, 0.4)",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 1rem",
+                  backdropFilter: "blur(4px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                }}
+              >
+                <Mic size={24} style={{ color: "#60a5fa" }} />
+              </div>
+              <p style={{ color: "rgba(255, 255, 255, 0.6)" }}>No messages found in this conversation.</p>
+              <p
+                style={{
+                  color: "rgba(255, 255, 255, 0.4)",
+                  fontSize: "0.875rem",
+                  marginTop: "0.5rem",
+                }}
+              >
+                Start a voice chat to continue.
+              </p>
+            </div>
+          ) : (
+            messages.map((msg, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+                }}
+              >
+                <div
+                  style={{
+                    maxWidth: "80%",
+                    padding: "1rem",
+                    borderRadius: "1rem",
+                    backdropFilter: "blur(16px)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    background:
+                      msg.role === "user"
+                        ? "linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2))"
+                        : "rgba(52, 55, 74, 0.4)",
+                    borderBottomRightRadius: msg.role === "user" ? "4px" : "1rem",
+                    borderBottomLeftRadius: msg.role === "user" ? "1rem" : "4px",
+                    color: msg.role === "user" ? "#ffffff" : "rgba(255, 255, 255, 0.9)",
+                  }}
+                >
+                  <p
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      lineHeight: "1.6",
+                      margin: 0,
+                    }}
+                  >
+                    {msg.content}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+          <div ref={scrollRef} />
+        </div>
       </div>
 
       {/* Voice Instructions */}
       {connected && (
-        <div style={instructionsStyle}>
-          {userSpeaking ? (
-            <span style={{ color: "#10B981" }}>🎤 Listening to your question...</span>
-          ) : speaking ? (
-            <span style={{ color: "#60A5FA" }}>🔊 AI is responding...</span>
-          ) : readyToSpeak ? (
-            <span style={{ color: "#F87171", fontWeight: "600" }}>
-              🎤 SPEAK NOW - I understand your previous questions
-            </span>
-          ) : (
-            <span>Voice chat is active. I understand your {relevantMessageCount} previous questions.</span>
-          )}
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backdropFilter: "blur(16px)",
+            background: "rgba(37, 40, 69, 0.6)",
+            borderTop: "1px solid rgba(255, 255, 255, 0.2)",
+          }}
+        >
+          <div
+            style={{
+              maxWidth: "56rem",
+              margin: "0 auto",
+              padding: "1rem 1.5rem",
+              textAlign: "center",
+            }}
+          >
+            {userSpeaking ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <div
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    background: "#4ade80",
+                    borderRadius: "50%",
+                    animation: "pulse 2s infinite",
+                  }}
+                />
+                <span
+                  style={{
+                    color: "#4ade80",
+                    fontWeight: "500",
+                  }}
+                >
+                  Listening to your question...
+                </span>
+              </div>
+            ) : speaking ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <Volume2
+                  size={16}
+                  style={{
+                    color: "#60a5fa",
+                    animation: "pulse 2s infinite",
+                  }}
+                />
+                <span
+                  style={{
+                    color: "#60a5fa",
+                    fontWeight: "500",
+                  }}
+                >
+                  AI is responding...
+                </span>
+              </div>
+            ) : readyToSpeak ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <div
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    background: "#f87171",
+                    borderRadius: "50%",
+                    animation: "pulse 2s infinite",
+                  }}
+                />
+                <span
+                  style={{
+                    color: "#f87171",
+                    fontWeight: "600",
+                  }}
+                >
+                  SPEAK NOW - I understand your previous questions
+                </span>
+              </div>
+            ) : (
+              <span style={{ color: "rgba(255, 255, 255, 0.7)" }}>
+                Voice chat is active. I understand your {relevantMessageCount} previous questions.
+              </span>
+            )}
+          </div>
         </div>
       )}
 
-      {/* CSS for animations */}
-      <style>{`
+      {/* Custom Styles */}
+      <style jsx>{`
         @keyframes pulse {
           0%, 100% {
             opacity: 1;
@@ -754,6 +1146,34 @@ export default function ChatViewer() {
           50% {
             opacity: 0.5;
           }
+        }
+        
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: rgba(52, 55, 74, 0.3);
+          border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: rgba(52, 55, 74, 0.6);
+          border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(52, 55, 74, 0.8);
         }
       `}</style>
     </div>
