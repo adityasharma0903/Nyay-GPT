@@ -360,12 +360,12 @@ export default function MainLanding() {
 
   useEffect(() => {
     const fetchChat = async () => {
-if (!chatId) {
-      setHistory([]);
-      setCurrentChatId(null); // ✅ Add this
-      return;
-    }
-    setCurrentChatId(chatId);
+      if (!chatId) {
+        setHistory([]);
+        setCurrentChatId(null); // ✅ Add this
+        return;
+      }
+      setCurrentChatId(chatId);
 
       try {
         const user = JSON.parse(localStorage.getItem("user"));
@@ -551,41 +551,41 @@ if (!chatId) {
     }
 
     async function saveUserChat(messageObj, existingChatId = null) {
-  console.log("saveUserChat called", messageObj, existingChatId, user);
-  
-  // ✅ User check सही करें
-  if (!user?.token) {
-    console.log("No user token available");
-    return;
-  }
+      console.log("saveUserChat called", messageObj, existingChatId, user);
 
-  try {
-    const res = await fetch(`${backendBaseUrl}/history`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({
-        chatId: existingChatId,
-        message: messageObj,
-      }),
-    });
-    
-    const data = await res.json();
-    
-    // ✅ New chat के लिए navigate करें
-    if (data.chatId && !existingChatId) {
-      setCurrentChatId(data.chatId);
-      // Navigate to new chat URL
-      // navigate(`/chat/${data.chatId}`, { replace: true });
+      // ✅ User check सही करें
+      if (!user?.token) {
+        console.log("No user token available");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${backendBaseUrl}/history`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({
+            chatId: existingChatId,
+            message: messageObj,
+          }),
+        });
+
+        const data = await res.json();
+
+        // ✅ New chat के लिए navigate करें
+        if (data.chatId && !existingChatId) {
+          setCurrentChatId(data.chatId);
+          // Navigate to new chat URL
+          // navigate(`/chat/${data.chatId}`, { replace: true });
+        }
+
+        return data.chatId;
+      } catch (err) {
+        console.error("Failed to save chat:", err);
+      }
     }
-    
-    return data.chatId;
-  } catch (err) {
-    console.error("Failed to save chat:", err);
-  }
-}
 
     return () => {
       stoppedByApp = true
@@ -995,6 +995,248 @@ if (!chatId) {
   }, []);
 
   const styles = {
+    // Add these new styles to your existing styles object
+    authDropdownButtons: {
+      padding: '16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px',
+    },
+
+    mobileUserDropdown: {
+      position: 'absolute',
+      top: '100%',
+      right: '0',
+      marginTop: '12px',
+      backgroundColor: '#1a1d2e',
+      borderRadius: '12px',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+      border: '1px solid rgba(0, 0, 0, 0.1)',
+      minWidth: '200px',
+      maxWidth: '280px',
+      zIndex: 1000,
+      overflow: 'hidden',
+    },
+
+    dropdownLoginBtn: {
+      width: '100%',
+      padding: '14px 20px',
+      border: '1px solid rgba(230, 214, 214, 0.6)',
+      backgroundColor: '#1a1d2e',
+      color: '#ffff',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '8px',
+      transition: 'all 0.2s ease',
+      ':hover': {
+        backgroundColor: '#f9fafb',
+        borderColor: 'rgba(0, 0, 0, 0.2)',
+      }
+    },
+
+    dropdownSignupBtn: {
+      width: '100%',
+      padding: '14px 20px',
+      border: '1px solid rgba(230, 214, 214, 0.6)',
+      backgroundColor: '#1a1d2e',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '8px',
+      transition: 'all 0.2s ease',
+      ':hover': {
+        backgroundColor: '#2563eb',
+      }
+    },
+
+    mobileAuthButtons: {
+      padding: '16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px',
+    },
+
+    mobileLoginBtn: {
+      width: '100%',
+      padding: '12px 16px',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      backgroundColor: '',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '6px',
+      transition: 'all 0.2s ease',
+    },
+
+    mobileSignupBtn: {
+      width: '100%',
+      padding: '12px 16px',
+      border: 'none',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '6px',
+      transition: 'all 0.2s ease',
+    },
+    // Add these to your existing styles object
+    userProfileTrigger: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '8px',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      backgroundColor: 'transparent',
+      border: 'none',
+      color: '#fff',
+      fontSize: '14px',
+      fontWeight: '500',
+      ':hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      }
+    },
+
+    userAvatar: {
+      width: '40px',
+      height: '40px',
+      borderRadius: '50%',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: '8px',
+      color: '#fff',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      transition: 'all 0.2s ease',
+      ':hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      }
+    },
+
+    userName: {
+      marginRight: '4px',
+      fontSize: '14px',
+      fontWeight: '500',
+    },
+
+    userDropdown: {
+      position: 'absolute',
+      top: '100%',
+      right: '0',
+      marginTop: '12px',
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      borderRadius: '12px',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+      border: '1px solid rgba(0, 0, 0, 0.1)',
+      minWidth: '220px',
+      zIndex: 1000,
+      overflow: 'hidden',
+    },
+
+    userInfo: {
+      padding: '16px',
+      borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+    },
+
+    userInfoName: {
+      fontSize: '15px',
+      fontWeight: '600',
+      color: '#ffff',
+      marginBottom: '4px',
+    },
+
+    userInfoEmail: {
+      fontSize: '13px',
+      color: '#6b7280',
+    },
+
+    dropdownDivider: {
+      height: '1px',
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    },
+
+    logoutButton: {
+      width: '100%',
+      padding: '14px 16px',
+      border: 'none',
+      backgroundColor: 'transparent',
+      color: '#dc2626',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      transition: 'all 0.2s ease',
+      ':hover': {
+        backgroundColor: 'rgba(220, 38, 38, 0.05)',
+      }
+    },
+
+    mobileUserInfo: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '16px',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+      marginBottom: '8px',
+    },
+
+    mobileUserAvatar: {
+      width: '40px',
+      height: '40px',
+      borderRadius: '50%',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: '12px',
+      color: '#fff',
+    },
+
+    mobileUserName: {
+      fontSize: '16px',
+      fontWeight: '600',
+      color: '#fff',
+      marginBottom: '2px',
+    },
+
+    mobileUserEmail: {
+      fontSize: '12px',
+      color: 'rgba(255, 255, 255, 0.7)',
+    },
+
+    mobileLogoutBtn: {
+      width: '100%',
+      padding: '12px 16px',
+      border: 'none',
+      backgroundColor: 'rgba(220, 38, 38, 0.1)',
+      color: '#ff6b6b',
+      fontSize: '14px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '6px',
+      margin: '8px 16px 16px 16px',
+      transition: 'background-color 0.2s ease',
+    },
     nav: {
       background: "rgba(17, 24, 39, 0.85)",
       backdropFilter: "blur(20px)",
@@ -1031,7 +1273,8 @@ if (!chatId) {
       fontWeight: "bold",
       letterSpacing: "0.01em",
       color: "#fff",
-      margin: 0,
+      margin: 36,
+      marginBottom: 25,
     },
     right: {
       display: "flex",
@@ -1039,11 +1282,7 @@ if (!chatId) {
       gap: "1.2rem",
     },
     hamburger: {
-      display: isMobile ? "flex" : "none",
-      flexDirection: "column",
-      cursor: "pointer",
-      gap: "5px",
-      marginLeft: "auto",
+      display: 'none', // Hide hamburger completely
     },
     bar: {
       width: "25px",
@@ -1108,8 +1347,8 @@ if (!chatId) {
       backdropFilter: "blur(10px)",
       border: "1px solid rgba(255,255,255,0.10)",
       fontWeight: 500,
-      marginBottom: "0.75rem",
-      marginTop: isMobile ? "1rem" : "0",
+      marginBottom: "0",
+      marginTop: isMobile ? "1rem" : 0,
       width: isMobile ? "90%" : "auto",
       marginLeft: isMobile ? "auto" : 0,
       marginRight: isMobile ? "auto" : 0,
@@ -1170,14 +1409,14 @@ if (!chatId) {
   return (
     <div
       style={{
-      minHeight: "100vh",
-      background: "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)",
-      color: "#ffffff",
-      display: "flex",
-      flexDirection: "row", // THIS IS IMPORTANT
-      position: "relative",
-      width: "100vw"
-    }}
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)",
+        color: "#ffffff",
+        display: "flex",
+        flexDirection: "row", // THIS IS IMPORTANT
+        position: "relative",
+        width: "100vw"
+      }}
     >
       {/* Sidebar - always rendered, but visible only when open */}
       <ChatHistorySidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
@@ -1233,110 +1472,134 @@ if (!chatId) {
             <div style={styles.container}>
               {/* Left: Logo + Title */}
               <div style={styles.logoWrapper}>
-                <img src="/image.png" alt="Logo" style={styles.logoImg} />
+                {/* <img src="/image.png" alt="Logo" style={styles.logoImg} /> */}
                 <h1 style={styles.logoText}>Chanakya AI</h1>
               </div>
-
               {/* Center: Status (desktop only) */}
               {!isMobile && (
                 <div style={styles.statusBox}>
                   {connected ? `Connected • ${formatTime(timer)}` : "Ready to Connect"}
                 </div>
               )}
-
-              {/* Right: Hamburger (mobile) or Auth menu (desktop) */}
+              {/* Right: User menu (both mobile and desktop) */}
               <div style={styles.right}>
-                {/* Hamburger (mobile only) */}
-                <div
-                  className="hamburger"
-                  onClick={menuOpen ? closeMenu : openMenu}
-                  style={styles.hamburger}
-                  aria-label="Open menu"
-                >
-                  <div style={styles.bar}></div>
-                  <div style={styles.bar}></div>
-                  <div style={styles.bar}></div>
-                </div>
-
-                {/* Desktop Auth Menu */}
-                <div className="authMenu" style={styles.desktopMenu}>
-                  {user ? (
-                    <div style={{ position: "relative" }}>
-                      <div
-                        onClick={() => setMenuOpen(!menuOpen)}
-                        style={styles.userDropdownTrigger}
+                <div style={{ position: "relative" }}>
+                  <div
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    style={styles.userProfileTrigger}
+                  >
+                    <div style={styles.userAvatar}>
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       >
-                        👤 {user.name}
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                      </div>
-                      {menuOpen && (
-                        <div style={styles.dropdown}>
-                          <button onClick={handleLogout} style={styles.logoutBtn}>
-                            🚪 Logout
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    {user && !isMobile && <span style={styles.userName}>{user.name}</span>}
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{
+                        marginLeft: (user && !isMobile) ? '8px' : '0',
+                        display: isMobile ? 'none' : 'block'
+                      }}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </div>
+                  {menuOpen && (
+                    <div style={isMobile ? styles.mobileUserDropdown : styles.userDropdown}>
+                      {user ? (
+                        <>
+                          <div style={styles.userInfo}>
+                            <div style={styles.userInfoName}>{user.name}</div>
+                            <div style={styles.userInfoEmail}>{user.email}</div>
+                          </div>
+                          <div style={styles.dropdownDivider}></div>
+                          <button onClick={handleLogout} style={styles.logoutButton}>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              style={{ marginRight: '8px' }}
+                            >
+                              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                              <polyline points="16 17 21 12 16 7" />
+                              <line x1="21" y1="12" x2="9" y2="12" />
+                            </svg>
+                            Logout
                           </button>
+                        </>
+                      ) : (
+                        <div style={styles.authDropdownButtons}>
+                          <Link to="/login" style={{ textDecoration: "none" }}>
+                            <button style={styles.dropdownLoginBtn} onClick={() => setMenuOpen(false)}>
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{ marginRight: '8px' }}
+                              >
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                                <polyline points="10 17 15 12 10 7" />
+                                <line x1="15" y1="12" x2="3" y2="12" />
+                              </svg>
+                              Login
+                            </button>
+                          </Link>
+                          <Link to="/signup" style={{ textDecoration: "none" }}>
+                            <button style={styles.dropdownSignupBtn} onClick={() => setMenuOpen(false)}>
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{ marginRight: '8px' }}
+                              >
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                              Sign Up
+                            </button>
+                          </Link>
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div style={styles.authButtons}>
-                      <Link to="/login" style={{ textDecoration: "none" }}>
-                        <button style={styles.loginBtn}>Login</button>
-                      </Link>
-                      <Link to="/signup" style={{ textDecoration: "none" }}>
-                        <button style={styles.signupBtn}>Sign Up</button>
-                      </Link>
-                    </div>
                   )}
                 </div>
-
-                {/* Mobile Auth Menu */}
-                {isMobile && menuOpen && (
-                  <div style={styles.mobileMenu}>
-                    {user ? (
-                      <>
-                        <div
-                          style={{
-                            color: "#fff",
-                            fontWeight: 600,
-                            padding: "0.5rem 1rem",
-                            marginBottom: "0.25rem",
-                            textAlign: "center",
-                            borderBottom: "1px solid rgba(255,255,255,0.12)",
-                          }}
-                        >
-                          👤 {user.name}
-                        </div>
-                        <button onClick={handleLogout} style={styles.logoutBtn}>
-                          🚪 Logout
-                        </button>
-                      </>
-                    ) : (
-                      <div style={styles.authButtons}>
-                        <Link to="/login" style={{ textDecoration: "none" }}>
-                          <button style={styles.loginBtn}>Login</button>
-                        </Link>
-                        <Link to="/signup" style={{ textDecoration: "none" }}>
-                          <button style={styles.signupBtn}>Sign Up</button>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           </nav>
-
           {/* Status: mobile below nav */}
           {isMobile && (
             <div style={styles.statusBox}>
