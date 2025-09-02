@@ -613,7 +613,7 @@ app.post("/ask", async (req, res) => {
   try {
     const model = new ChatGroq({
       apiKey: process.env.GROQ_API_KEY,
-      model: "llama3-70b-8192",
+      model: "llama-3.3-70b-versatile",
     })
 
     const formatted = history.map((msg) => `${msg.role === "user" ? "Q" : "A"}: ${msg.content}`).join("\n")
