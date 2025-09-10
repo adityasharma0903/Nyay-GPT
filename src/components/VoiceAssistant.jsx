@@ -95,6 +95,7 @@ export default function VoiceAssistant() {
 
   const speakText = useCallback((text, language = 'hindi') => {
     return new Promise((resolve) => {
+      stopListening(); // <-- Add this line
       window.speechSynthesis.cancel();
       setState(prev => ({ ...prev, isSpeaking: true }));
       updateStatus('बोल रहा हूँ...', 'speaking');
@@ -221,6 +222,7 @@ export default function VoiceAssistant() {
           className="ai-agent-btn mic"
           onClick={() => setState(p => ({ ...p, isMuted: !p.isMuted }))}
           title={state.isMuted ? "Unmute" : "Mute"}
+          disabled={state.isSpeaking} // <-- Add this line
         >
           {state.isMuted ? <FaMicrophoneSlash /> : <FaMicrophone />}
         </button>
