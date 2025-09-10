@@ -21,12 +21,7 @@ function useSpeechRecognition() {
     const recognition = getRecognition();
     if (!recognition) return;
 
-    recognition.lang = {
-      hindi: 'hi-IN',
-      tamil: 'ta-IN',
-      english: 'en-US'
-    }[language] || 'hi-IN';
-
+    recognition.lang = { hindi: 'hi-IN', tamil: 'ta-IN', english: 'en-US' }[language] || 'hi-IN';
     recognition.onresult = (event) => onResult(event.results[0][0].transcript);
     recognition.onend = () => onEnd?.();
     recognition.onerror = (event) => {
@@ -92,36 +87,6 @@ export default function VoiceAssistant() {
     window.speechSynthesis.cancel();
   }, [stopListening]);
 
-const speakText = useCallback((text, language='hindi') => {
-  safeStopListening();
-  setState(prev => ({ ...prev, isMuted: true, isSpeaking: true }));
-  isSpeakingRef.current = true;
-  updateStatus('बोल रहा हूँ...', 'speaking');
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = { hindi:'hi-IN', tamil:'ta-IN', english:'en-US' }[language] || 'hi-IN';
-
-  utterance.onend = () => {
-    isSpeakingRef.current = false;
-    updateStatus('सुनने के लिए तैयार', 'ready');
-
-    // Wait 2 seconds before enabling mic
-    setTimeout(() => {
-      setState(prev => ({ ...prev, isSpeaking: false, isMuted: false }));
-      startListeningLoop(); // mic will start only after AI speech + 2s
-    }, 2000);
-  };
-
-  utterance.onerror = () => {
-    isSpeakingRef.current = false;
-    setState(prev => ({ ...prev, isSpeaking: false, isMuted: false }));
-    updateStatus('बोलने में त्रुटि', 'error');
-  };
-
-  window.speechSynthesis.speak(utterance);
-}, [safeStopListening, updateStatus, startListeningLoop]);
-
-
   const detectLanguageFromSpeech = useCallback((text) => {
     const t = text.toLowerCase();
     if (t.includes('hindi') || t.includes('हिंदी') || t.includes('हिन्दी')) return 'hindi';
@@ -149,10 +114,36 @@ const speakText = useCallback((text, language='hindi') => {
     }, () => {
       setState(prev => ({ ...prev, isListening: false }));
     });
-  }, [state.isConnected, state.selectedLanguage, state.isSpeaking, state.isMuted, startListening, detectLanguageFromSpeech, speakText, updateStatus]);
+  }, [state.isConnected, state.selectedLanguage, state.isSpeaking, state.isMuted, startListening, detectLanguageFromSpeech, updateStatus]);
+
+  const speakText = useCallback((text, language='hindi') => {
+    safeStopListening();
+    setState(prev => ({ ...prev, isMuted: true, isSpeaking: true }));
+    isSpeakingRef.current = true;
+    updateStatus('बोल रहा हूँ...', 'speaking');
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = { hindi:'hi-IN', tamil:'ta-IN', english:'en-US' }[language] || 'hi-IN';
+
+    utterance.onend = () => {
+      isSpeakingRef.current = false;
+      updateStatus('सुनने के लिए तैयार', 'ready');
+      setTimeout(() => {
+        setState(prev => ({ ...prev, isSpeaking: false, isMuted: false }));
+        startListeningLoop(); // mic ON only after AI speech + 2 sec
+      }, 2000);
+    };
+
+    utterance.onerror = () => {
+      isSpeakingRef.current = false;
+      setState(prev => ({ ...prev, isSpeaking: false, isMuted: false }));
+      updateStatus('बोलने में त्रुटि', 'error');
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }, [safeStopListening, updateStatus, startListeningLoop]);
 
   const startSession = useCallback(() => {
-    // Mobile-friendly: must be gesture-initiated
     navigator.mediaDevices.getUserMedia({ audio:true })
       .then(stream => {
         stream.getTracks().forEach(track => track.stop());
@@ -161,11 +152,8 @@ const speakText = useCallback((text, language='hindi') => {
         startTimer();
         speakText('नमस्ते! मैं न्याय GPT हूँ। कृपया भाषा चुनें - हिंदी, तमिल या अंग्रेजी कहें।', 'hindi');
       })
-      .catch(err => {
-        console.error(err);
-        alert('Please allow microphone access.');
-        updateStatus('माइक्रोफोन की अनुमति चाहिए', 'error');
-      });
+      .catch(err => { alert('Please allow microphone access.'); updateStatus('माइक्रोफोन की अनुमति चाहिए', 'error'); });
+
   }, [startTimer, speakText, updateStatus]);
 
   const endSession = useCallback(() => {
