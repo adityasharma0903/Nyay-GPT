@@ -3,7 +3,7 @@ import { FaMicrophone, FaMicrophoneSlash, FaPhone, FaPhoneSlash } from 'react-ic
 import './VoiceAgentUI.css';
 
 function useSpeechRecognition() {
-  const recognitionRef = useRef(null);
+  const recognitionRef = useRef<any>(null);
   const isSupported = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
 
   const getRecognition = () => {
@@ -17,14 +17,19 @@ function useSpeechRecognition() {
     return recognition;
   };
 
-  const startListening = useCallback((language, onResult, onEnd) => {
+  const startListening = useCallback((language: string, onResult: (text: string) => void, onEnd?: () => void) => {
     const recognition = getRecognition();
     if (!recognition) return;
 
-    recognition.lang = { hindi: 'hi-IN', tamil: 'ta-IN', english: 'en-US' }[language] || 'hi-IN';
-    recognition.onresult = (event) => onResult(event.results[0][0].transcript);
+    recognition.lang = {
+      hindi: 'hi-IN',
+      tamil: 'ta-IN',
+      english: 'en-US'
+    }[language] || 'hi-IN';
+
+    recognition.onresult = (event: any) => onResult(event.results[0][0].transcript);
     recognition.onend = () => onEnd?.();
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       onEnd?.();
     };
@@ -46,18 +51,19 @@ export default function VoiceAssistant() {
     isListening: false,
     isSpeaking: false,
     isMuted: true,
-    selectedLanguage: null,
+    selectedLanguage: null as null | string,
     sessionTimer: 0,
-    conversation: [],
+    conversation: [] as Array<{ sender: string, text: string }>,
     status: 'प्रारंभ करने के लिए तैयार',
-    statusType: 'disconnected'
+    statusType: 'disconnected',
+    micForceHoldOff: false // <--- NEW STATE to strictly enforce mic-off
   });
 
-  const timerRef = useRef(null);
+  const timerRef = useRef<any>(null);
   const isSpeakingRef = useRef(false);
   const { startListening, stopListening, isSupported } = useSpeechRecognition();
 
-  const updateStatus = useCallback((status, statusType) => {
+  const updateStatus = useCallback((status: string, statusType: string) => {
     setState(prev => ({ ...prev, status, statusType }));
   }, []);
 
@@ -75,7 +81,7 @@ export default function VoiceAssistant() {
     setState(prev => ({ ...prev, sessionTimer: 0 }));
   }, []);
 
-  const formatTime = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2,'0')}:${String(seconds % 60).padStart(2,'0')}`;
+  const formatTime = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2,'0')}:${String(seconds % 60).padStart(2,'0')}`;
 
   const getStatusVariant = () => ({
     ready:'success', listening:'primary', speaking:'warning',
@@ -87,38 +93,15 @@ export default function VoiceAssistant() {
     window.speechSynthesis.cancel();
   }, [stopListening]);
 
-  const detectLanguageFromSpeech = useCallback((text) => {
-    const t = text.toLowerCase();
-    if (t.includes('hindi') || t.includes('हिंदी') || t.includes('हिन्दी')) return 'hindi';
-    if (t.includes('tamil') || t.includes('தமிழ்') || t.includes('तमिल')) return 'tamil';
-    if (t.includes('english') || t.includes('अंग्रेजी') || t.includes('इंग्लिश')) return 'english';
-    return null;
-  }, []);
-
-  const startListeningLoop = useCallback(() => {
-    if (!state.isConnected || state.isMuted || state.isSpeaking || isSpeakingRef.current) return;
-
-    setState(prev => ({ ...prev, isListening: true }));
-    updateStatus('सुन रहा हूँ...', 'listening');
-
-    startListening(state.selectedLanguage || 'hindi', async (transcript) => {
-      const lang = detectLanguageFromSpeech(transcript);
-      if (!state.selectedLanguage && lang) {
-        speakText({
-          hindi:'हिंदी चुनी गई। अब आप प्रश्न पूछें।',
-          tamil:'தமிழ் தேர்ந்தெடுக்கப்பட்டது. உங்கள் கேள்வியை கேளுங்கள்.',
-          english:'English selected. Please ask your question.'
-        }[lang], lang);
-        setState(prev => ({ ...prev, selectedLanguage: lang }));
-      }
-    }, () => {
-      setState(prev => ({ ...prev, isListening: false }));
-    });
-  }, [state.isConnected, state.selectedLanguage, state.isSpeaking, state.isMuted, startListening, detectLanguageFromSpeech, updateStatus]);
-
-  const speakText = useCallback((text, language='hindi') => {
+  // --- MAIN LOGIC: Mic OFF during AI speech + hard lock ---
+  const speakText = useCallback((text: string, language: string = 'hindi') => {
     safeStopListening();
-    setState(prev => ({ ...prev, isMuted: true, isSpeaking: true }));
+    setState(prev => ({
+      ...prev,
+      isMuted: true,
+      isSpeaking: true,
+      micForceHoldOff: true // <--- lock mic so gestures can't override
+    }));
     isSpeakingRef.current = true;
     updateStatus('बोल रहा हूँ...', 'speaking');
 
@@ -128,21 +111,126 @@ export default function VoiceAssistant() {
     utterance.onend = () => {
       isSpeakingRef.current = false;
       updateStatus('सुनने के लिए तैयार', 'ready');
+      // --- 2 sec delay before mic can be enabled ---
       setTimeout(() => {
-        setState(prev => ({ ...prev, isSpeaking: false, isMuted: false }));
-        startListeningLoop(); // mic ON only after AI speech + 2 sec
+        setState(prev => ({
+          ...prev,
+          isSpeaking: false,
+          isMuted: false,
+          micForceHoldOff: false // <--- release lock so mic can be triggered/listening starts
+        }));
+        startListeningLoop(); // mic ON after AI speech + 2s
       }, 2000);
     };
 
     utterance.onerror = () => {
       isSpeakingRef.current = false;
-      setState(prev => ({ ...prev, isSpeaking: false, isMuted: false }));
+      setState(prev => ({
+        ...prev,
+        isSpeaking: false,
+        isMuted: false,
+        micForceHoldOff: false
+      }));
       updateStatus('बोलने में त्रुटि', 'error');
     };
 
     window.speechSynthesis.speak(utterance);
-  }, [safeStopListening, updateStatus, startListeningLoop]);
+  }, [safeStopListening, updateStatus]);
 
+  const detectLanguageFromSpeech = useCallback((text: string) => {
+    const t = text.toLowerCase();
+    if (t.includes('hindi') || t.includes('हिंदी') || t.includes('हिन्दी')) return 'hindi';
+    if (t.includes('tamil') || t.includes('தமிழ்') || t.includes('तमिल')) return 'tamil';
+    if (t.includes('english') || t.includes('अंग्रेजी') || t.includes('इंग्लिश')) return 'english';
+    return null;
+  }, []);
+
+  // --- Listen only if mic is ON and AI is NOT speaking and not force-held-off ---
+  const startListeningLoop = useCallback(() => {
+    if (
+      !state.isConnected ||
+      state.isMuted ||
+      state.isSpeaking ||
+      isSpeakingRef.current ||
+      state.micForceHoldOff // <--- HARD BLOCK
+    ) return;
+
+    setState(prev => ({ ...prev, isListening: true }));
+    updateStatus('सुन रहा हूँ...', 'listening');
+
+    startListening(state.selectedLanguage || 'hindi', async (transcript: string) => {
+      // GUARD: Ignore input if mic is off, AI is speaking, or force-hold-mic-off
+      if (
+        state.isMuted ||
+        state.isSpeaking ||
+        isSpeakingRef.current ||
+        state.micForceHoldOff
+      ) return;
+
+      // Language selection
+      const lang = detectLanguageFromSpeech(transcript);
+      if (!state.selectedLanguage && lang) {
+        speakText({
+          hindi:'हिंदी चुनी गई। अब आप प्रश्न पूछें।',
+          tamil:'தமிழ் தேர்ந்தெடுக்கப்பட்டது. உங்கள் கேள்வியை கேளுங்கள்.',
+          english:'English selected. Please ask your question.'
+        }[lang], lang);
+        setState(prev => ({ ...prev, selectedLanguage: lang }));
+        return;
+      }
+      // Add user message
+      setState(prev => ({
+        ...prev,
+        conversation: [...prev.conversation, { sender: 'user', text: transcript }]
+      }));
+
+      // Simulate AI answer
+      let aiAnswer = 'आपका सवाल मिला है: ' + transcript;
+      if (state.selectedLanguage === 'english') aiAnswer = 'Received your question: ' + transcript;
+      if (state.selectedLanguage === 'tamil') aiAnswer = 'உங்கள் கேள்வி கிடைத்தது: ' + transcript;
+
+      setState(prev => ({
+        ...prev,
+        conversation: [...prev.conversation, { sender: 'ai', text: aiAnswer }]
+      }));
+
+      speakText(aiAnswer, state.selectedLanguage || 'hindi');
+    }, () => {
+      setState(prev => ({ ...prev, isListening: false }));
+    });
+  }, [
+    state.isConnected,
+    state.selectedLanguage,
+    state.isSpeaking,
+    state.isMuted,
+    state.micForceHoldOff,
+    startListening,
+    detectLanguageFromSpeech,
+    speakText,
+    updateStatus,
+  ]);
+
+  // --- Gesture-Based Mic Permission Handling ---
+  // If user tries to enable mic (via gesture/button), mic will NOT turn ON if AI is speaking or force-hold is on
+  const handleMicClick = useCallback(() => {
+    // Block mic ON if AI is speaking, in 2s delay, or force-hold-mic-off
+    if (state.isSpeaking || isSpeakingRef.current || state.micForceHoldOff) return;
+
+    if (state.isMuted) {
+      navigator.mediaDevices.getUserMedia({ audio:true })
+        .then(stream => {
+          stream.getTracks().forEach(track=>track.stop());
+          setState(prev=>({ ...prev, isMuted:false }));
+          startListeningLoop(); // Start listening only if allowed
+        })
+        .catch(err=>{ alert('Please allow microphone access.'); updateStatus('माइक्रोफोन की अनुमति चाहिए','error'); });
+    } else {
+      setState(prev=>({ ...prev, isMuted:true }));
+      stopListening();
+    }
+  }, [state.isSpeaking, state.micForceHoldOff, startListeningLoop, stopListening, updateStatus]);
+
+  // --- Session start/stop (gesture required for permission) ---
   const startSession = useCallback(() => {
     navigator.mediaDevices.getUserMedia({ audio:true })
       .then(stream => {
@@ -152,33 +240,28 @@ export default function VoiceAssistant() {
         startTimer();
         speakText('नमस्ते! मैं न्याय GPT हूँ। कृपया भाषा चुनें - हिंदी, तमिल या अंग्रेजी कहें।', 'hindi');
       })
-      .catch(err => { alert('Please allow microphone access.'); updateStatus('माइक्रोफोन की अनुमति चाहिए', 'error'); });
-
+      .catch(err => {
+        console.error(err);
+        alert('Please allow microphone access.');
+        updateStatus('माइक्रोफोन की अनुमति चाहिए', 'error');
+      });
   }, [startTimer, speakText, updateStatus]);
 
   const endSession = useCallback(() => {
     stopListening();
     window.speechSynthesis.cancel();
     stopTimer();
-    setState(prev => ({ ...prev, isConnected:false, isListening:false, isSpeaking:false, selectedLanguage:null, conversation:[] }));
+    setState(prev => ({
+      ...prev,
+      isConnected:false,
+      isListening:false,
+      isSpeaking:false,
+      selectedLanguage:null,
+      conversation:[],
+      micForceHoldOff: false
+    }));
     updateStatus('सत्र समाप्त','disconnected');
   }, [stopListening, stopTimer, updateStatus]);
-
-  const handleMicClick = useCallback(() => {
-    if (state.isSpeaking) return;
-    if (state.isMuted) {
-      navigator.mediaDevices.getUserMedia({ audio:true })
-        .then(stream => {
-          stream.getTracks().forEach(track=>track.stop());
-          setState(prev=>({ ...prev, isMuted:false }));
-          startListeningLoop();
-        })
-        .catch(err=>{ alert('Please allow microphone access.'); updateStatus('माइक्रोफोन की अनुमति चाहिए','error'); });
-    } else {
-      setState(prev=>({ ...prev, isMuted:true }));
-      stopListening();
-    }
-  }, [state.isSpeaking, startListeningLoop, stopListening, updateStatus]);
 
   if (!isSupported) {
     return <div className="ai-agent-ui-container">
@@ -206,12 +289,29 @@ export default function VoiceAssistant() {
         <span style={{marginLeft:10}}>Time: {formatTime(state.sessionTimer)}</span>
       </div>
       <div className="ai-agent-btn-row">
-        <button className="ai-agent-btn mic" onClick={handleMicClick} title={state.isMuted?"Unmute":"Mute"} disabled={state.isSpeaking}>
-          {state.isMuted?<FaMicrophoneSlash/>:<FaMicrophone/>}
+        <button
+          className="ai-agent-btn mic"
+          onClick={handleMicClick}
+          title={state.isMuted ? "Unmute" : "Mute"}
+          disabled={state.isSpeaking || isSpeakingRef.current || state.micForceHoldOff}
+        >
+          {state.isMuted ? <FaMicrophoneSlash /> : <FaMicrophone />}
         </button>
-        <button className="ai-agent-btn call" onClick={state.isConnected?endSession:startSession} title={state.isConnected?"End Session":"Start Session"}>
-          {state.isConnected?<FaPhoneSlash/>:<FaPhone/>}
+        <button
+          className="ai-agent-btn call"
+          onClick={state.isConnected ? endSession : startSession}
+          title={state.isConnected ? "End Session" : "Start Session"}
+        >
+          {state.isConnected ? <FaPhoneSlash /> : <FaPhone />}
         </button>
+      </div>
+      {/* Conversation history UI */}
+      <div className="ai-conversation-ui">
+        {state.conversation.map((msg, idx) =>
+          <div key={idx} className={`ai-msg ai-msg-${msg.sender}`}>
+            <b>{msg.sender === 'ai' ? 'AI' : 'You'}:</b> {msg.text}
+          </div>
+        )}
       </div>
     </div>
   );
