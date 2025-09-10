@@ -92,28 +92,35 @@ export default function VoiceAssistant() {
     window.speechSynthesis.cancel();
   }, [stopListening]);
 
-  const speakText = useCallback((text, language='hindi') => {
-    safeStopListening();
-    setState(prev => ({ ...prev, isMuted: true, isSpeaking: true }));
-    isSpeakingRef.current = true;
-    updateStatus('बोल रहा हूँ...', 'speaking');
+const speakText = useCallback((text, language='hindi') => {
+  safeStopListening();
+  setState(prev => ({ ...prev, isMuted: true, isSpeaking: true }));
+  isSpeakingRef.current = true;
+  updateStatus('बोल रहा हूँ...', 'speaking');
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = { hindi:'hi-IN', tamil:'ta-IN', english:'en-US' }[language] || 'hi-IN';
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = { hindi:'hi-IN', tamil:'ta-IN', english:'en-US' }[language] || 'hi-IN';
 
-    utterance.onend = () => {
-      isSpeakingRef.current = false;
+  utterance.onend = () => {
+    isSpeakingRef.current = false;
+    updateStatus('सुनने के लिए तैयार', 'ready');
+
+    // Wait 2 seconds before enabling mic
+    setTimeout(() => {
       setState(prev => ({ ...prev, isSpeaking: false, isMuted: false }));
-      updateStatus('सुनने के लिए तैयार', 'ready');
-    };
-    utterance.onerror = () => {
-      isSpeakingRef.current = false;
-      setState(prev => ({ ...prev, isSpeaking: false, isMuted: false }));
-      updateStatus('बोलने में त्रुटि', 'error');
-    };
+      startListeningLoop(); // mic will start only after AI speech + 2s
+    }, 2000);
+  };
 
-    window.speechSynthesis.speak(utterance);
-  }, [safeStopListening, updateStatus]);
+  utterance.onerror = () => {
+    isSpeakingRef.current = false;
+    setState(prev => ({ ...prev, isSpeaking: false, isMuted: false }));
+    updateStatus('बोलने में त्रुटि', 'error');
+  };
+
+  window.speechSynthesis.speak(utterance);
+}, [safeStopListening, updateStatus, startListeningLoop]);
+
 
   const detectLanguageFromSpeech = useCallback((text) => {
     const t = text.toLowerCase();
